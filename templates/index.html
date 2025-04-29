@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表格数据清洗</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        /* Style to make nested accordions look slightly different or indented */
+        #settingsAccordion .accordion-body .accordion {
+            margin-left: 15px;
+            margin-right: 15px;
+        }
+
+        #settingsAccordion .accordion-body .card {
+            margin-left: 15px;
+            margin-right: 15px;
+        }
+
+        /* Added CSS for highlighting */
+        /* Ensure background colors have enough contrast or adjust text color */
+        .table-success {
+            background-color: #e6ffed !important;
+        }
+
+        /* Lighter green */
+        .table-danger {
+            background-color: #f8d7da !important;
+        }
+
+        .table-danger td {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        /* Strikethrough for deleted rows */
+        .table-warning {
+            background-color: #fff9e0 !important;
+        }
+
+        /* Lighter yellow */
+
+        .cell-modified {
+            font-weight: bold;
+            color: red;
+            /* Optional: Add a more distinct background or border */
+            /* background-color: #ffeeba; */
+            /* border: 1px dashed #ffc107 !important; */
+        }
+
+        /* Style for pagination controls */
+        .diff-pagination-controls {
+            display: inline-flex;
+            /* Align items nicely */
+            align-items: center;
+        }
+
+        /* Reduce vertical padding on table cells for denser look */
+        .table-sm td,
+        .table-sm th {
+            padding: 0.3rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>表格数据清洗</h1>
+        <p>上传一个或多个Excel（.xlsx、.xls）或CSV（.CSV）文件，并拉取飞书多维表格数据以进行整合和标准化，最后更新飞书多维表格。</p>
+        <!-- 操作说明 -->
+        <div class="accordion mb-3" id="instructionsAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="instructionsHeading">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseInstructions" aria-expanded="true"
+                        aria-controls="collapseInstructions">
+                        操作说明 (点击折叠/展开)
+                    </button>
+                </h2>
+                <div id="collapseInstructions" class="accordion-collapse collapse show"
+                    aria-labelledby="instructionsHeading" data-bs-parent="#instructionsAccordion">
+                    <div class="accordion-body">
+                        <p><strong>基本流程:</strong></p>
+                        <ol>
+                            <li>(可选) 点击下方的 "配置选项" 展开，根据需要调整参数，完成后可点击 "保存所有设置为默认值"。</li>
+                            <li>(必要) 第一步：上传需要处理的 Excel 或 CSV 文件。</li>
+                            <li>(必要) 第二步：点击 "开始处理" 按钮。等待处理进度更新。处理完成后下载最终结果文件。</li>
+                            <li>(必要) 第三步：进入 "人工检查与调整"，下载文件并在本地修改。</li>
+                            <li>(必要) 第四步：上传调整后数据，选择并上传您修改后的文件。</li>
+                            <li>(可选) 第五步：检查差异，点击 "检查差异" 按钮，会展示您修改的内容，用作辅助验证。</li>
+                            <li>(必要) 第六步：确认差异无误后，点击 "同步到飞书" 将更改应用到飞书表格。</li>
+                        </ol>
+                        <p><strong>注意事项:</strong></p>
+                        <ul>
+                            <li>配置：请确保您的 API Key 正确且有足够的额度。</li>
+                            <li>配置：目标列名请每行输入一个。程序会尝试从源文件中提取信息并填充到这些列中。</li>
+                            <li>配置：目标列名中`来源`请勿删除。</li>
+                            <li>配置：后处理操作的列名选择依赖于 "目标列名" 的设置。请务必确保目标列名中的字段在飞书的表单中存在此字段，否则会无法同步。</li>
+                            <li>配置：批处理大小 (Batch Size) 影响每次调用 API 处理的行数。较大的值可能更快，但也更消耗 Token 和内存，并可能超过 API 的单次请求限制，默认160，不建议再大于此值。</li>
+                            <li>配置：如果遇到 "Context length exceeded" 错误，请尝试减小批处理大小。</li>
+                            <li>配置：飞书数据源配置-->新增目标 Table ID(s):此处配置决定了新增数据同步至哪张多维表格。系统在新增数据时，会首先尝试写入第一个 Table
+                                ID。如果检查发现写入后会超过该表格的行数上限 (企业版最大为 50000 行)，则会自动尝试列表中的下一个 Table
+                                ID，以此类推。如果所有指定的目标表格都已满，新增操作将失败并报错。如果未配置此项，新增数据将写入 "飞书 Table IDs" 列表中的第一个表格。</li>
+                            <li>第三步：`local_row_id` 列与 `record_id` 请勿手动修改，是用作更新的主键。</li>
+                            <li>第四步：需上传系统生成的final_*.xlsx的文件，请勿上传其他文件</li>
+                            
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 总配置区域 -->
+        <div class="accordion mb-3" id="settingsAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="settingsHeading">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseSettings" aria-expanded="false" aria-controls="collapseSettings">
+                        配置选项 (点击展开/折叠)
+                    </button>
+                </h2>
+                <div id="collapseSettings" class="accordion-collapse collapse" aria-labelledby="settingsHeading"
+                    data-bs-parent="#settingsAccordion">
+                    <div class="accordion-body">
+
+                        <!-- LLM 高级配置 -->
+                        <div class="accordion mb-3" id="configAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="configHeading">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseConfig" aria-expanded="false"
+                                        aria-controls="collapseConfig">
+                                        LLM 处理配置 (点击展开/折叠)
+                                    </button>
+                                </h2>
+                                <div id="collapseConfig" class="accordion-collapse collapse"
+                                    aria-labelledby="configHeading" data-bs-parent="#configAccordion">
+                                    <div class="accordion-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">目标列名 (Target Columns):</label>
+                                            <div id="target-columns-container">
+                                                {% for column_name in default_llm_config.TARGET_COLUMNS %}
+                                                <div class="input-group mb-2">
+                                                    <input type="text" class="form-control target-column-input"
+                                                        placeholder="输入目标列名" value="{{ column_name }}">
+                                                    {% if loop.index > 1 %} {# 第一个不允许移除 #}
+                                                    <button class="btn btn-outline-danger remove-column-btn"
+                                                        type="button">移除</button>
+                                                    {% endif %}
+                                                </div>
+                                                {% else %}
+                                                <!-- 如果默认列表为空，至少显示一个输入框 -->
+                                                <div class="input-group mb-2">
+                                                    <input type="text" class="form-control target-column-input"
+                                                        placeholder="输入目标列名" value="">
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                            <button class="btn btn-outline-secondary btn-sm mt-2" type="button"
+                                                id="add-column-btn">+
+                                                添加列名</button>
+                                            <div class="form-text">指定最终输出 Excel 文件中需要包含的列标题。</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="api-key" class="form-label">DeepSeek API Key:</label>
+                                            <input type="password" class="form-control" id="api-key"
+                                                placeholder="输入您的 DeepSeek API Key (例如 sk-xxxx)"
+                                                value="{{ default_llm_config.DEEPSEEK_API_KEY }}">
+                                            <div class="form-text">您的 DeepSeek API 密钥。如果留空，将尝试使用服务器端的默认配置 (若有)。</div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-4 mb-3">
+                                                <label for="batch-size" class="form-label">批处理大小 (Batch Size):</label>
+                                                <input type="number" class="form-control" id="batch-size"
+                                                    value="{{ default_llm_config.BATCH_SIZE }}" min="1">
+                                                <div class="form-text">每次调用 API 处理的行数。</div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <label for="max-tokens" class="form-label">最大完成 Token 数 (Max
+                                                    Tokens):</label>
+                                                <input type="number" class="form-control" id="max-tokens"
+                                                    value="{{ default_llm_config.MAX_COMPLETION_TOKENS }}" min="100">
+                                                <div class="form-text">限制模型单次生成的最大 Token 数。</div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <label for="api-timeout" class="form-label">API 超时时间 (秒):</label>
+                                                <input type="number" class="form-control" id="api-timeout"
+                                                    value="{{ default_llm_config.API_TIMEOUT }}" min="10">
+                                                <div class="form-text">调用 API 等待响应的最长时间。</div>
+                                            </div>
+                                        </div>
+                                        <!-- 移除旧的保存按钮 -->
+                                        <!-- <button type="button" class="btn btn-success btn-sm" id="save-llm-config-btn">保存此部分为默认值</button> -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 飞书配置 -->
+                        <div class="accordion mb-3" id="feishuConfigAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="feishuConfigHeading">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseFeishuConfig" aria-expanded="false"
+                                        aria-controls="collapseFeishuConfig">
+                                        飞书数据源配置 (点击展开/折叠)
+                                    </button>
+                                </h2>
+                                <div id="collapseFeishuConfig" class="accordion-collapse collapse"
+                                    aria-labelledby="feishuConfigHeading" data-bs-parent="#feishuConfigAccordion">
+                                    <div class="accordion-body">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="feishu-app-id" class="form-label">飞书 App ID:</label>
+                                                <input type="text" class="form-control" id="feishu-app-id"
+                                                    value="{{ default_feishu_config.APP_ID }}">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="feishu-app-secret" class="form-label">飞书 App Secret:</label>
+                                                <input type="password" class="form-control" id="feishu-app-secret"
+                                                    value="{{ default_feishu_config.APP_SECRET }}">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="feishu-app-token" class="form-label">飞书 Base App Token:</label>
+                                            <input type="text" class="form-control" id="feishu-app-token"
+                                                value="{{ default_feishu_config.APP_TOKEN }}">
+                                            <div class="form-text">多维表格的 App Token (不是 Table Token)。</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">来源飞书 Table IDs (用于读取和更新/删除):</label>
+                                            <div id="feishu-table-ids-container">
+                                                {% for table_id in default_feishu_config.TABLE_IDS %}
+                                                <div class="input-group mb-2">
+                                                    <input type="text" class="form-control feishu-table-id-input"
+                                                        placeholder="输入 Table ID" value="{{ table_id }}">
+                                                    <button class="btn btn-outline-danger remove-feishu-table-id-btn"
+                                                        type="button">移除</button>
+                                                </div>
+                                                {% else %}
+                                                <div class="input-group mb-2">
+                                                    <input type="text" class="form-control feishu-table-id-input"
+                                                        placeholder="输入 Table ID" value="">
+                                                    <button class="btn btn-outline-danger remove-feishu-table-id-btn"
+                                                        type="button">移除</button>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                            <button class="btn btn-outline-secondary btn-sm mt-2" type="button"
+                                                id="add-feishu-table-id-btn">+ 添加来源 Table ID</button>
+                                            <div class="form-text">需要从中拉取数据并进行更新/删除操作的表格。</div>
+                                        </div>
+                                        <!-- Updated: Add Target Table IDs List -->
+                                        <div class="mb-3">
+                                            <label class="form-label">目标飞书 Table IDs (用于新增写入):</label>
+                                            <div id="feishu-add-target-ids-container"> <!-- Changed ID -->
+                                                {% for add_table_id in default_feishu_config.ADD_TARGET_TABLE_IDS %}
+                                                <div class="input-group mb-2">
+                                                    <input type="text" class="form-control feishu-add-target-id-input"
+                                                        placeholder="输入新增专用 Table ID" value="{{ add_table_id }}">
+                                                    <button
+                                                        class="btn btn-outline-danger remove-feishu-add-target-id-btn"
+                                                        type="button">移除</button>
+                                                </div>
+                                                {% else %}
+                                                <!-- Display one empty input if the list is empty -->
+                                                <div class="input-group mb-2">
+                                                    <input type="text" class="form-control feishu-add-target-id-input"
+                                                        placeholder="输入新增专用 Table ID" value="">
+                                                    <button
+                                                        class="btn btn-outline-danger remove-feishu-add-target-id-btn"
+                                                        type="button">移除</button>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                            <button class="btn btn-outline-secondary btn-sm mt-2" type="button"
+                                                id="add-feishu-add-target-id-btn">+ 添加目标 Table ID</button>
+                                            <!-- Changed ID -->
+                                            <div class="form-text">
+                                                指定用于新增记录的表格。若填写多个，将按顺序检查行数限制，写入第一个有足够空间的表格。若不填，则使用来源 Table ID的第一个。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 后处理操作 -->
+                        <div class="card mb-3">
+                            <div class="card-header">后处理操作配置 (在数据合并后执行)</div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input post-process-check" type="checkbox"
+                                            value="check_duplicate_phones" id="check_duplicate_phones" checked
+                                            data-target-selects="#post-phone-col-1-select">
+                                        <label class="form-check-label" for="check_duplicate_phones">
+                                            校验重复手机号 (在备注列标记)
+                                        </label>
+                                    </div>
+                                    <div class="mt-2" id="post-phone-col-1-select-container" style="display: block;">
+                                        <select class="form-select form-select-sm post-process-select"
+                                            id="post-phone-col-1-select" name="post_phone_col_for_dup_phones">
+                                            <option value="" selected>-- 请选择用于校验的"电话" 列 --</option>
+                                            <!-- Options will be populated by JS -->
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input post-process-check" type="checkbox"
+                                            value="check_duplicate_companies" id="check_duplicate_companies" checked
+                                            data-target-selects="#post-phone-col-2-select, #post-company-col-select">
+                                        <label class="form-check-label" for="check_duplicate_companies">
+                                            校验手机号+公司名重复 & 关联公司名(LLM)检查
+                                        </label>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-6" id="post-phone-col-2-select-container"
+                                            style="display: block;">
+                                            <select class="form-select form-select-sm post-process-select"
+                                                id="post-phone-col-2-select" name="post_phone_col_for_dup_comp">
+                                                <option value="" selected>-- 请选择"电话" 列 --</option>
+                                                <!-- Options will be populated by JS -->
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6" id="post-company-col-select-container"
+                                            style="display: block;">
+                                            <select class="form-select form-select-sm post-process-select"
+                                                id="post-company-col-select" name="post_company_col_for_dup_comp">
+                                                <option value="" selected>-- 请选择"公司" 列 --</option>
+                                                <!-- Options will be populated by JS -->
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 统一保存按钮 -->
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-success" id="save-all-settings-btn">保存所有设置为默认值</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 文件上传区域 -->
+        <form id="upload-form" enctype="multipart/form-data" class="mb-4">
+            <div class="mb-3">
+                <label class="form-label fw-bold">第一步: 选择文件</label><br>
+                <button type="button" class="btn btn-primary mb-2" id="select-files-btn">选择文件</button>
+                <input type="file" class="visually-hidden" id="file-input" name="files[]" multiple required
+                    accept=".xlsx,.xls,.csv">
+                <div id="selected-files-list" class="text-muted small"></div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">第二步: 处理数据</label><br>
+                <button type="submit" class="btn btn-primary">开始处理</button>
+            </div>
+        </form>
+
+
+        <!-- 处理状态/进度条区域 -->
+        <div id="progress-container" class="progress-container mt-4">
+            <h2>处理状态</h2>
+            <div id="status-message" class="alert alert-info">等待上传文件...</div>
+            <div class="progress mb-2">
+                <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                    role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%
+                </div>
+            </div>
+            <div id="result-link-container"></div>
+        </div>
+
+        <!-- 人工检查与差异对比部分 -->
+        <div id="review-section" class="mt-4 p-3 border rounded" style="display: none;">
+            <hr>
+            <h4>第三步：人工检查与调整</h4>
+            <p class="text-muted">请下载处理完成的文件，在本地进行手动检查和调整。</p>
+            <div id="download-link-step3-placeholder" class="mb-3">
+                <!-- 下载链接会由JS在处理完成后填充到上方的 result-link-container -->
+                <p>下载链接见上方处理状态区域。</p>
+            </div>
+
+            <h4 class="mt-4">第四步：上传调整后数据</h4>
+            <form id="upload-edited-form-step4" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="edited-file-input-step4" class="form-label fw-bold">选择调整后的文件:</label><br>
+                    <button type="button" class="btn btn-secondary mb-2" id="select-edited-file-btn">选择文件</button>
+                    <input type="file" class="visually-hidden" id="edited-file-input" accept=".xlsx,.xls,.csv">
+                    <div id="selected-edited-file-list" class="text-muted small mb-2">尚未选择文件</div>
+                    <button type="button" class="btn btn-primary" id="upload-edited-btn" disabled>上传调整后数据</button>
+                </div>
+            </form>
+
+            <h4 class="mt-4">第五步：检查差异</h4>
+            <p class="text-muted">对比您上传的调整后文件与系统处理完成的文件之间的差异。</p>
+            <div class="mb-3">
+                <!-- 检查差异按钮 (从下面移动到这里，并保持结构) -->
+                <button type="button" class="btn btn-info" id="check-diff-btn" disabled>检查差异</button>
+                <!-- 新增：同步到飞书按钮 -->
+                <button type="button" class="btn btn-warning ms-2" id="sync-feishu-btn" disabled>同步到飞书</button>
+                <span id="sync-status" class="ms-2"></span> <!-- 用于显示同步状态 -->
+            </div>
+
+            <!-- 差异结果显示区域 (从下面移动到这里) -->
+            <div id="diff-results-container" class="mt-4" style="display: none;">
+                <h5>差异比较结果</h5>
+                <div id="diff-summary" class="mb-2"></div> <!-- Added margin-bottom -->
+                <!-- Pagination Controls -->
+                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+                    <!-- Added flex-wrap for responsiveness -->
+                    <span id="diff-summary-stats"></span> <!-- Separate span for stats -->
+                    <div class="diff-pagination-controls"> <!-- Group controls -->
+                        <label for="diff-rows-per-page" class="form-label form-label-sm me-1">每页:</label>
+                        <select id="diff-rows-per-page" class="form-select form-select-sm d-inline-block w-auto me-2">
+                            <option value="10">10</option>
+                            <option value="25" selected>25</option> <!-- Default to 25 -->
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="999999">All</option> <!-- Option for all rows -->
+                        </select>
+                        <button class="btn btn-sm btn-outline-secondary me-1" id="diff-prev-page" disabled>上一页</button>
+                        <span id="diff-page-info" class="me-1 align-middle"></span>
+                        <!-- align-middle for better looks -->
+                        <button class="btn btn-sm btn-outline-secondary" id="diff-next-page" disabled>下一页</button>
+                    </div>
+                </div>
+                <div id="diff-table-container" class="table-responsive">
+                    <table class="table table-bordered table-sm table-hover" id="diff-results-table">
+                        <thead>
+                            <!-- 表头将由JS动态生成 -->
+                        </thead>
+                        <tbody>
+                            <!-- 差异数据将由JS动态填充 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- 结束：人工检查与差异对比部分 -->
+
+    </div> <!-- End container -->
+
+    <script>
+        // --- DOM Element References ---
+        const uploadForm = document.getElementById('upload-form');
+        const fileInput = document.getElementById('file-input');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const statusMessage = document.getElementById('status-message');
+        const resultLinkContainer = document.getElementById('result-link-container');
+        // LLM Config
+        const targetColumnsContainer = document.getElementById('target-columns-container');
+        const addColumnBtn = document.getElementById('add-column-btn');
+        const apiKeyInput = document.getElementById('api-key');
+        const batchSizeInput = document.getElementById('batch-size');
+        const maxTokensInput = document.getElementById('max-tokens');
+        const apiTimeoutInput = document.getElementById('api-timeout');
+        // Feishu Config
+        const feishuAppIdInput = document.getElementById('feishu-app-id');
+        const feishuAppSecretInput = document.getElementById('feishu-app-secret');
+        const feishuAppTokenInput = document.getElementById('feishu-app-token');
+        const feishuTableIdsContainer = document.getElementById('feishu-table-ids-container');
+        const addFeishuTableIdBtn = document.getElementById('add-feishu-table-id-btn');
+        // New references for Add Target IDs
+        const feishuAddTargetIdsContainer = document.getElementById('feishu-add-target-ids-container');
+        const addFeishuAddTargetIdBtn = document.getElementById('add-feishu-add-target-id-btn');
+        // Post-processing Config
+        const postProcessCheckboxes = document.querySelectorAll('.post-process-check');
+        const postProcessSelects = document.querySelectorAll('.post-process-select');
+        // Save Button
+        const saveAllSettingsBtn = document.getElementById('save-all-settings-btn');
+        // New elements for file list display
+        const selectFilesBtn = document.getElementById('select-files-btn');
+        const selectedFilesListDiv = document.getElementById('selected-files-list');
+        // Elements for review section (Steps 3, 4, 5)
+        const reviewSection = document.getElementById('review-section');
+        const selectEditedFileBtn = document.getElementById('select-edited-file-btn');
+        const editedFileInput = document.getElementById('edited-file-input');
+        const selectedEditedFileListDiv = document.getElementById('selected-edited-file-list');
+        const uploadEditedBtn = document.getElementById('upload-edited-btn');
+        const checkDiffBtn = document.getElementById('check-diff-btn');
+        const diffResultsContainer = document.getElementById('diff-results-container');
+        const diffSummaryDiv = document.getElementById('diff-summary');
+        const diffTableContainer = document.getElementById('diff-table-container');
+        const diffRowsPerPageSelect = document.getElementById('diff-rows-per-page');
+        const diffPrevPageBtn = document.getElementById('diff-prev-page');
+        const diffPageInfoSpan = document.getElementById('diff-page-info');
+        const diffNextPageBtn = document.getElementById('diff-next-page');
+        const diffResultsTable = document.getElementById('diff-results-table');
+        const diffResultsTableHeader = diffResultsTable ? diffResultsTable.querySelector('thead') : null;
+        const diffResultsTableBody = diffResultsTable ? diffResultsTable.querySelector('tbody') : null;
+        const diffSummaryStatsSpan = document.getElementById('diff-summary-stats'); // New span for stats
+        const syncFeishuBtn = document.getElementById('sync-feishu-btn'); // Get sync button
+        const syncStatusSpan = document.getElementById('sync-status'); // Get sync status span
+
+
+        let intervalId = null; // To store the interval timer
+        let currentTaskId = null; // Store the current task ID
+        let currentDiffData = null; // Store the full diff results
+        let currentPage = 1;
+        let rowsPerPage = 25; // Default, will sync with select element
+
+        // Store default post-processing columns from backend
+        const defaultPostProcessingCols = {{ default_post_processing_cols| tojson | safe }};
+
+        // --- Event Listeners ---
+        uploadForm.addEventListener('submit', handleUploadSubmit);
+        addColumnBtn.addEventListener('click', handleAddTargetColumn);
+        targetColumnsContainer.addEventListener('click', handleRemoveTargetColumn);
+        targetColumnsContainer.addEventListener('input', handleTargetColumnInput); // Re-add listener for dynamic updates
+        addFeishuTableIdBtn.addEventListener('click', handleAddFeishuTableId);
+        feishuTableIdsContainer.addEventListener('click', handleRemoveFeishuTableId);
+        // New listeners for Add Target IDs
+        addFeishuAddTargetIdBtn.addEventListener('click', handleAddFeishuAddTargetId); // Use new handler
+        feishuAddTargetIdsContainer.addEventListener('click', handleRemoveFeishuAddTargetId); // Use new handler
+
+        postProcessCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', handlePostCheckboxChange);
+        });
+        saveAllSettingsBtn.addEventListener('click', saveAllSettingsToServer); // Bind the new save button
+        document.addEventListener('DOMContentLoaded', initializePage); // Init on page load
+        // Listener for the custom select files button
+        selectFilesBtn.addEventListener('click', () => fileInput.click());
+        // Listener for the actual file input change to update the list
+        fileInput.addEventListener('change', displaySelectedFiles);
+        // Listeners for review section
+        selectEditedFileBtn.addEventListener('click', () => editedFileInput.click());
+        editedFileInput.addEventListener('change', displaySelectedEditedFile);
+        uploadEditedBtn.addEventListener('click', handleUploadEditedFile);
+        checkDiffBtn.addEventListener('click', fetchAndDisplayDifferences); // Use the new function name
+        diffRowsPerPageSelect.addEventListener('change', handleDiffDisplayChange);
+        diffPrevPageBtn.addEventListener('click', handleDiffPrevPage);
+        diffNextPageBtn.addEventListener('click', handleDiffNextPage);
+        syncFeishuBtn.addEventListener('click', handleSyncToFeishu); // Add listener for sync button
+
+        // --- Functions ---
+
+        // Initialize page elements
+        function initializePage() {
+            console.log("Initializing page...");
+            // console.log("Default Post Processing Cols:", defaultPostProcessingCols);
+            updatePostProcessSelects(); // Populate selects based on initial target columns and defaults
+
+            // Ensure initial visibility of select dropdowns based on checkbox state
+            postProcessCheckboxes.forEach(checkbox => {
+                handlePostCheckboxChange({ target: checkbox }); // Simulate event on load
+            });
+            resetProgress(); // Ensure progress bar is hidden initially
+            // Sync rows per page from select
+            rowsPerPage = parseInt(diffRowsPerPageSelect.value) || 25;
+        }
+
+        // Handle file upload form submission
+        async function handleUploadSubmit(event) {
+            event.preventDefault();
+            const filesToUpload = fileInput.files;
+
+            // Store Task ID globally when upload starts
+            currentTaskId = null; // Reset task ID
+            currentDiffData = null; // Reset diff data
+
+            resetProgress();
+            progressContainer.style.display = 'block';
+            statusMessage.textContent = 'Uploading files...';
+
+            if (!filesToUpload || filesToUpload.length === 0) {
+                showErrorStatus('错误: 未选择任何文件。');
+                return;
+            }
+
+            const formData = new FormData();
+
+            for (const file of filesToUpload) {
+                formData.append('files[]', file);
+            }
+
+            // Append all config data
+            appendConfigToFormData(formData);
+
+            // Don't clear fileInput value here, allow retry if needed
+            // fileInput.value = ''; 
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || `HTTP error! status: ${response.status}`);
+                }
+
+                if (result.task_id) {
+                    currentTaskId = result.task_id; // Store the task ID
+                    reviewSection.dataset.taskId = currentTaskId; // Optional: store on element
+                    statusMessage.textContent = 'Upload successful. Starting processing...';
+                    pollProgress(currentTaskId);
+                } else {
+                    throw new Error('No task ID received from server.');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                showErrorStatus(`Upload failed: ${error.message}`);
+                currentTaskId = null; // Clear task ID on error
+            }
+        }
+
+        // Append all configuration values to FormData (Updated)
+        function appendConfigToFormData(formData) {
+            // LLM Config
+            const targetColumns = getTargetColumns();
+            formData.append('config_target_columns', JSON.stringify(targetColumns));
+            formData.append('config_api_key', apiKeyInput.value.trim());
+            formData.append('config_batch_size', batchSizeInput.value);
+            formData.append('config_max_tokens', maxTokensInput.value);
+            formData.append('config_api_timeout', apiTimeoutInput.value);
+            // Feishu Config
+            formData.append('feishu_app_id', feishuAppIdInput.value.trim());
+            formData.append('feishu_app_secret', feishuAppSecretInput.value.trim());
+            formData.append('feishu_app_token', feishuAppTokenInput.value.trim());
+            const feishuTableIds = getFeishuTableIds();
+            formData.append('feishu_table_ids', JSON.stringify(feishuTableIds));
+            // Append the new list of Add Target IDs
+            const feishuAddTargetIds = getFeishuAddTargetIds(); // New function to get the list
+            formData.append('feishu_add_target_table_ids', JSON.stringify(feishuAddTargetIds)); // New field name
+            // Post-processing Config
+            const postProcessConfig = getPostProcessingConfig();
+            formData.append('post_process_config', JSON.stringify(postProcessConfig));
+        }
+
+        // Get current target column names
+        function getTargetColumns() {
+            const targetColumnInputs = targetColumnsContainer.querySelectorAll('.target-column-input');
+            return Array.from(targetColumnInputs)
+                .map(input => input.value.trim())
+                .filter(value => value !== '');
+        }
+
+        // Get current Feishu Table IDs
+        function getFeishuTableIds() {
+            const feishuTableIdInputs = feishuTableIdsContainer.querySelectorAll('.feishu-table-id-input');
+            return Array.from(feishuTableIdInputs)
+                .map(input => input.value.trim())
+                .filter(value => value !== '');
+        }
+
+        // New function: Get current Feishu Add Target Table IDs
+        function getFeishuAddTargetIds() {
+            const addTargetIdInputs = feishuAddTargetIdsContainer.querySelectorAll('.feishu-add-target-id-input');
+            return Array.from(addTargetIdInputs)
+                .map(input => input.value.trim())
+                .filter(value => value !== ''); // Filter out empty strings
+        }
+
+        // Get current post-processing configuration (selected checks and columns)
+        function getPostProcessingConfig() {
+            const config = {};
+            postProcessCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const checkValue = checkbox.value;
+                    config[checkValue] = {};
+                    const targetSelectIds = checkbox.dataset.targetSelects;
+                    if (targetSelectIds) {
+                        targetSelectIds.split(',').forEach(selectId => {
+                            const selectElement = document.querySelector(selectId.trim());
+                            if (selectElement && selectElement.value) {
+                                config[checkValue][selectElement.name] = selectElement.value;
+                            }
+                        });
+                    }
+                    // Basic validation: Ensure required columns are selected for active checks
+                    if (checkValue === 'check_duplicate_phones' && !config[checkValue]['post_phone_col_for_dup_phones']) {
+                        console.warn('Post-processing: Duplicate phone check active but column not selected.');
+                    }
+                    if (checkValue === 'check_duplicate_companies' && (!config[checkValue]['post_phone_col_for_dup_comp'] || !config[checkValue]['post_company_col_for_dup_comp'])) {
+                        console.warn('Post-processing: Duplicate company check active but columns not fully selected.');
+                    }
+                }
+            });
+            return config;
+        }
+
+        // Poll server for task progress
+        function pollProgress(taskId) {
+            if (intervalId) clearInterval(intervalId);
+
+            intervalId = setInterval(async () => {
+                try {
+                    const response = await fetch(`/progress/${taskId}`);
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            console.warn(`Task ${taskId} not found. Stopping polling.`);
+                            showWarningStatus('Task status unknown or completed.');
+                            clearInterval(intervalId);
+                            currentTaskId = null; // Clear ID if task not found
+                            return;
+                        }
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const task = await response.json();
+                    updateProgressBar(task.progress);
+                    updateStatusMessage(task.status, task.error);
+
+                    if (task.progress >= 100) {
+                        clearInterval(intervalId);
+                        progressBar.classList.remove('progress-bar-animated');
+                        if (task.status === 'Completed' && task.result_file) {
+                            showDownloadLink(taskId, task.result_file);
+                        } else {
+                            // Handle completed but no file (e.g., error during save)
+                            if (task.status !== 'Error') { // Avoid double message if already error
+                                showWarningStatus('处理完成但未找到结果文件。');
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                    showErrorStatus(`Error checking progress: ${error.message}`);
+                    clearInterval(intervalId);
+                    currentTaskId = null; // Clear ID on error
+                }
+            }, 2000);
+        }
+
+        // Update progress bar display
+        function updateProgressBar(progress) {
+            const pct = Math.max(0, Math.min(100, parseInt(progress) || 0));
+            progressBar.style.width = `${pct}%`;
+            progressBar.textContent = `${pct}%`;
+            progressBar.setAttribute('aria-valuenow', pct);
+            if (pct < 100) {
+                progressBar.classList.add('progress-bar-animated');
+            } else {
+                progressBar.classList.remove('progress-bar-animated');
+            }
+        }
+
+        // Update status message display
+        function updateStatusMessage(status, error = null) {
+            statusMessage.textContent = status;
+            if (status === 'Completed') {
+                statusMessage.className = 'alert alert-success';
+                statusMessage.textContent = '处理完成! 请进入第三步进行人工检查。';
+                reviewSection.style.display = 'block';
+                uploadEditedBtn.disabled = true; // Should be disabled until a file is selected
+                checkDiffBtn.disabled = true; // Should be disabled until edited file is uploaded
+
+            } else if (status === 'Error') {
+                statusMessage.className = 'alert alert-danger';
+                statusMessage.textContent = `Processing failed: ${error || 'Unknown error'}`;
+                reviewSection.style.display = 'none'; // Hide review on error
+            } else {
+                statusMessage.className = 'alert alert-info';
+                reviewSection.style.display = 'none'; // Hide review while processing
+            }
+        }
+
+        function showWarningStatus(message) {
+            statusMessage.textContent = message;
+            statusMessage.className = 'alert alert-warning';
+            updateProgressBar(100); // Mark as done for polling purposes
+            clearInterval(intervalId);
+            reviewSection.style.display = 'none'; // Hide review section
+        }
+
+        function showErrorStatus(message) {
+            statusMessage.textContent = message;
+            statusMessage.className = 'alert alert-danger';
+            updateProgressBar(0); // Reset progress bar on error
+            clearInterval(intervalId);
+            reviewSection.style.display = 'none'; // Hide review section
+        }
+
+        // Display download link
+        function showDownloadLink(taskId, resultFile) {
+            const downloadUrl = `/download/${taskId}/${encodeURIComponent(resultFile)}`;
+            // Add link to the main result container *and* the step 3 placeholder if needed
+            resultLinkContainer.innerHTML = `<a href="${downloadUrl}" class="btn btn-success" target="_blank">下载最终结果 (${resultFile})</a>`;
+            // Optionally update step 3 placeholder if it exists and is separate
+            // const step3Placeholder = document.getElementById('download-link-step3-placeholder');
+            // if (step3Placeholder) {
+            //    step3Placeholder.innerHTML = `<a href="${downloadUrl}" class="btn btn-success" target="_blank">下载待检查文件 (${resultFile})</a>`;
+            // }
+        }
+
+        // Reset progress display area
+        function resetProgress() {
+            progressContainer.style.display = 'none'; // Hide initially
+            updateProgressBar(0);
+            statusMessage.textContent = '等待上传...';
+            statusMessage.className = 'alert alert-info';
+            resultLinkContainer.innerHTML = '';
+            selectedFilesListDiv.innerHTML = '尚未选择文件'; // Clear file list on reset
+            reviewSection.style.display = 'none'; // Hide review section on reset
+            if (editedFileInput) editedFileInput.value = ''; // Clear edited file input
+            if (selectedEditedFileListDiv) selectedEditedFileListDiv.textContent = '尚未选择文件';
+            if (uploadEditedBtn) uploadEditedBtn.disabled = true;
+            if (checkDiffBtn) checkDiffBtn.disabled = true;
+            if (diffResultsContainer) diffResultsContainer.style.display = 'none';
+            if (syncFeishuBtn) syncFeishuBtn.disabled = true; // Ensure sync button is disabled on reset
+            if (syncStatusSpan) syncStatusSpan.textContent = ''; // Clear sync status on reset
+            if (intervalId) clearInterval(intervalId);
+        }
+
+        // Save all current settings to server as default (Updated)
+        async function saveAllSettingsToServer() {
+            console.log("Saving all current settings as default...");
+            const configToSave = {
+                llm_config: {
+                    TARGET_COLUMNS: getTargetColumns(),
+                    DEEPSEEK_API_KEY: apiKeyInput.value.trim(),
+                    BATCH_SIZE: parseInt(batchSizeInput.value) || 160,
+                    MAX_COMPLETION_TOKENS: parseInt(maxTokensInput.value) || 8192,
+                    API_TIMEOUT: parseInt(apiTimeoutInput.value) || 180
+                },
+                feishu_config: {
+                    APP_ID: feishuAppIdInput.value.trim(),
+                    APP_SECRET: feishuAppSecretInput.value.trim(),
+                    APP_TOKEN: feishuAppTokenInput.value.trim(),
+                    TABLE_IDS: getFeishuTableIds(),
+                    ADD_TARGET_TABLE_IDS: getFeishuAddTargetIds(), // Get the new list
+                },
+                post_processing_config: getPostProcessingConfig()
+            };
+            console.log("Sending config to server: ", configToSave);
+            try {
+                const response = await fetch('/save_config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(configToSave)
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    alert('成功! 所有设置已保存为默认值。下次加载页面时将自动应用。');
+                } else {
+                    alert(`保存失败: ${result.error || '未知错误'}`);
+                    console.error("保存配置失败: ", result);
+                }
+            } catch (error) {
+                alert(`保存配置时发生网络错误: ${error.message}`);
+                console.error("保存配置网络错误: ", error);
+            }
+        }
+
+        // --- Dynamic Form Element Handlers --- (Add handlers for new list) ---
+
+        // Add new target column input
+        function handleAddTargetColumn() {
+            const newInputGroup = document.createElement('div');
+            newInputGroup.className = 'input-group mb-2';
+            newInputGroup.innerHTML = `
+                <input type="text" class="form-control target-column-input" placeholder="输入目标列名">
+                <button class="btn btn-outline-danger remove-column-btn" type="button">移除</button>
+            `;
+            targetColumnsContainer.appendChild(newInputGroup);
+            updatePostProcessSelects(); // Update dependent dropdowns
+        }
+
+        // Remove target column input
+        function handleRemoveTargetColumn(event) {
+            if (event.target.classList.contains('remove-column-btn')) {
+                event.target.closest('.input-group').remove();
+                updatePostProcessSelects(); // Update dependent dropdowns
+            }
+        }
+
+        // Handle input change in target column fields
+        function handleTargetColumnInput(event) {
+            if (event.target.classList.contains('target-column-input')) {
+                updatePostProcessSelects();
+            }
+        }
+
+        // Add new Feishu Table ID input
+        function handleAddFeishuTableId() {
+            const newInputGroup = document.createElement('div');
+            newInputGroup.className = 'input-group mb-2';
+            newInputGroup.innerHTML = `
+                <input type="text" class="form-control feishu-table-id-input" placeholder="输入 Table ID">
+                 <button class="btn btn-outline-danger remove-feishu-table-id-btn" type="button">移除</button>
+            `;
+            feishuTableIdsContainer.appendChild(newInputGroup);
+        }
+
+        // Remove Feishu Table ID input
+        function handleRemoveFeishuTableId(event) {
+            if (event.target.classList.contains('remove-feishu-table-id-btn')) {
+                event.target.closest('.input-group').remove();
+            }
+        }
+
+        // New function: Add new Feishu Add Target Table ID input
+        function handleAddFeishuAddTargetId() {
+            const newInputGroup = document.createElement('div');
+            newInputGroup.className = 'input-group mb-2';
+
+            const inputField = document.createElement('input');
+            inputField.type = 'text';
+            inputField.className = 'form-control feishu-add-target-id-input';
+            inputField.placeholder = '输入新增专用 Table ID';
+
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'btn btn-outline-danger remove-feishu-add-target-id-btn';
+            removeButton.textContent = '移除'; // Use textContent for button text
+
+            newInputGroup.appendChild(inputField);
+            newInputGroup.appendChild(removeButton);
+
+            feishuAddTargetIdsContainer.appendChild(newInputGroup);
+        }
+
+        // New function: Remove Feishu Add Target Table ID input
+        function handleRemoveFeishuAddTargetId(event) {
+            if (event.target.classList.contains('remove-feishu-add-target-id-btn')) {
+                // Prevent removing the last input field if desired, or just remove
+                const parent = event.target.closest('.input-group');
+                const container = event.target.closest('#feishu-add-target-ids-container');
+                // Optional: Keep at least one input field
+                // if (container && container.querySelectorAll('.input-group').length > 1) {
+                parent.remove();
+                // } else {
+                //     alert('至少需要一个新增目标 Table ID 输入框 (可以留空)。');
+                // }
+            }
+        }
+
+        // Update post-processing select options based on target columns
+        function updatePostProcessSelects() {
+            const currentColumns = getTargetColumns();
+            // console.log("Updating post-process selects with columns:", currentColumns);
+
+            postProcessSelects.forEach(select => {
+                const currentVal = select.value;
+                const selectName = select.name;
+                let defaultValue = null;
+
+                if (defaultPostProcessingCols) {
+                    for (const checkKey in defaultPostProcessingCols) {
+                        if (defaultPostProcessingCols[checkKey] && typeof defaultPostProcessingCols[checkKey] === 'object') {
+                            if (selectName in defaultPostProcessingCols[checkKey]) {
+                                defaultValue = defaultPostProcessingCols[checkKey][selectName];
+                                break;
+                            }
+                        }
+                    }
+                }
+                // console.log(`Select ${selectName} - Current: ${currentVal}, Default: ${defaultValue}`);
+
+                // Clear existing options (keep placeholder)
+                while (select.options.length > 1) select.remove(1);
+
+                // Add new options
+                currentColumns.forEach(colName => {
+                    const option = new Option(colName, colName);
+                    select.add(option);
+                });
+
+                // Set selected value: Prioritize current value if valid, then default value if valid, else reset
+                let valueToSet = "";
+                if (currentColumns.includes(currentVal)) {
+                    valueToSet = currentVal;
+                } else if (defaultValue && currentColumns.includes(defaultValue)) {
+                    valueToSet = defaultValue;
+                }
+                select.value = valueToSet;
+                // console.log(`Select ${selectName} set to: ${select.value}`);
+            });
+        }
+
+        // Handle change event for post-processing checkboxes
+        function handlePostCheckboxChange(event) {
+            const checkbox = event.target;
+            const targetSelectIds = checkbox.dataset.targetSelects;
+            if (targetSelectIds) {
+                targetSelectIds.split(',').forEach(selectId => {
+                    const selectElement = document.querySelector(selectId.trim());
+                    if (selectElement) {
+                        // Find the container relative to the select element
+                        const container = selectElement.closest('[id$="-select-container"]');
+                        if (container) {
+                            container.style.display = checkbox.checked ? 'block' : 'none';
+                        } else {
+                            console.warn("Could not find container for select:", selectId);
+                        }
+                    } else {
+                        console.warn("Could not find select element:", selectId);
+                    }
+                });
+            }
+        }
+
+        // Display the names of selected files
+        function displaySelectedFiles() {
+            selectedFilesListDiv.innerHTML = '';
+            if (fileInput.files.length > 0) {
+                const list = document.createElement('ul');
+                list.className = 'list-unstyled mb-0 small'; // Added small class
+                for (const file of fileInput.files) {
+                    const listItem = document.createElement('li');
+                    const fileSize = (file.size / 1024).toFixed(1);
+                    listItem.textContent = `${file.name} (${fileSize} KB)`;
+                    list.appendChild(listItem);
+                }
+                selectedFilesListDiv.appendChild(list);
+            } else {
+                selectedFilesListDiv.textContent = '尚未选择文件';
+            }
+        }
+
+        // Display the name of the selected edited file (for step 4)
+        function displaySelectedEditedFile() {
+            if (editedFileInput.files.length > 0) {
+                const file = editedFileInput.files[0];
+                const fileSize = (file.size / 1024).toFixed(1);
+                selectedEditedFileListDiv.textContent = `已选择: ${file.name} (${fileSize} KB)`;
+                uploadEditedBtn.disabled = false; // Enable upload button
+                checkDiffBtn.disabled = true; // Disable diff button until new file is uploaded
+                diffResultsContainer.style.display = 'none'; // Hide previous diff results
+            } else {
+                selectedEditedFileListDiv.textContent = '尚未选择文件';
+                uploadEditedBtn.disabled = true;
+                checkDiffBtn.disabled = true; // Keep disabled if no file
+            }
+        }
+
+        // --- Diff Display and Pagination Logic ---
+
+        async function handleUploadEditedFile() {
+            // Get task ID (should be stored in currentTaskId)
+            if (!currentTaskId) {
+                alert('错误：找不到当前任务 ID。无法上传文件。');
+                return;
+            }
+            if (editedFileInput.files.length === 0) {
+                alert('请先选择一个调整后的文件。');
+                return;
+            }
+
+            const file = editedFileInput.files[0];
+            const formData = new FormData();
+            formData.append('edited_file', file);
+
+            console.log(`为任务 ${currentTaskId} 上传调整后文件: ${file.name}`);
+            uploadEditedBtn.disabled = true;
+            uploadEditedBtn.textContent = '上传中...';
+            checkDiffBtn.disabled = true; // Disable diff button during upload
+            diffResultsContainer.style.display = 'none'; // Hide previous results
+
+            try {
+                const response = await fetch(`/upload_edited/${currentTaskId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    console.log('调整后文件上传成功:', result);
+                    alert(result.message || '调整后文件上传成功！');
+                    checkDiffBtn.disabled = false; // Enable diff button now
+                    checkDiffBtn.textContent = '检查差异'; // Reset button text
+                } else {
+                    console.error('上传调整后文件失败:', result.error);
+                    alert(`上传失败: ${result.error || '服务器错误'}`);
+                    checkDiffBtn.disabled = true; // Keep diff disabled if upload fails
+                }
+            } catch (error) {
+                console.error('上传调整后文件时发生网络错误:', error);
+                alert('上传调整后文件时发生网络错误。');
+                checkDiffBtn.disabled = true; // Keep diff disabled if upload fails
+            } finally {
+                uploadEditedBtn.disabled = false; // Re-enable upload button
+                uploadEditedBtn.textContent = '上传调整后数据';
+            }
+        }
+
+        // Renamed from handleCheckDifferences
+        async function fetchAndDisplayDifferences() {
+            if (!currentTaskId) {
+                alert('没有有效的任务 ID。');
+                return;
+            }
+            console.log(`开始为任务 ${currentTaskId} 检查差异...`);
+            diffSummaryDiv.textContent = ''; // Clear summary area
+            diffSummaryStatsSpan.textContent = '正在比较差异...'; // Use stats span for loading msg
+            if (diffResultsTableBody) diffResultsTableBody.innerHTML = ''; // Clear previous table body
+            if (diffResultsTableHeader) diffResultsTableHeader.innerHTML = ''; // Clear previous table header
+            diffResultsContainer.style.display = 'block'; // Show container
+            checkDiffBtn.disabled = true; // Disable button during check
+            checkDiffBtn.textContent = '正在比较...';
+            disablePaginationControls(); // Disable pagination during load
+
+            try {
+                const response = await fetch(`/check_diff/${currentTaskId}`);
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    console.log('差异比较成功:', result.results);
+                    currentDiffData = result.results; // Store full data
+                    currentPage = 1; // Reset to first page
+                    rowsPerPage = parseInt(diffRowsPerPageSelect.value) || 25;
+                    displayDiffPage(); // Display the first page
+                    checkDiffBtn.textContent = '重新比较差异'; // Update button text
+                    // Enable Sync button only if diff check was successful
+                    if (syncFeishuBtn) syncFeishuBtn.disabled = false;
+                    if (syncStatusSpan) syncStatusSpan.textContent = ''; // Clear previous sync status
+                } else {
+                    console.error('差异比较失败:', result.error);
+                    diffSummaryStatsSpan.textContent = ``;
+                    diffSummaryDiv.textContent = `比较失败: ${result.error}`;
+                    if (diffTableContainer) diffTableContainer.innerHTML = '<p class="text-danger">无法加载差异信息。</p>'; // Clear table area too
+                    currentDiffData = null; // Clear data on error
+                    checkDiffBtn.textContent = '检查差异'; // Reset button text
+                    if (syncFeishuBtn) syncFeishuBtn.disabled = true; // Disable sync if diff fails
+                }
+            } catch (error) {
+                console.error('检查差异时发生网络错误:', error);
+                diffSummaryStatsSpan.textContent = ``;
+                diffSummaryDiv.textContent = '比较时发生网络错误。';
+                if (diffTableContainer) diffTableContainer.innerHTML = '<p class="text-danger">无法连接服务器进行比较。</p>';
+                currentDiffData = null; // Clear data on error
+                checkDiffBtn.textContent = '检查差异'; // Reset button text
+                if (syncFeishuBtn) syncFeishuBtn.disabled = true; // Disable sync if diff fails
+            } finally {
+                checkDiffBtn.disabled = false; // Re-enable button
+                // Pagination controls are enabled/disabled within displayDiffPage
+            }
+        }
+
+        function displayDiffPage() {
+            if (!currentDiffData) {
+                console.warn('No diff data available to display.');
+                if (diffTableContainer) diffTableContainer.innerHTML = '<p class="text-info">没有可显示的差异数据。</p>';
+                disablePaginationControls();
+                return;
+            }
+
+            const summary = currentDiffData.summary;
+            const diffs = currentDiffData.diffs || [];
+            const columns = currentDiffData.columns || [];
+
+            // *** SORTING: Sort diffs by original_index ***
+            diffs.sort((a, b) => {
+                const indexA = (typeof a.original_index === 'number') ? a.original_index : Infinity;
+                const indexB = (typeof b.original_index === 'number') ? b.original_index : Infinity;
+                return indexA - indexB;
+            });
+            // *** END SORTING ***
+
+            const totalRows = diffs.length;
+            // Use Math.max(1, ...) for rowsPerPage to avoid division by zero if 'All' is selected incorrectly
+            const effectiveRowsPerPage = (rowsPerPage >= totalRows && totalRows > 0) ? totalRows : Math.max(1, rowsPerPage); // Handle 'All' option
+            const totalPages = Math.ceil(totalRows / effectiveRowsPerPage);
+
+            // Validate currentPage
+            currentPage = Math.max(1, Math.min(currentPage, totalPages || 1));
+
+            // Update summary stats
+            diffSummaryStatsSpan.textContent = `比较完成: 新增 ${summary.added}, 删除 ${summary.deleted}, 修改 ${summary.modified} (共 ${totalRows} 项差异)`;
+            diffSummaryDiv.textContent = ''; // Clear any error messages from summary
+
+            if (totalRows === 0) {
+                if (diffTableContainer) diffTableContainer.innerHTML = '<p class="text-success">文件内容无差异。</p>';
+                updatePaginationControls(totalRows, totalPages);
+                return;
+            }
+
+            // Calculate row slice for current page
+            const startRow = (currentPage - 1) * effectiveRowsPerPage;
+            const endRow = startRow + effectiveRowsPerPage;
+            const pageDiffs = diffs.slice(startRow, endRow);
+
+            // Ensure table elements exist
+            if (!diffResultsTable || !diffResultsTableHeader || !diffResultsTableBody) {
+                console.error("Diff table elements not found!");
+                if (diffTableContainer) diffTableContainer.innerHTML = '<p class="text-danger">无法渲染表格，HTML 结构错误。</p>';
+                return;
+            }
+
+            // --- Render Table Header --- 
+            let headerHtml = '<tr><th>#</th><th>状态</th>'; // Add row number and status columns
+            columns.forEach(col => {
+                // Optionally hide internal ID columns
+                // if (col !== 'local_row_id' && col !== 'record_id') {
+                headerHtml += `<th>${escapeHtml(col)}</th>`;
+                // }
+            });
+            headerHtml += '</tr>';
+            diffResultsTableHeader.innerHTML = headerHtml;
+
+            // --- Render Table Body --- 
+            let bodyHtml = '';
+            pageDiffs.forEach((diff, index) => {
+                const status = diff.status;
+                const rowNum = startRow + index + 1; // Overall row number
+                let rowClass = '';
+                if (status === 'Added') {
+                    rowClass = 'table-success';
+                } else if (status === 'Deleted') {
+                    rowClass = 'table-danger';
+                } else if (status === 'Modified') {
+                    rowClass = 'table-warning';
+                }
+
+                bodyHtml += `<tr class="${rowClass}">`;
+                bodyHtml += `<td>${rowNum}</td>`; // Row number cell
+                bodyHtml += `<td>${escapeHtml(status)}</td>`; // Status cell
+
+                // Data cells
+                columns.forEach(col => {
+                    // if (col !== 'local_row_id' && col !== 'record_id') { // If hiding columns
+                    let cellContent = diff.data ? diff.data[col] : ''; // Handle case where data might be missing
+                    let cellClass = '';
+                    let cellTitle = ''; // For tooltip
+
+                    cellContent = (cellContent === null || cellContent === undefined) ? '' : cellContent;
+
+                    if (status === 'Deleted') {
+                        // Strikethrough is handled by row class .table-danger td CSS
+                        cellContent = escapeHtml(String(cellContent));
+                    }
+                    else if (status === 'Modified' && diff.changes && diff.changes[col]) {
+                        cellClass = 'cell-modified'; // Highlighting class
+                        const oldVal = diff.changes[col].old;
+                        const newVal = diff.changes[col].new;
+                        // Add old value to tooltip, ensure string conversion
+                        cellTitle = `旧值: ${escapeHtml(String(oldVal === null || oldVal === undefined ? '' : oldVal))}`;
+                        cellContent = escapeHtml(String(newVal)); // Show new value
+                    }
+                    else {
+                        cellContent = escapeHtml(String(cellContent));
+                    }
+
+                    bodyHtml += `<td class="${cellClass}" title="${cellTitle}">${cellContent}</td>`;
+                    // }
+                });
+                bodyHtml += '</tr>';
+            });
+            diffResultsTableBody.innerHTML = bodyHtml;
+            // Ensure the table container is visible if it wasn't (e.g., if first diff display)
+            if (diffTableContainer) diffTableContainer.style.display = '';
+
+            // Update pagination controls state
+            updatePaginationControls(totalRows, totalPages);
+        }
+
+        function updatePaginationControls(totalRows, totalPages) {
+            if (totalRows > 0) {
+                diffPageInfoSpan.textContent = `第 ${currentPage} / ${totalPages} 页`;
+                diffPrevPageBtn.disabled = (currentPage <= 1);
+                diffNextPageBtn.disabled = (currentPage >= totalPages);
+                diffRowsPerPageSelect.disabled = false;
+            } else {
+                // No data or no diffs
+                diffPageInfoSpan.textContent = '无差异';
+                disablePaginationControls();
+            }
+        }
+
+        function disablePaginationControls() {
+            if (diffPageInfoSpan) diffPageInfoSpan.textContent = '-';
+            if (diffPrevPageBtn) diffPrevPageBtn.disabled = true;
+            if (diffNextPageBtn) diffNextPageBtn.disabled = true;
+            if (diffRowsPerPageSelect) diffRowsPerPageSelect.disabled = true;
+        }
+
+        function handleDiffDisplayChange() {
+            // Called when rows per page changes
+            const newRowsPerPage = parseInt(diffRowsPerPageSelect.value);
+            if (newRowsPerPage && newRowsPerPage !== rowsPerPage) {
+                rowsPerPage = newRowsPerPage;
+                currentPage = 1; // Go back to first page when changing rows per page
+                displayDiffPage();
+            }
+        }
+
+        function handleDiffPrevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                displayDiffPage();
+            }
+        }
+
+        function handleDiffNextPage() {
+            if (!currentDiffData) return;
+            const totalRows = currentDiffData.diffs ? currentDiffData.diffs.length : 0;
+            const effectiveRowsPerPage = (rowsPerPage >= totalRows && totalRows > 0) ? totalRows : Math.max(1, rowsPerPage); // Handle 'All' option
+            const totalPages = Math.ceil(totalRows / effectiveRowsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                displayDiffPage();
+            }
+        }
+
+        // Helper function to escape HTML (robust version)
+        function escapeHtml(unsafe) {
+            if (typeof unsafe !== 'string') {
+                if (unsafe === null || unsafe === undefined) return '';
+                try {
+                    unsafe = String(unsafe);
+                } catch (e) {
+                    console.warn('Failed to convert value to string for escaping:', unsafe);
+                    return '[非字符串]'; // Fallback for complex objects
+                }
+            }
+            // Ensure it is actually a string before calling replace
+            if (typeof unsafe === 'string') {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            } else {
+                // Should not happen due to checks above, but as a final fallback
+                return '[转换错误]';
+            }
+        }
+
+        // --- Sync to Feishu Logic --- (No changes needed here yet, logic is backend) ---
+        async function handleSyncToFeishu() {
+            if (!currentTaskId) {
+                alert('错误：找不到任务 ID，无法同步。');
+                return;
+            }
+            if (!currentDiffData) {
+                alert('错误：没有可用的差异数据，请先执行检查差异。');
+                return;
+            }
+
+            if (!confirm('确认要将更改同步到飞书吗？此操作会修改飞书表格数据。')) {
+                return;
+            }
+
+            console.log(`开始为任务 ${currentTaskId} 同步到飞书...`);
+            if (syncFeishuBtn) syncFeishuBtn.disabled = true;
+            if (syncFeishuBtn) syncFeishuBtn.textContent = '同步中...';
+            if (syncStatusSpan) syncStatusSpan.textContent = '正在同步...';
+            if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-muted';
+
+            try {
+                // Make POST request to the backend sync endpoint
+                const response = await fetch(`/sync_to_feishu/${currentTaskId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json' // Indicate we might send data if needed later
+                    },
+                    // body: JSON.stringify({ ... }) // No body needed for now, backend reads files
+                });
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    console.log('同步成功:', result);
+                    if (syncStatusSpan) syncStatusSpan.textContent = result.message || '同步成功！';
+                    if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-success';
+                    // Optionally disable sync button after successful sync?
+                    // if(syncFeishuBtn) syncFeishuBtn.disabled = true; 
+                } else {
+                    console.error('同步失败:', result.error);
+                    if (syncStatusSpan) syncStatusSpan.textContent = `同步失败: ${result.error || '未知错误'}`;
+                    if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-danger';
+                    // Re-enable button on failure to allow retry?
+                    if (syncFeishuBtn) syncFeishuBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('同步到飞书时发生网络错误:', error);
+                if (syncStatusSpan) syncStatusSpan.textContent = '同步时发生网络错误。';
+                if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-danger';
+                // Re-enable button on network error?
+                if (syncFeishuBtn) syncFeishuBtn.disabled = false;
+            } finally {
+                // Re-enable button unless intentionally disabled after success
+                if (syncFeishuBtn && syncStatusSpan.className !== 'ms-2 text-success') {
+                    syncFeishuBtn.disabled = false;
+                }
+                if (syncFeishuBtn) syncFeishuBtn.textContent = '同步到飞书';
+            }
+        }
+        // --- End Sync Logic ---
+
+    </script>
+    <!-- 引入 Bootstrap 的 JavaScript 包 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

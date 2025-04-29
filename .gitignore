@@ -1,0 +1,29 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# IDE / Editor specific files
+.idea/
+.vscode/
+.cursor/
+.DS_Store
+
+Secrets / Config (如果包含敏感信息，不应提交)
+config.json # 取消注释如果你不想提交配置文件
+.env
+
+# Data folders (通常不提交上传和输出的数据)
+uploads/
+outputs/
+
+# Dependencies (通常通过 requirements.txt 管理)
+# *.egg-info/
+# build/
+# dist/

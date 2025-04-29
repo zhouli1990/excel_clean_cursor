@@ -1,0 +1,50 @@
+{
+    "llm_config": {
+        "TARGET_COLUMNS": [
+            "企业名称",
+            "联系人",
+            "职位",
+            "电话",
+            "来源"
+        ],
+        "DEEPSEEK_API_KEY": "sk-9df835c781904b2289663567d05c94d9",
+        "DEEPSEEK_API_ENDPOINT": "https://api.deepseek.com/chat/completions",
+        "BATCH_SIZE": 160,
+        "MAX_COMPLETION_TOKENS": 8192,
+        "API_TIMEOUT": 180
+    },
+    "feishu_config": {
+        "APP_ID": "cli_a36634dc16b8d00e",
+        "APP_SECRET": "RoXYTnSBGGsLLyvONbSCYe15Jm6bv5Xn",
+        "APP_TOKEN": "XyUFbxc8JaDkTJscEigcbkxgnqe",
+        "TABLE_IDS": [
+            "tblEGrUKq8KKOPAc"
+        ],
+        "COMPANY_NAME_COLUMN": "企业名称",
+        "PHONE_NUMBER_COLUMN": "电话",
+        "REMARK_COLUMN_NAME": "备注",
+        "RELATED_COMPANY_COLUMN_NAME": "关联公司名称(LLM)",
+        "ADD_TARGET_TABLE_ID": "",
+        "ADD_TARGET_TABLE_IDS": [
+            "tble3uypxJ3wkpCf"
+        ]
+    },
+    "post_processing_config": {
+        "check_phone_format": {
+            "enabled": true,
+            "": "电话"
+        },
+        "check_phone_dup": {
+            "enabled": true,
+            "": "电话"
+        },
+        "check_phone_company_dup": {
+            "enabled": true,
+            "": "企业名称"
+        },
+        "check_llm_company": {
+            "enabled": true,
+            "": "企业名称"
+        }
+    }
+}
