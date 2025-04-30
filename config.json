@@ -16,9 +16,12 @@
     "feishu_config": {
         "APP_ID": "cli_a36634dc16b8d00e",
         "APP_SECRET": "RoXYTnSBGGsLLyvONbSCYe15Jm6bv5Xn",
-        "APP_TOKEN": "XyUFbxc8JaDkTJscEigcbkxgnqe",
+        "APP_TOKEN": "DPwobNjCLaZHOasEErsc7UxWnZe",
         "TABLE_IDS": [
-            "tblEGrUKq8KKOPAc"
+            "tbl3W83crD4gprdI",
+            "tblBz9fIT8DcBPxI",
+            "tblWoAngDoHIROmR",
+            "tblxjtX2fDnu1MRb"
         ],
         "COMPANY_NAME_COLUMN": "企业名称",
         "PHONE_NUMBER_COLUMN": "电话",
@@ -30,21 +33,15 @@
         ]
     },
     "post_processing_config": {
-        "check_phone_format": {
-            "enabled": true,
-            "": "电话"
+        "check_duplicate_phones": {
+            "post_phone_col_for_dup_phones": "电话"
         },
-        "check_phone_dup": {
-            "enabled": true,
-            "": "电话"
+        "check_duplicate_companies": {
+            "post_phone_col_for_dup_comp": "电话",
+            "post_company_col_for_dup_comp": "企业名称"
         },
-        "check_phone_company_dup": {
-            "enabled": true,
-            "": "企业名称"
-        },
-        "check_llm_company": {
-            "enabled": true,
-            "": "企业名称"
+        "validate_phone_format": {
+            "post_phone_col_for_regex": "电话"
         }
     }
 }

@@ -4,6 +4,7 @@ import requests
 import json
 import time
 import traceback
+import re
 from collections import defaultdict
 
 # Deepseek API endpoint (可以考虑也从 config 传入)
@@ -158,12 +159,20 @@ def check_company_similarity_deepseek(
 
     user_content = json.dumps(unique_non_empty_names, ensure_ascii=False)
 
+    # Corrected system content string formatting
+    system_content = (
+        "你是一个用于判断公司名称关联性的专家。请分析以下公司名称列表，判断它们是否指向同一家公司、母子公司、或属于同一集团下的紧密关联公司。"
+        "\nPlease parse the output in JSON format："
+        "\nEXAMPLE INPUT:['阿里巴巴集团控股有限公司', '蚂蚁科技集团股份有限公司', '盒马（中国）有限公司']"
+        "\nEXAMPLE JSON OUTPUT:{\n  \"related\": true,\n  \"names\": ['阿里巴巴集团控股有限公司', '蚂蚁科技集团股份有限公司', '盒马（中国）有限公司']\n}"
+    )
+
     payload = {
         "model": "deepseek-chat",
         "messages": [
             {
                 "role": "system",
-                "content": '你是一个用于判断公司名称关联性的专家。请分析以下公司名称列表，判断它们是否指向同一家公司、母子公司、或属于同一集团下的紧密关联公司。\nPlease parse the output in JSON format：\nEXAMPLE INPUT:["阿里巴巴集团控股有限公司", "蚂蚁科技集团股份有限公司", "盒马（中国）有限公司"]\nEXAMPLE JSON OUTPUT:{\n  "related": true,\n  "names": ["阿里巴巴集团控股有限公司", "蚂蚁科技集团股份有限公司", "盒马（中国）有限公司"]\n}',
+                "content": system_content,  # Use the corrected variable
             },
             {"role": "user", "content": user_content},
         ],
@@ -392,6 +401,51 @@ def check_related_companies_for_duplicate_phones_llm(
     return df
 
 
+# --- 新增：手机号格式校验函数 ---
+def validate_phone_format(
+    df: pd.DataFrame, phone_col: str, remark_col: str
+) -> pd.DataFrame:
+    """校验指定列是否为有效的11位手机号格式，并在备注列标记错误。"""
+    print(f"   >> [Check 4] 开始校验手机号格式 (列: '{phone_col}')...")
+    if phone_col not in df.columns:
+        print(f"   ⚠️ 警告: 电话列 '{phone_col}' 不存在，跳过格式校验。")
+        return df
+    if remark_col not in df.columns:
+        print(f"   ⚠️ 警告: 备注列 '{remark_col}' 不存在，无法添加标记。")
+        return df
+
+    # 正则表达式：匹配以1开头的11位数字 (13*, 14*, 15*, 16*, 17*, 18*, 19*)
+    phone_regex = r"^1[3-9]\d{9}$"
+
+    # 识别无效格式 (需要是非空且不匹配正则)
+    # 先将列转为字符串，并填充 NaN 为空字符串，以便应用正则
+    phone_series = df[phone_col].astype(str).fillna("")
+    # 使用 apply 和 re.fullmatch 检查格式
+    # mask 为 True 表示格式无效 (非空且不匹配)
+    invalid_mask = phone_series.apply(
+        lambda x: x != "" and not bool(re.fullmatch(phone_regex, x))
+    )
+
+    invalid_indices = df.loc[invalid_mask].index
+
+    if not invalid_indices.empty:
+        print(f"      发现 {len(invalid_indices)} 行手机号格式无效。正在添加标记...")
+        existing_remarks = df.loc[invalid_indices, remark_col].astype(str)
+        new_remark = "手机号格式错误"
+        # 注意处理备注列本身可能存在的 'nan' 字符串 (来自之前的 fillna 或数据源)
+        df.loc[invalid_indices, remark_col] = existing_remarks.apply(
+            lambda x: f"{x}; {new_remark}" if x and x != "nan" else new_remark
+        )
+    else:
+        print("      未发现格式错误的手机号。")
+
+    print("   ✅ [Check 4] 手机号格式校验完成。")
+    return df
+
+
+# --- 结束：手机号格式校验函数 ---
+
+
 def apply_post_processing(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     """
     应用所有选定的后处理步骤。
@@ -405,13 +459,50 @@ def apply_post_processing(df: pd.DataFrame, config: dict) -> pd.DataFrame:
                     "check_duplicate_companies": {
                         "post_phone_col_for_dup_comp": "联系方式",
                         "post_company_col_for_dup_comp": "客户名称"
-                    }
+                    },
+                    "validate_phone_format": {"post_phone_col_for_regex": "电话"} # 新增
                 }
 
     Returns:
-        pd.DataFrame: 应用了后处理标记的 DataFrame。
+        pd.DataFrame: 应用了后处理标记和清理的 DataFrame。
     """
     print("--- 开始应用后处理步骤 --- ")
+
+    # --- 新增：全局数据清理 ---
+    print("   >> [Step 0] 开始执行全局数据清理 (去空格、去换行)...")
+    if df.empty:
+        print("      DataFrame 为空，跳过清理。")
+    else:
+        try:
+            for col in df.select_dtypes(
+                include=["object"]
+            ).columns:  # 只处理 object (通常是 string) 类型的列
+                if col in df.columns:  # Double check column exists
+                    original_type = df[col].dtype
+                    print(f"      清理列: '{col}' (类型: {original_type})")
+                    # 1. 去除前后空格
+                    # 先确保是字符串类型再操作
+                    df[col] = df[col].astype(str).str.strip()
+                    # 2. 去除换行符 (和 \r)
+                    df[col] = (
+                        df[col]
+                        .str.replace("\r", "", regex=False)
+                        .str.replace("\n", "", regex=False)
+                    )
+                    # 3. 将清理后可能产生的、仅包含空白的单元格变回空字符串 (或者 NaN，如果需要)
+                    df[col] = df[
+                        col
+                    ].str.strip()  # 再次 strip 以处理 replace 可能留下的空白
+                    # df[col] = df[col].replace('', pd.NA) # 可选：变回 NaN
+
+            print("   ✅ [Step 0] 全局数据清理完成。")
+        except Exception as clean_err:
+            print(f"   ❌ [Step 0] 数据清理过程中发生错误: {clean_err}")
+            traceback.print_exc()
+            # 根据需要决定是否继续，这里选择继续，但数据可能未完全清理
+            pass
+    # --- 清理结束 ---
+
     # 获取后处理配置，默认为空字典
     post_config = config.get("post_processing_config", {})
     llm_config = config.get("llm_config", {})
@@ -434,7 +525,9 @@ def apply_post_processing(df: pd.DataFrame, config: dict) -> pd.DataFrame:
         print(f"   创建备注列: '{remark_col}'")
         df[remark_col] = ""
     else:
-        df[remark_col] = df[remark_col].fillna("").astype(str)
+        # 清理步骤已经处理过 fillna 和 astype(str)，这里可以简化
+        # df[remark_col] = df[remark_col].fillna("").astype(str)
+        pass  # Assuming cleaning handled it
 
     # 确保关联公司列存在且为字符串 (如果需要执行 Check 3)
     # 注意：Check 3 依赖于 Check 2 的 check_duplicate_companies 键
@@ -443,7 +536,9 @@ def apply_post_processing(df: pd.DataFrame, config: dict) -> pd.DataFrame:
             print(f"   创建关联公司列: '{related_company_col}'")
             df[related_company_col] = ""
         else:
-            df[related_company_col] = df[related_company_col].fillna("").astype(str)
+            # 清理步骤已经处理过 fillna 和 astype(str)，这里可以简化
+            # df[related_company_col] = df[related_company_col].fillna("").astype(str)
+            pass  # Assuming cleaning handled it
 
     # --- 按顺序执行选中的检查 ---
 
@@ -511,6 +606,25 @@ def apply_post_processing(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     else:
         print("   跳过 [Check 2] 检查手机号+公司名重复 (未勾选)。")
         print("   跳过 [Check 3] LLM 检查关联公司 (未勾选)。")
+
+    # 4. 校验手机号格式
+    check4_key = "validate_phone_format"
+    if check4_key in choices:
+        check4_params = post_config.get(check4_key, {})
+        phone_col_3 = check4_params.get(
+            "post_phone_col_for_regex"
+        )  # Get the specific column name for this check
+        if phone_col_3:
+            try:
+                print(f"   执行 [Check 4] 使用电话列: '{phone_col_3}'")
+                df = validate_phone_format(df, phone_col_3, remark_col)
+            except Exception as e:
+                print(f"❌ 校验手机号格式 ('{phone_col_3}') 时出错: {e}")
+                traceback.print_exc()
+        else:
+            print(f"   ⚠️ 跳过 [Check 4] 因为未在前端选择有效的电话列进行格式校验。")
+    else:
+        print("   跳过 [Check 4] 校验手机号格式 (未勾选)。")
 
     print("--- 后处理步骤完成 --- ")
     return df

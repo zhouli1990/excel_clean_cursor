@@ -181,7 +181,16 @@ if "来源" not in CURRENT_LLM_CONFIG.get("TARGET_COLUMNS", []):
 # 定义根路由，用于显示主页面 (index.html)
 @app.route("/")
 def index():
-    """渲染主页面 (index.html)，并传递当前的默认配置。"""
+    """
+    渲染应用程序主页面，提供文件上传和配置设置界面。
+
+    显示Web界面，允许用户上传Excel/CSV文件进行处理，
+    配置LLM、飞书和后处理参数，并查看任务处理进度。
+    从服务器加载默认配置参数并传递给模板用于初始化界面表单。
+
+    Returns:
+        HTML: 渲染后的index.html页面，包含所有配置参数
+    """
     # print(f"Rendering index with post_processing_defaults: {CURRENT_POST_PROCESSING_CONFIG}") # Debug
     return render_template(
         "index.html",
@@ -194,7 +203,26 @@ def index():
 # 定义文件上传路由，接收 POST 请求
 @app.route("/upload", methods=["POST"])
 def upload_files():
-    """处理文件上传，并将处理任务添加到后台线程。"""
+    """
+    处理用户上传的Excel/CSV文件并启动后台处理任务。
+
+    接收前端上传的文件并保存到任务专属目录，解析表单中的LLM、飞书和
+    后处理配置参数，创建唯一任务ID，启动后台线程执行数据处理流程。
+    处理流程包括LLM处理、飞书数据获取、数据合并和后处理检查。
+
+    Request:
+        - files[]: 上传的Excel/CSV文件列表
+        - config_target_columns: 目标列名称列表(JSON)
+        - config_api_key: DeepSeek API密钥
+        - config_batch_size: 批处理大小
+        - config_max_tokens: 最大Token数
+        - config_api_timeout: API超时时间
+        - feishu_*: 多个飞书API配置参数
+        - post_process_config: 后处理配置(JSON)
+
+    Returns:
+        JSON: 包含task_id的响应，用于前端查询任务进度
+    """
     # 基础验证：检查请求中是否包含文件部分
     if "files[]" not in request.files:
         return jsonify({"error": "请求中缺少 files[] 文件部分"}), 400
@@ -872,7 +900,19 @@ def run_processing(task_id, input_files, output_file, config):
 # 定义进度查询路由
 @app.route("/progress/<task_id>")
 def progress(task_id):
-    """返回指定任务 ID 的当前状态和进度。"""
+    """
+    查询指定任务ID的处理进度和状态。
+
+    前端通过定期轮询此API获取任务进度，进度信息包括百分比完成度、
+    当前处理阶段描述、已处理文件数量等。当任务完成时会返回结果文件名，
+    用于前端生成下载链接。如果任务ID不存在则返回404错误。
+
+    Path Params:
+        - task_id: 任务唯一标识符UUID
+
+    Returns:
+        JSON: 包含任务状态、进度百分比、处理文件信息和结果文件名(如果完成)
+    """
     task = tasks.get(task_id)
     if not task:
         # 如果任务 ID 不存在 (可能已完成很久被清理，或从未存在)
@@ -894,7 +934,20 @@ def progress(task_id):
 # 定义文件下载路由
 @app.route("/download/<task_id>/<filename>")
 def download_file(task_id, filename):
-    """提供处理完成的结果文件的下载。"""
+    """
+    下载指定任务的处理结果文件。
+
+    根据任务ID和文件名从输出目录提供文件下载。包含安全检查防止路径遍历攻击，
+    确保文件存在且属于指定的任务。各种错误情况会返回相应的HTTP错误码和信息。
+
+    Path Params:
+        - task_id: 任务唯一标识符UUID
+        - filename: 要下载的文件名，如"final_xxx.xlsx"
+
+    Returns:
+        File: 处理结果文件的下载响应
+        或 JSON错误信息: 文件不存在/目录不存在/文件名无效
+    """
     # 构造该任务的输出目录路径
     directory = os.path.join(app.config["OUTPUT_FOLDER"], task_id)
     print(f"尝试下载: {filename} 从目录 {directory}")
@@ -929,7 +982,22 @@ def download_file(task_id, filename):
 # 新增：保存配置的路由
 @app.route("/save_config", methods=["POST"])
 def save_config_route():
-    """接收前端发送的配置并保存到 config.json。"""
+    """
+    保存用户定义的配置为系统默认值。
+
+    接收JSON格式的配置数据，包含LLM、飞书和后处理配置，
+    更新内存中的配置变量并写入config.json文件，
+    使配置在下次应用启动时自动生效作为默认值。
+
+    Request Body:
+        JSON对象，必须包含三个键:
+        - llm_config: LLM处理相关配置(API密钥、批量大小等)
+        - feishu_config: 飞书API配置(ID、密钥、表IDs等)
+        - post_processing_config: 数据后处理配置
+
+    Returns:
+        JSON: 表示保存成功或失败的消息
+    """
     if not request.is_json:
         return jsonify({"success": False, "error": "Request must be JSON"}), 400
 
@@ -978,7 +1046,22 @@ def save_config_route():
 # 新增：上传用户修改后的文件的路由
 @app.route("/upload_edited/<task_id>", methods=["POST"])
 def upload_edited_file(task_id):
-    """接收用户在第四步上传的、手动修改过的 Excel 文件。"""
+    """
+    上传用户手动编辑后的Excel文件。
+
+    在处理完成后，用户可能会下载结果进行人工修改和校正，
+    此API用于接收修改后的文件，保存到任务目录并更新任务状态。
+    上传后的文件将用于后续差异比较和飞书同步操作。
+
+    Path Params:
+        - task_id: 任务唯一标识符UUID
+
+    Request:
+        - edited_file: 用户编辑后的Excel文件
+
+    Returns:
+        JSON: 上传成功或失败信息，成功时包含编辑后的文件名
+    """
     if task_id not in tasks:
         return jsonify({"success": False, "error": "任务 ID 不存在或已过期。"}), 404
 
@@ -1038,7 +1121,22 @@ def upload_edited_file(task_id):
 # 新增：执行差异比较的路由
 @app.route("/check_diff/<task_id>", methods=["GET"])
 def check_differences(task_id):
-    """执行差异比较并返回结果。"""
+    """
+    比较原始处理结果与用户编辑后文件的差异。
+
+    读取原始结果文件和用户上传的修改后文件，通过diff_utils模块
+    进行比较，识别新增、修改和删除的记录。差异结果会保存在内存中
+    供后续飞书同步使用。要求两个文件都存在且包含必要的ID列。
+
+    Path Params:
+        - task_id: 任务唯一标识符UUID
+
+    Returns:
+        JSON: 比较结果对象，包含:
+            - summary: 变更摘要统计(新增/修改/删除条数)
+            - diffs: 详细变更记录列表
+            - columns: 比较的列名列表
+    """
     if task_id not in tasks:
         return jsonify({"success": False, "error": "任务 ID 不存在或已过期。"}), 404
 
@@ -1146,7 +1244,28 @@ def check_differences(task_id):
 # 新增：将差异同步回飞书的路由
 @app.route("/sync_to_feishu/<task_id>", methods=["POST"])
 def sync_to_feishu(task_id):
-    """同步飞书: 新增基于 edited 文件, 修改/删除基于 diff 结果。"""
+    """
+    将数据同步到飞书多维表格。
+
+    基于差异比较结果执行三种操作:
+    1. 添加新记录 - 从用户修改后文件中提取record_id为空的行
+    2. 更新记录 - 根据diff结果修改飞书中已有记录
+    3. 删除记录 - 根据diff结果删除飞书中标记为已删除的记录
+
+    执行前会验证配置、检查飞书表空间容量并格式化数据，
+    同步结果会详细记录成功和失败的操作数量。
+
+    Path Params:
+        - task_id: 任务唯一标识符UUID
+
+    Requires:
+        - 已上传的编辑后文件
+        - 已执行的差异比较结果
+        - 有效的飞书API配置
+
+    Returns:
+        JSON: 同步操作结果，包含添加/更新/删除的记录数和错误信息
+    """
     # --- 常量定义 ---
     FEISHU_ROW_LIMIT = 50000
 
@@ -1662,6 +1781,18 @@ def sync_to_feishu(task_id):
 # Python 标准入口点
 if __name__ == "__main__":
     print("启动 Flask 应用...")
+
+    # 生成项目结构图
+    print("正在生成项目结构图...")
+    try:
+        # 直接导入并调用generate_project_structure.py中的函数
+        import generate_project_structure
+
+        generate_project_structure.generate_structure_markdown()
+        print("项目结构图生成成功！")
+    except Exception as e:
+        print(f"生成项目结构图时出错: {e}")
+
     # 加载配置以确保应用启动时变量是最新的
     CURRENT_LLM_CONFIG, CURRENT_FEISHU_CONFIG, CURRENT_POST_PROCESSING_CONFIG = (
         load_config()

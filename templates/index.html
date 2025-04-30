@@ -106,14 +106,15 @@
                             <li>配置：目标列名请每行输入一个。程序会尝试从源文件中提取信息并填充到这些列中。</li>
                             <li>配置：目标列名中`来源`请勿删除。</li>
                             <li>配置：后处理操作的列名选择依赖于 "目标列名" 的设置。请务必确保目标列名中的字段在飞书的表单中存在此字段，否则会无法同步。</li>
-                            <li>配置：批处理大小 (Batch Size) 影响每次调用 API 处理的行数。较大的值可能更快，但也更消耗 Token 和内存，并可能超过 API 的单次请求限制，默认160，不建议再大于此值。</li>
+                            <li>配置：批处理大小 (Batch Size) 影响每次调用 API 处理的行数。较大的值可能更快，但也更消耗 Token 和内存，并可能超过 API
+                                的单次请求限制，默认160，不建议再大于此值。</li>
                             <li>配置：如果遇到 "Context length exceeded" 错误，请尝试减小批处理大小。</li>
                             <li>配置：飞书数据源配置-->新增目标 Table ID(s):此处配置决定了新增数据同步至哪张多维表格。系统在新增数据时，会首先尝试写入第一个 Table
                                 ID。如果检查发现写入后会超过该表格的行数上限 (企业版最大为 50000 行)，则会自动尝试列表中的下一个 Table
                                 ID，以此类推。如果所有指定的目标表格都已满，新增操作将失败并报错。如果未配置此项，新增数据将写入 "飞书 Table IDs" 列表中的第一个表格。</li>
                             <li>第三步：`local_row_id` 列与 `record_id` 请勿手动修改，是用作更新的主键。</li>
                             <li>第四步：需上传系统生成的final_*.xlsx的文件，请勿上传其他文件</li>
-                            
+
                         </ul>
                     </div>
                 </div>
@@ -342,6 +343,25 @@
                                         </div>
                                     </div>
                                 </div>
+                                <!-- *** 新增：手机号格式校验 *** -->
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input post-process-check" type="checkbox"
+                                            value="validate_phone_format" id="validate_phone_format" checked
+                                            data-target-selects="#post-phone-col-3-select">
+                                        <label class="form-check-label" for="validate_phone_format">
+                                            校验手机号格式 (11位数字，在备注列标记错误)
+                                        </label>
+                                    </div>
+                                    <div class="mt-2" id="post-phone-col-3-select-container" style="display: block;">
+                                        <select class="form-select form-select-sm post-process-select"
+                                            id="post-phone-col-3-select" name="post_phone_col_for_regex">
+                                            <option value="" selected>-- 请选择用于格式校验的"电话" 列 --</option>
+                                            <!-- Options will be populated by JS -->
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- *** 新增结束 *** -->
                             </div>
                         </div>
 
@@ -554,9 +574,11 @@
             updatePostProcessSelects(); // Populate selects based on initial target columns and defaults
 
             // Ensure initial visibility of select dropdowns based on checkbox state
-            postProcessCheckboxes.forEach(checkbox => {
-                handlePostCheckboxChange({ target: checkbox }); // Simulate event on load
+            // Re-query the checkboxes *after* potentially adding new ones dynamically or on page load
+            document.querySelectorAll('.post-process-check').forEach(cb => {
+                handlePostCheckboxChange({ target: cb }); // Simulate event on load for all checks
             });
+
             resetProgress(); // Ensure progress bar is hidden initially
             // Sync rows per page from select
             rowsPerPage = parseInt(diffRowsPerPageSelect.value) || 25;
@@ -668,7 +690,8 @@
         // Get current post-processing configuration (selected checks and columns)
         function getPostProcessingConfig() {
             const config = {};
-            postProcessCheckboxes.forEach(checkbox => {
+            // Re-query checkboxes inside the function in case they are added dynamically
+            document.querySelectorAll('.post-process-check').forEach(checkbox => {
                 if (checkbox.checked) {
                     const checkValue = checkbox.value;
                     config[checkValue] = {};
@@ -687,6 +710,10 @@
                     }
                     if (checkValue === 'check_duplicate_companies' && (!config[checkValue]['post_phone_col_for_dup_comp'] || !config[checkValue]['post_company_col_for_dup_comp'])) {
                         console.warn('Post-processing: Duplicate company check active but columns not fully selected.');
+                    }
+                    // Add validation for the new check
+                    if (checkValue === 'validate_phone_format' && !config[checkValue]['post_phone_col_for_regex']) {
+                        console.warn('Post-processing: Phone format validation active but column not selected.');
                     }
                 }
             });
@@ -945,17 +972,20 @@
             const currentColumns = getTargetColumns();
             // console.log("Updating post-process selects with columns:", currentColumns);
 
-            postProcessSelects.forEach(select => {
+            // Re-query selects inside the function
+            document.querySelectorAll('.post-process-select').forEach(select => {
                 const currentVal = select.value;
                 const selectName = select.name;
                 let defaultValue = null;
 
+                // Find default value for this specific select based on its name
                 if (defaultPostProcessingCols) {
                     for (const checkKey in defaultPostProcessingCols) {
-                        if (defaultPostProcessingCols[checkKey] && typeof defaultPostProcessingCols[checkKey] === 'object') {
-                            if (selectName in defaultPostProcessingCols[checkKey]) {
+                        // Check if the key exists and is an object before accessing nested property
+                        if (defaultPostProcessingCols.hasOwnProperty(checkKey) && typeof defaultPostProcessingCols[checkKey] === 'object' && defaultPostProcessingCols[checkKey] !== null) {
+                            if (defaultPostProcessingCols[checkKey].hasOwnProperty(selectName)) {
                                 defaultValue = defaultPostProcessingCols[checkKey][selectName];
-                                break;
+                                break; // Found the default for this select, exit inner loop
                             }
                         }
                     }
@@ -963,16 +993,20 @@
                 // console.log(`Select ${selectName} - Current: ${currentVal}, Default: ${defaultValue}`);
 
                 // Clear existing options (keep placeholder)
-                while (select.options.length > 1) select.remove(1);
+                const placeholderOption = select.options[0]; // Keep the first option (placeholder)
+                select.innerHTML = ''; // Clear all options
+                if (placeholderOption) {
+                    select.appendChild(placeholderOption); // Re-add the placeholder if it existed
+                }
 
-                // Add new options
+                // Add new options from currentColumns
                 currentColumns.forEach(colName => {
                     const option = new Option(colName, colName);
                     select.add(option);
                 });
 
-                // Set selected value: Prioritize current value if valid, then default value if valid, else reset
-                let valueToSet = "";
+                // Set selected value: Prioritize current value if valid, then default value if valid, else reset to placeholder
+                let valueToSet = ""; // Default to placeholder value
                 if (currentColumns.includes(currentVal)) {
                     valueToSet = currentVal;
                 } else if (defaultValue && currentColumns.includes(defaultValue)) {
@@ -991,12 +1025,22 @@
                 targetSelectIds.split(',').forEach(selectId => {
                     const selectElement = document.querySelector(selectId.trim());
                     if (selectElement) {
-                        // Find the container relative to the select element
-                        const container = selectElement.closest('[id$="-select-container"]');
+                        // Find the container relative to the select element more robustly
+                        // Assumes container ID follows pattern: selectId + '-container'
+                        const containerId = selectId.substring(1) + '-container'; // remove '#' and add suffix
+                        const container = document.getElementById(containerId);
                         if (container) {
                             container.style.display = checkbox.checked ? 'block' : 'none';
                         } else {
-                            console.warn("Could not find container for select:", selectId);
+                            console.warn("Could not find container with ID:", containerId, "for select:", selectId);
+                            // Fallback: Try finding closest parent with 'mt-2' class, less reliable
+                            const fallbackContainer = selectElement.closest('.mt-2');
+                            if (fallbackContainer) {
+                                fallbackContainer.style.display = checkbox.checked ? 'block' : 'none';
+                                console.log("Used fallback container logic for", selectId);
+                            } else {
+                                console.warn("Could not find any container for select:", selectId);
+                            }
                         }
                     } else {
                         console.warn("Could not find select element:", selectId);
