@@ -10,7 +10,7 @@ import math  # 用于计算批处理数量
 import uuid  # Added import
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 # === Logger Setup ===
 # Create a logger instance
@@ -118,7 +118,7 @@ def extract_standardize_batch_with_llm(
     api_endpoint: str,  # DeepSeek API 端点 URL
     max_tokens: int,  # API 调用允许的最大完成 token 数
     timeout: int,  # API 请求的超时时间 (秒)
-) -> list[dict] | None:
+) -> Union[List[Dict], None]:
     """
     使用 DeepSeek LLM API 对一批数据进行信息提取和标准化。
     包含重试逻辑和常见的 API 错误处理。
@@ -133,7 +133,7 @@ def extract_standardize_batch_with_llm(
         timeout: API 请求的超时时间 (秒)。
 
     Returns:
-        list[dict] | None: 成功处理则返回标准化后的数据列表 (可能包含错误标记)，
+        Union[List[Dict], None]: 成功处理则返回标准化后的数据列表 (可能包含错误标记)，
                            如果 API 调用失败或发生严重错误，则返回 None。
                            如果 API Key 无效，则返回包含 API_KEY_ERROR 标记的列表。
     """
@@ -391,7 +391,7 @@ def extract_standardize_batch_with_llm(
 
 # === 主处理函数 ===
 def process_files_and_consolidate(
-    input_files: list[str],  # 输入文件路径列表
+    input_files: List[str],  # 输入文件路径列表
     output_file_path: str,  # 输出 Excel 文件路径
     config: dict,  # 包含配置项的字典 (API Key, Target Columns 等)
     update_progress_callback=None,  # 用于报告进度的回调函数 (可选)
