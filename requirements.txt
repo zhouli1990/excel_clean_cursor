@@ -1,7 +1,28 @@
-Flask
-pandas
-openpyxl
-requests
-numpy
-gunicorn
- 
+# 自动更新于 2025-04-30 09:48:29
+# 此文件由update_requirements.py自动生成
+
+# 表格数据清洗与飞书同步工具的依赖配置
+# 自动更新于 2025-04-30
+
+# Web框架
+flask==2.2.3
+Werkzeug==2.2.3
+Jinja2==3.1.2
+itsdangerous==2.1.2
+click==8.1.3
+blinker==1.6.2
+
+# 数据处理
+pandas==1.5.3
+numpy==1.24.2
+openpyxl==3.1.2
+pytz==2022.7.1
+
+# HTTP请求
+requests==2.28.2
+urllib3==1.26.15
+charset-normalizer==3.1.0
+idna==3.4
+certifi==2022.12.7
+
+
