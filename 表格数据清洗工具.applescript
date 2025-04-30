@@ -1,50 +1,50 @@
--- è¡¨æ ¼æ•°æ®æ¸…æ´—å·¥å…·åº”ç”¨
+-- ±í¸ñÊı¾İÇåÏ´¹¤¾ßÓ¦ÓÃ
 
--- åº”ç”¨è·¯å¾„å˜é‡
-property appPath : ""
+-- Ó¦ÓÃÂ·¾¶±äÁ¿
+property appPath : "/Users/zhouli/Downloads/excel_clean_cursor"
 
--- åœ¨åº”ç”¨å¯åŠ¨æ—¶æ‰§è¡Œ
+-- ÔÚÓ¦ÓÃÆô¶¯Ê±Ö´ĞĞ
 on run
-    -- è·å–åº”ç”¨è·¯å¾„
+    -- »ñÈ¡Ó¦ÓÃÂ·¾¶
     set appPath to (path to me as text)
     set appPath to POSIX path of appPath
     set appPath to do shell script "dirname " & quoted form of appPath
     
-    -- å¯åŠ¨FlaskæœåŠ¡
+    -- Æô¶¯Flask·şÎñ
     startFlaskServer()
     
-    -- æ‰“å¼€æµè§ˆå™¨
+    -- ´ò¿ªä¯ÀÀÆ÷
     delay 1.5
     openBrowser()
 end run
 
--- åœ¨é€€å‡ºåº”ç”¨æ—¶æ‰§è¡Œ
+-- ÔÚÍË³öÓ¦ÓÃÊ±Ö´ĞĞ
 on quit
-    -- åœæ­¢FlaskæœåŠ¡
+    -- Í£Ö¹Flask·şÎñ
     stopFlaskServer()
-    -- ç»§ç»­é€€å‡ºè¿‡ç¨‹
+    -- ¼ÌĞøÍË³ö¹ı³Ì
     continue quit
 end quit
 
--- å¯åŠ¨FlaskæœåŠ¡å™¨
+-- Æô¶¯Flask·şÎñÆ÷
 on startFlaskServer()
-    -- æ£€æŸ¥æœåŠ¡æ˜¯å¦å·²è¿è¡Œ
+    -- ¼ì²é·şÎñÊÇ·ñÒÑÔËĞĞ
     set isRunning to checkIfRunning()
     if isRunning then
-        display dialog "è¡¨æ ¼æ•°æ®æ¸…æ´—å·¥å…·æœåŠ¡å·²åœ¨è¿è¡Œä¸­ã€‚" buttons {"ç¡®å®š"} default button 1
+        display dialog "±í¸ñÊı¾İÇåÏ´¹¤¾ß·şÎñÒÑÔÚÔËĞĞÖĞ¡£" buttons {"È·¶¨"} default button 1
         openBrowser()
         return
     end if
     
-    -- ä½¿ç”¨bashè°ƒç”¨Flaskå¯åŠ¨è„šæœ¬
+    -- Ê¹ÓÃbashµ÷ÓÃFlaskÆô¶¯½Å±¾
     set shellScript to "cd " & quoted form of appPath & " && ./run_flask_app.sh > /dev/null 2>&1 &"
     do shell script shellScript
     
-    -- æ˜¾ç¤ºæˆåŠŸæ¶ˆæ¯
-    display notification "è¡¨æ ¼æ•°æ®æ¸…æ´—å·¥å…·æœåŠ¡å·²å¯åŠ¨" with title "æœåŠ¡å¯åŠ¨"
+    -- ÏÔÊ¾³É¹¦ÏûÏ¢
+    display notification "±í¸ñÊı¾İÇåÏ´¹¤¾ß·şÎñÒÑÆô¶¯" with title "·şÎñÆô¶¯"
 end startFlaskServer
 
--- æ£€æŸ¥æœåŠ¡æ˜¯å¦å·²åœ¨è¿è¡Œ
+-- ¼ì²é·şÎñÊÇ·ñÒÑÔÚÔËĞĞ
 on checkIfRunning()
     try
         set result to do shell script "pgrep -f 'python app.py'"
@@ -54,18 +54,18 @@ on checkIfRunning()
     end try
 end checkIfRunning
 
--- åœæ­¢FlaskæœåŠ¡å™¨
+-- Í£Ö¹Flask·şÎñÆ÷
 on stopFlaskServer()
     try
         do shell script "pkill -f 'python app.py'"
-        display notification "è¡¨æ ¼æ•°æ®æ¸…æ´—å·¥å…·æœåŠ¡å·²åœæ­¢" with title "æœåŠ¡åœæ­¢"
+        display notification "±í¸ñÊı¾İÇåÏ´¹¤¾ß·şÎñÒÑÍ£Ö¹" with title "·şÎñÍ£Ö¹"
     on error
-        -- å¿½ç•¥é”™è¯¯ï¼ˆå¯èƒ½æ˜¯æœåŠ¡å·²ç»ä¸åœ¨è¿è¡Œï¼‰
+        -- ºöÂÔ´íÎó£¨¿ÉÄÜÊÇ·şÎñÒÑ¾­²»ÔÚÔËĞĞ£©
     end try
 end stopFlaskServer
 
--- æ‰“å¼€æµè§ˆå™¨
+-- ´ò¿ªä¯ÀÀÆ÷
 on openBrowser()
-    -- ä½¿ç”¨ç³»ç»Ÿé»˜è®¤æµè§ˆå™¨æ‰“å¼€åº”ç”¨
+    -- Ê¹ÓÃÏµÍ³Ä¬ÈÏä¯ÀÀÆ÷´ò¿ªÓ¦ÓÃ
     do shell script "open http://localhost:5100"
 end openBrowser 
