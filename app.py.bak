@@ -857,9 +857,8 @@ def run_processing(task_id, input_files, output_file, config):
                     os.path.dirname(output_file), final_output_filename
                 )
                 print(f"   最终保存路径: {final_output_path}")
-                # 使用多Sheet页Excel保存最终结果文件
-                postprocessor.create_multi_sheet_excel(
-                    final_df, final_output_path, config
+                final_df.to_excel(
+                    final_output_path, index=False, engine="openpyxl", na_rep=""
                 )
                 print(f"   最终文件 {final_output_filename} 保存成功。")
             else:

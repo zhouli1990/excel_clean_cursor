@@ -162,6 +162,11 @@ def extract_standardize_batch_with_llm(
 ```json
 {target_schema_json}
 ```
+**当源数据中电话/手机号列包含多个号码时（可能用分号、逗号、空格等分隔），你必须将该行拆分为多行，每行对应一个手机号，其他信息保持一致。**
+**手机号分隔符识别规则：**
+- 支持的分隔符包括：中英文分号（;；）、中英文逗号（,，）、空格、斜杠（/）
+- 一行中可能包含多个不同类型的分隔符
+
 **处理规则:**
 1.独立处理: 独立分析 "Source Batch Data" 数组中的每一个 JSON 对象。
 2.提取与映射: 结合 "Source Headers" 上下文，将信息映射到 "Target Schema" 字段。找不到信息则对应值设为 ""。所有值必须为字符串。
@@ -254,10 +259,14 @@ def extract_standardize_batch_with_llm(
                     # 尝试将清理后的字符串解析为 JSON (预期是一个列表)
                     standardized_batch = json.loads(content_str_cleaned)
 
-                    # 验证返回的是否为列表，且列表长度是否与输入批次长度一致
+                    # 验证返回的是否为列表，且列表长度大于等于输入批次长度（支持多手机号拆分）
                     if isinstance(standardized_batch, list) and len(
                         standardized_batch
-                    ) == len(batch_rows):
+                    ) >= len(batch_rows):
+                        if len(standardized_batch) > len(batch_rows):
+                            print(
+                                f"      -> LLM返回了 {len(standardized_batch)} 行（原始输入 {len(batch_rows)} 行），可能包含手机号拆分后的多行数据。"
+                            )
                         validated_batch = []
                         # 进一步验证列表中的每个元素是否为字典，并按目标列格式化
                         for i, item in enumerate(standardized_batch):
@@ -289,7 +298,7 @@ def extract_standardize_batch_with_llm(
                             else ""
                         )
                         print(
-                            f"      ❌ LLM 返回了无效列表或长度不匹配 (预期 {len(batch_rows)} 行)。实际 -> {details} (尝试 {attempt + 1})。"
+                            f"      ❌ LLM 返回了无效列表或长度异常 (预期至少 {len(batch_rows)} 行)。实际 -> {details} (尝试 {attempt + 1})。"
                         )
                         # 进入重试流程 (如果还有重试次数)
 
@@ -607,35 +616,70 @@ def process_files_and_consolidate(
             processed_batch_with_ids_and_source = []  # Renamed list
 
             if isinstance(standardized_batch_result, list):
-                if len(standardized_batch_result) == len(llm_input_batch_list) and len(
-                    standardized_batch_result
-                ) == len(batch_local_ids):
-                    for idx, result_row in enumerate(standardized_batch_result):
+                # 修改判断条件，允许LLM返回比输入更多的行（支持多手机号拆分）
+                if len(standardized_batch_result) >= len(llm_input_batch_list):
+                    # 如果LLM返回了更多行，可能是因为进行了手机号拆分
+                    if len(standardized_batch_result) > len(llm_input_batch_list):
+                        print(
+                            f"      处理拆分的手机号数据，原始输入 {len(llm_input_batch_list)} 行，LLM返回 {len(standardized_batch_result)} 行"
+                        )
+
+                    # 建立原始行索引到可能的拆分行映射关系
+                    original_row_mapping = {}
+                    processed_rows = 0
+
+                    # 遍历LLM返回的每一行结果
+                    for result_idx, result_row in enumerate(standardized_batch_result):
                         if isinstance(result_row, dict):
-                            local_id = batch_local_ids[idx]
+                            # 确定此行对应的原始行索引
+                            # 对于拆分行，多个结果行会对应同一个原始行
+                            original_idx = min(result_idx, len(batch_local_ids) - 1)
+
+                            # 当处理到新的原始行时，增加计数
+                            if original_idx not in original_row_mapping:
+                                original_row_mapping[original_idx] = 0
+
+                            # 获取这个原始行的local_id
+                            local_id = batch_local_ids[original_idx]
+
+                            # 保存结果行信息
                             result_row["local_row_id"] = local_id
-                            # *** 新增：查找并添加来源列 ***
                             source_name = local_id_to_source_map.get(
                                 local_id, "UNKNOWN_SOURCE"
                             )
                             result_row[source_column_name] = source_name
                             processed_batch_with_ids_and_source.append(result_row)
+
+                            # 增加这个原始行的处理计数
+                            original_row_mapping[original_idx] += 1
+                            processed_rows += 1
                         else:
-                            # Handle non-dict items from LLM
-                            local_id = batch_local_ids[idx]
+                            # 处理非字典项
                             print(
-                                f"      ⚠️ 警告: LLM 返回列表项不是字典 (索引 {idx})。添加错误占位符。"
+                                f"      ⚠️ 警告: LLM 返回列表项不是字典 (索引 {result_idx})。添加错误占位符。"
                             )
+                            # 确定最相近的原始行索引
+                            original_idx = min(result_idx, len(batch_local_ids) - 1)
+                            local_id = batch_local_ids[original_idx]
+
                             error_row = {
                                 col: "LLM_ITEM_FORMAT_ERROR"
                                 for col in llm_target_columns
                             }
                             error_row["local_row_id"] = local_id
-                            # *** 新增：也为错误行添加来源 ***
                             error_row[source_column_name] = local_id_to_source_map.get(
                                 local_id, "UNKNOWN_SOURCE"
                             )
                             processed_batch_with_ids_and_source.append(error_row)
+
+                    # 打印拆分结果统计
+                    split_stat = ", ".join(
+                        [
+                            f"行{idx+1}: {count}条"
+                            for idx, count in original_row_mapping.items()
+                        ]
+                    )
+                    print(f"      拆分统计：{split_stat}")
 
                     # Filter for valid results *after* adding ID and Source
                     valid_results_in_batch = [
@@ -656,6 +700,7 @@ def process_files_and_consolidate(
                     print(
                         f"      批次 {batch_num+1} 处理完成。收到并添加 ID 和来源到 {len(processed_batch_with_ids_and_source)} 条结果 ({len(valid_results_in_batch)} 条有效)。"
                     )
+
                 else:
                     # Handle length mismatch
                     print(f"      ❌ 警告: LLM 返回列表长度不匹配... 添加错误标记。")
