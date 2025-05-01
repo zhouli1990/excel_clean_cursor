@@ -618,6 +618,7 @@ def run_processing(task_id, input_files, output_file, config):
             # Start with target_columns (which includes '来源'), add others, then deduplicate
             required_cols = [
                 "record_id",
+                "table_id",  # 添加table_id
                 remark_column,
                 related_company_col,
                 local_id_col,
@@ -637,6 +638,9 @@ def run_processing(task_id, input_files, output_file, config):
                         f"   ⚠️ 警告: LLM 处理结果中意外缺失 '{source_column_name}'。添加空列。"
                     )
                     df_processed[source_column_name] = ""
+                # 确保table_id列存在
+                if "table_id" not in df_processed.columns:
+                    df_processed["table_id"] = ""
                 # Ensure other required columns exist
                 for col in final_columns:
                     if col not in df_processed.columns:
@@ -1456,148 +1460,81 @@ def sync_to_feishu(task_id):
 
             # 准备更新记录 - 改为与原始数据对比
             if not df_update.empty:
-                # 确保record_id列存在 (在更新数据中不应该为空)
+                # 确保record_id列和table_id列存在 (在更新数据中不应该为空)
                 if feishu_id_col not in df_update.columns:
                     print(
                         f"    -> 警告: '更新'Sheet中缺少 '{feishu_id_col}' 列，无法执行更新操作"
                     )
+                elif "table_id" not in df_update.columns:
+                    print(
+                        f"    -> 警告: '更新'Sheet中缺少 'table_id' 列，无法执行更新操作"
+                    )
                 else:
-                    # 清理record_id
+                    # 清理record_id和table_id
                     df_update[feishu_id_col] = (
                         df_update[feishu_id_col].fillna("").astype(str).str.strip()
                     )
+                    df_update["table_id"] = (
+                        df_update["table_id"].fillna("").astype(str).str.strip()
+                    )
+
                     # 处理"none"值
                     df_update.loc[
                         df_update[feishu_id_col].str.lower() == "none", feishu_id_col
                     ] = ""
+                    df_update.loc[
+                        df_update["table_id"].str.lower() == "none", "table_id"
+                    ] = ""
 
-                    # 筛选有效记录
-                    df_update = df_update[df_update[feishu_id_col] != ""]
+                    # 筛选有效记录 - 同时需要有record_id和table_id
+                    df_update = df_update[
+                        (df_update[feishu_id_col] != "") & (df_update["table_id"] != "")
+                    ]
                     print(
-                        f"    -> '更新'Sheet中有 {len(df_update)} 行包含有效record_id"
+                        f"    -> '更新'Sheet中有 {len(df_update)} 行同时包含有效record_id和table_id"
                     )
 
-                    # 修改: 准备更新数据 - 与原始数据比较
-                    diff_count = 0
+                    # 直接从更新sheet构建更新记录
                     for _, update_row in df_update.iterrows():
                         record_id = update_row[feishu_id_col]
+                        table_id = update_row["table_id"]
 
-                        # 在原始数据中查找相同record_id的行
-                        if (
-                            not df_original.empty
-                            and feishu_id_col in df_original.columns
-                        ):
-                            original_rows = df_original[
-                                df_original[feishu_id_col] == record_id
-                            ]
+                        # 创建更新记录
+                        update_payload = {
+                            "record_id": record_id,
+                            "table_id": table_id,
+                            "fields": {},
+                        }
 
-                            if original_rows.empty:
-                                print(
-                                    f"    -> 警告: 原始数据中找不到record_id '{record_id}'，该行将被完整更新"
-                                )
-                                # 准备完整更新
-                                update_payload = {"record_id": record_id, "fields": {}}
+                        # 添加所有需要更新的字段
+                        for col in target_columns:
+                            if (
+                                col in update_row.index
+                                and col != feishu_id_col
+                                and col != "table_id"
+                            ):
+                                value = update_row[col]
+                                # 忽略None值和空字符串
+                                if pd.isna(value) or value is None:
+                                    continue
 
-                                for col in target_columns:
-                                    if col in update_row.index and col != feishu_id_col:
-                                        value = update_row[col]
-                                        if pd.isna(value) or value is None:
-                                            continue
+                                # 处理不同类型的值
+                                if isinstance(value, (list, dict)):
+                                    processed_value = json.dumps(
+                                        value, ensure_ascii=False
+                                    )
+                                else:
+                                    processed_value = str(value)
 
-                                        # 处理不同类型
-                                        if isinstance(value, (list, dict)):
-                                            processed_value = json.dumps(
-                                                value, ensure_ascii=False
-                                            )
-                                        else:
-                                            processed_value = str(value)
+                                update_payload["fields"][col] = processed_value
 
-                                        update_payload["fields"][col] = processed_value
+                        # 只有当fields非空时才添加到更新列表
+                        if update_payload["fields"]:
+                            records_to_update.append(update_payload)
 
-                                if update_payload["fields"]:
-                                    records_to_update.append(update_payload)
-                                    diff_count += 1
-                            else:
-                                # 存在原始行，进行字段级差异比较
-                                original_row = original_rows.iloc[0]
-                                update_payload = {"record_id": record_id, "fields": {}}
-                                diff_found = False
-                                diff_fields = []
-
-                                for col in target_columns:
-                                    if (
-                                        col in update_row.index
-                                        and col in original_row.index
-                                        and col != feishu_id_col
-                                    ):
-                                        update_value = update_row[col]
-                                        original_value = original_row[col]
-
-                                        # 处理空值
-                                        if pd.isna(update_value):
-                                            update_value = ""
-                                        if pd.isna(original_value):
-                                            original_value = ""
-
-                                        # 转换为字符串进行比较
-                                        update_str = str(update_value).strip()
-                                        original_str = str(original_value).strip()
-
-                                        # 如果有差异，则添加到更新字段
-                                        if update_str != original_str:
-                                            diff_found = True
-                                            diff_fields.append(
-                                                f"{col}: '{original_str}' -> '{update_str}'"
-                                            )
-
-                                            if isinstance(update_value, (list, dict)):
-                                                processed_value = json.dumps(
-                                                    update_value, ensure_ascii=False
-                                                )
-                                            else:
-                                                processed_value = update_str
-
-                                            update_payload["fields"][
-                                                col
-                                            ] = processed_value
-
-                                # 只有找到差异的记录才添加到更新列表
-                                if diff_found and update_payload["fields"]:
-                                    records_to_update.append(update_payload)
-                                    diff_count += 1
-                                    # 记录差异详情
-                                    if diff_fields:
-                                        results["diff_details"].append(
-                                            {
-                                                "record_id": record_id,
-                                                "changes": diff_fields,
-                                            }
-                                        )
-                        else:
-                            # 原始数据为空或缺少record_id列，只能完整更新
-                            update_payload = {"record_id": record_id, "fields": {}}
-
-                            for col in target_columns:
-                                if col in update_row.index and col != feishu_id_col:
-                                    value = update_row[col]
-                                    if pd.isna(value) or value is None:
-                                        continue
-
-                                    # 处理不同类型
-                                    if isinstance(value, (list, dict)):
-                                        processed_value = json.dumps(
-                                            value, ensure_ascii=False
-                                        )
-                                    else:
-                                        processed_value = str(value)
-
-                                    update_payload["fields"][col] = processed_value
-
-                            if update_payload["fields"]:
-                                records_to_update.append(update_payload)
-                                diff_count += 1
-
-                    print(f"    -> 经过差异比较，有 {diff_count} 条记录需要更新")
+                    print(
+                        f"    -> 直接从'更新'Sheet提取了 {len(records_to_update)} 条记录准备更新。"
+                    )
 
             print(
                 f"    -> 最终准备: {len(records_to_add)} 条新增记录和 {len(records_to_update)} 条更新记录。"
@@ -1631,37 +1568,74 @@ def sync_to_feishu(task_id):
                 500,
             )
 
-        update_table_id = primary_table_ids[0]
-        print(f"    目标表格 (更新): {update_table_id}")
         final_add_target_table_id = None
         records_to_add_validated = records_to_add.copy()
 
         # --- 批量更新 ---
         if records_to_update:
-            print(f"      尝试更新 {len(records_to_update)} 条记录...")
-            try:
-                update_result = feishu_utils.batch_update_records(
-                    app_token,
-                    update_table_id,
-                    records_to_update,
-                    app_id,
-                    app_secret,
-                )
-                results["updated"] = update_result.get("success_count", 0)
-                results["update_errors"] = update_result.get(
-                    "error_count", len(records_to_update) - results["updated"]
-                )
-                if update_result.get("errors"):
-                    results["errors"].extend(
-                        [f"更新失败: {e}" for e in update_result["errors"]]
-                    )
+            print(f"      准备更新 {len(records_to_update)} 条记录...")
+
+            # 按table_id分组
+            update_records_by_table = {}
+            for record in records_to_update:
+                table_id = record.get("table_id", "")
+                record_id = record.get("record_id", "")
+
+                if not table_id or not record_id:
+                    print(f"      ⚠️ 跳过缺少table_id或record_id的记录: {record}")
+                    continue
+
+                if table_id not in update_records_by_table:
+                    update_records_by_table[table_id] = []
+
+                # 创建更新记录的副本，移除table_id字段(飞书API不需要)
+                update_record = record.copy()
+                if "table_id" in update_record:
+                    del update_record["table_id"]
+
+                update_records_by_table[table_id].append(update_record)
+
+            # 对每个表格分别执行更新
+            total_success = 0
+            total_error = 0
+            all_errors = []
+
+            for table_id, table_records in update_records_by_table.items():
                 print(
-                    f"        更新结果: 成功 {results['updated']}, 失败 {results['update_errors']}"
+                    f"      正在更新表格 {table_id} 中的 {len(table_records)} 条记录..."
                 )
-            except Exception as upd_err:
-                print(f"     ❌ 调用批量更新时发生错误: {upd_err}")
-                results["update_errors"] += len(records_to_update)
-                results["errors"].append(f"批量更新API调用失败: {upd_err}")
+                try:
+                    update_result = feishu_utils.batch_update_records(
+                        app_token,
+                        table_id,
+                        table_records,
+                        app_id,
+                        app_secret,
+                    )
+                    total_success += update_result.get("success_count", 0)
+                    total_error += update_result.get("error_count", 0)
+                    all_errors.extend(update_result.get("errors", []))
+
+                    print(
+                        f"      表格 {table_id} 更新结果: 成功={update_result.get('success_count', 0)}, 失败={update_result.get('error_count', 0)}"
+                    )
+                except Exception as e:
+                    print(f"      ❌ 更新表格 {table_id} 时出错: {e}")
+                    total_error += len(table_records)
+                    all_errors.append(f"更新表格 {table_id} 失败: {e}")
+
+            # 汇总更新结果
+            update_results = {
+                "success_count": total_success,
+                "error_count": total_error,
+                "errors": all_errors,
+            }
+
+            # 更新结果统计
+            results["updated"] = update_results.get("success_count", 0)
+            results["update_errors"] = update_results.get("error_count", 0)
+            if update_results.get("errors"):
+                results["errors"].extend(update_results["errors"])
 
         # --- 批量新增 (行数检查逻辑) ---
         if records_to_add_validated:
@@ -1710,7 +1684,7 @@ def sync_to_feishu(task_id):
                     results["errors"].append(error_msg)
                     records_to_add_validated = []
             else:
-                target_id = update_table_id
+                target_id = primary_table_ids[0]
                 print(f"        未指定新增目标表格，将尝试写入主表格: {target_id}")
                 print(f"          > 检查表格 {target_id} 的行数限制...")
                 try:

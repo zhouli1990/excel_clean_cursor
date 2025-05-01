@@ -160,12 +160,34 @@ def check_company_similarity_deepseek(
     user_content = json.dumps(unique_non_empty_names, ensure_ascii=False)
 
     # Corrected system content string formatting
-    system_content = (
-        "你是一个用于判断公司名称关联性的专家。请分析以下公司名称列表，判断它们是否指向同一家公司、母子公司、或属于同一集团下的紧密关联公司。"
-        "\nPlease parse the output in JSON format："
-        "\nEXAMPLE INPUT:['阿里巴巴集团控股有限公司', '蚂蚁科技集团股份有限公司', '盒马（中国）有限公司']"
-        "\nEXAMPLE JSON OUTPUT:{\n  \"related\": true,\n  \"names\": ['阿里巴巴集团控股有限公司', '蚂蚁科技集团股份有限公司', '盒马（中国）有限公司']\n}"
-    )
+    system_content = """
+你是一个专业的公司关联性分析专家。你的任务是判断输入的公司名称列表中的公司是否相互关联。
+【判断标准】
+1. 明确关联：同一公司的不同名称、母子公司关系、同一集团下的公司
+2. 明确不关联：完全不同的公司、仅行业相似但无实际关系的公司
+3. 需要先处理可能包含多个公司名称的输入项，支持的分隔符包括：分号(;)、逗号(,)、空格、斜杠(/)
+
+【输出要求】
+必须输出有效的JSON格式，包含两个字段：
+- "related": 布尔值，表示是否关联
+- "names": 数组，仅包含相互关联的公司名称(如果有多组不相关的公司，只返回第一组相关公司)
+
+【示例1：相关公司】
+输入: ['阿里巴巴集团控股有限公司', '蚂蚁科技集团股份有限公司', '盒马（中国）有限公司']
+输出: {"related": true, "names": ['阿里巴巴集团控股有限公司', '蚂蚁科技集团股份有限公司', '盒马（中国）有限公司']}
+
+【示例2：需要拆分且部分相关】
+输入: ['五凌电力', '五凌电力集团;天津市朗威科技发展有限公司']
+输出: {"related": true, "names": ['五凌电力', '五凌电力集团']}
+
+【示例3：不相关公司】
+输入: ['华为技术有限公司', '小米科技有限公司']
+输出: {"related": false, "names": []}
+
+【边界情况】
+- 如果判断不确定，默认返回{"related": false, "names": []}
+- 如果输入为空或格式错误，返回{"related": false, "names": [], "error": "无效输入"}
+    """
 
     payload = {
         "model": "deepseek-chat",
@@ -796,6 +818,7 @@ def create_multi_sheet_excel(
 
     # 准备列名和配置信息
     record_id_col = "record_id"
+    table_id_col = "table_id"  # 添加tableId列
     local_row_id_col = "local_row_id"
     post_config = config.get("post_processing_config", {})
     feishu_config = config.get("feishu_config", {})
@@ -812,8 +835,8 @@ def create_multi_sheet_excel(
     # 步骤1: 存储原始数据到Sheet页
     df_original = df_processed.copy()
 
-    # 清理数据中的record_id和local_row_id
-    for col in [record_id_col, local_row_id_col]:
+    # 清理数据中的ID相关列
+    for col in [record_id_col, table_id_col, local_row_id_col]:
         if col in df_original.columns:
             df_original[col] = df_original[col].fillna("").astype(str).str.strip()
             df_original.loc[df_original[col].str.lower() == "none", col] = ""
@@ -847,7 +870,15 @@ def create_multi_sheet_excel(
             if len(unique_companies) <= 1:  # 企业名称相同或为空
                 # 只需保留一行，根据record_id决定去向
                 if any(rid != "" for rid in group[record_id_col]):
-                    kept_row = group[group[record_id_col] != ""].iloc[0].to_dict()
+                    # 找到有record_id且table_id也存在的行
+                    valid_rows = group[(group[record_id_col] != "")]
+                    if table_id_col in df_temp.columns:
+                        valid_rows = valid_rows[(valid_rows[table_id_col] != "")]
+
+                    if not valid_rows.empty:
+                        kept_row = valid_rows.iloc[0].to_dict()
+                    else:
+                        kept_row = group[group[record_id_col] != ""].iloc[0].to_dict()
                     # 有record_id且没有合并，不需要更新，不添加到update_records
                 else:
                     kept_row = group.iloc[0].to_dict()
@@ -864,16 +895,36 @@ def create_multi_sheet_excel(
 
                 if has_relation:  # 有关联，保留一行
                     if any(rid != "" for rid in group[record_id_col]):
-                        kept_row = group[group[record_id_col] != ""].iloc[0].to_dict()
+                        # 找到有record_id且table_id也存在的行
+                        valid_rows = group[(group[record_id_col] != "")]
+                        if table_id_col in df_temp.columns:
+                            valid_rows = valid_rows[(valid_rows[table_id_col] != "")]
+
+                        if not valid_rows.empty:
+                            kept_row = valid_rows.iloc[0].to_dict()
+                        else:
+                            kept_row = (
+                                group[group[record_id_col] != ""].iloc[0].to_dict()
+                            )
                         # 有record_id且没有合并，不需要更新，不添加到update_records
                     else:
                         kept_row = group.iloc[0].to_dict()
                         new_records.append(kept_row)
                 else:  # 无关联，合并企业名称
-                    # 选择基准行
+                    # 选择基准行 - 优先选择有record_id和table_id的行
                     has_record_id = any(rid != "" for rid in group[record_id_col])
+
                     if has_record_id:
-                        base_row = group[group[record_id_col] != ""].iloc[0].to_dict()
+                        # 优先找有完整飞书信息(record_id和table_id)的行
+                        valid_rows = group[(group[record_id_col] != "")]
+                        if table_id_col in df_temp.columns:
+                            complete_rows = valid_rows[(valid_rows[table_id_col] != "")]
+                            if not complete_rows.empty:
+                                base_row = complete_rows.iloc[0].to_dict()
+                            else:
+                                base_row = valid_rows.iloc[0].to_dict()
+                        else:
+                            base_row = valid_rows.iloc[0].to_dict()
                     else:
                         base_row = group.iloc[0].to_dict()
 
@@ -888,7 +939,13 @@ def create_multi_sheet_excel(
                     if base_row[record_id_col] == "":
                         new_records.append(base_row)
                     elif name_changed:  # 有record_id且发生了合并，需要更新
-                        update_records.append(base_row)
+                        # 确保存在table_id才添加到更新列表
+                        if table_id_col in base_row and base_row[table_id_col]:
+                            update_records.append(base_row)
+                        else:
+                            print(
+                                f"警告: 发现缺少table_id的需更新记录，无法添加到更新列表: {base_row}"
+                            )
                     # 有record_id但没有变化，不添加到update_records
 
         # 添加无电话号码的行

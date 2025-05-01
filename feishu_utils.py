@@ -45,7 +45,7 @@ def get_access_token(app_id, app_secret):
 
 
 def fetch_all_records_from_table(access_token, app_token, table_id):
-    """获取单个表格的所有记录 (包含 record_id)"""
+    """获取单个表格的所有记录 (包含 record_id 和 table_id)"""
     all_records_data = []
     page_token = None
     BASE_URL = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records"
@@ -82,6 +82,8 @@ def fetch_all_records_from_table(access_token, app_token, table_id):
                     if record_id:
                         # 将 record_id 添加到字段字典中，方便后续处理
                         fields["record_id"] = record_id
+                        # 新增: 将 table_id 添加到字段字典中
+                        fields["table_id"] = table_id
                         all_records_data.append(fields)
                     else:
                         print(f"      ⚠️ 发现缺少 record_id 的记录: {item}")

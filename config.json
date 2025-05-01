@@ -18,7 +18,8 @@
         "APP_SECRET": "RoXYTnSBGGsLLyvONbSCYe15Jm6bv5Xn",
         "APP_TOKEN": "XyUFbxc8JaDkTJscEigcbkxgnqe",
         "TABLE_IDS": [
-            "tblEGrUKq8KKOPAc"
+            "tblEGrUKq8KKOPAc",
+            "tble3uypxJ3wkpCf"
         ],
         "COMPANY_NAME_COLUMN": "企业名称",
         "PHONE_NUMBER_COLUMN": "电话",
