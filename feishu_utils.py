@@ -247,10 +247,13 @@ def get_table_record_count(
 
     print(f"      > 正在通过搜索获取表格 {table_id} 的记录总数 (page_size=1)...")
     try:
+        # print(f"url: {url}")
+        # print(f"headers: {headers}")
+        # print(f"payload: {payload}")
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
         resp.raise_for_status()
         data = resp.json()
-
+        print(f"data: {data}")
         if data.get("code") == 0:
             # *** 修改：从 data.total 获取记录数 ***
             total_count = data.get("data", {}).get("total")
@@ -437,7 +440,7 @@ def batch_update_records(
             )
 
             try:
-                response = requests.put(
+                response = requests.post(
                     BASE_URL, headers=headers, json=payload, timeout=120
                 )  # 更新操作可能耗时更长，增加超时
                 response.raise_for_status()

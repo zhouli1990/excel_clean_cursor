@@ -780,10 +780,12 @@ def create_multi_sheet_excel(
     df_processed: pd.DataFrame, output_filepath: str, config: dict
 ) -> None:
     """
-    创建包含多个Sheet页的Excel文件：
-    1. 原始数据 - 包含所有数据
-    2. 新增 - 不含record_id的数据
-    3. 更新 - 包含record_id的数据
+    创建包含多个Sheet页的Excel文件:
+    1. 先将原始数据存入到原始数据Sheet
+    2. 然后对电话号码进行去重，同时进行数据分类:
+       - record_id为空的放入"新增"sheet
+       - record_id不为空且企业名称合并的放入"更新"sheet
+       - 其他不变的数据仅保存在原始数据表中
 
     Args:
         df_processed: 经过后处理的DataFrame
@@ -792,49 +794,139 @@ def create_multi_sheet_excel(
     """
     print(f"开始创建多Sheet页Excel文件: {output_filepath}")
 
-    # 首先处理电话号码重复情况
-    df_merged = merge_duplicate_phones(df_processed, config)
-
-    # 准备不同Sheet的数据
+    # 准备列名和配置信息
     record_id_col = "record_id"
-    local_row_id_col = "local_row_id"  # 添加local_row_id列标识
-
-    # 确保record_id列和local_row_id列存在
-    if record_id_col not in df_merged.columns:
-        df_merged[record_id_col] = ""
-    if local_row_id_col not in df_merged.columns:
-        df_merged[local_row_id_col] = ""
-
-    # 清理record_id和local_row_id (将NaN、None和字符串"none"转为空字符串)
-    df_merged[record_id_col] = (
-        df_merged[record_id_col].fillna("").astype(str).str.strip()
+    local_row_id_col = "local_row_id"
+    post_config = config.get("post_processing_config", {})
+    feishu_config = config.get("feishu_config", {})
+    phone_col = post_config.get("check_duplicate_phones", {}).get(
+        "post_phone_col_for_dup_phones", "电话"
     )
-    df_merged[local_row_id_col] = (
-        df_merged[local_row_id_col].fillna("").astype(str).str.strip()
+    company_col = post_config.get("check_duplicate_companies", {}).get(
+        "post_company_col_for_dup_comp", "公司名称"
+    )
+    related_company_col = feishu_config.get(
+        "RELATED_COMPANY_COLUMN_NAME", "关联公司名称(LLM)"
     )
 
-    # 将字符串"none"和"None"转换为空字符串
-    df_merged.loc[df_merged[record_id_col].str.lower() == "none", record_id_col] = ""
-    df_merged.loc[
-        df_merged[local_row_id_col].str.lower() == "none", local_row_id_col
-    ] = ""
+    # 步骤1: 存储原始数据到Sheet页
+    df_original = df_processed.copy()
 
-    # 筛选新增数据(record_id为空)和更新数据(record_id非空)
-    df_add = df_merged[df_merged[record_id_col] == ""].copy()
-    df_update = df_merged[df_merged[record_id_col] != ""].copy()
+    # 清理数据中的record_id和local_row_id
+    for col in [record_id_col, local_row_id_col]:
+        if col in df_original.columns:
+            df_original[col] = df_original[col].fillna("").astype(str).str.strip()
+            df_original.loc[df_original[col].str.lower() == "none", col] = ""
 
-    print(f"数据分类完成: 合并后共 {len(df_merged)} 行")
-    print(f"- 新增数据: {len(df_add)} 行")
+    # 步骤2: 对原始数据进行分析处理，同时进行数据分类
+    new_records = []  # 新增数据（record_id为空）
+    update_records = []  # 更新数据（record_id不为空且企业名称合并）
+
+    # 清理并准备数据
+    if phone_col in df_original.columns and company_col in df_original.columns:
+        df_temp = df_original.copy()
+        df_temp[phone_col] = df_temp[phone_col].fillna("").astype(str).str.strip()
+        df_temp[company_col] = df_temp[company_col].fillna("").astype(str).str.strip()
+
+        # 按电话号码分组，忽略空电话号码
+        phone_groups = df_temp[df_temp[phone_col] != ""].groupby(phone_col)
+
+        # 对每个电话号码组进行处理
+        for phone, group in phone_groups:
+            if len(group) == 1:  # 非重复电话，根据record_id进行分类
+                row = group.iloc[0].to_dict()
+                if row[record_id_col] == "":
+                    new_records.append(row)
+                # 有record_id且没有合并，不需要更新，不添加到update_records
+                continue
+
+            # 处理重复电话号码情况
+            unique_companies = [c for c in group[company_col].unique().tolist() if c]
+
+            # 检查是否需要合并企业名称
+            if len(unique_companies) <= 1:  # 企业名称相同或为空
+                # 只需保留一行，根据record_id决定去向
+                if any(rid != "" for rid in group[record_id_col]):
+                    kept_row = group[group[record_id_col] != ""].iloc[0].to_dict()
+                    # 有record_id且没有合并，不需要更新，不添加到update_records
+                else:
+                    kept_row = group.iloc[0].to_dict()
+                    new_records.append(kept_row)
+            else:  # 企业名称不同，检查是否有关联
+                # 检查公司关联性
+                has_relation = False
+                if related_company_col in df_temp.columns:
+                    # 任何一行的关联公司列非空即视为有关联
+                    has_relation = any(
+                        group[related_company_col].fillna("").astype(str).str.strip()
+                        != ""
+                    )
+
+                if has_relation:  # 有关联，保留一行
+                    if any(rid != "" for rid in group[record_id_col]):
+                        kept_row = group[group[record_id_col] != ""].iloc[0].to_dict()
+                        # 有record_id且没有合并，不需要更新，不添加到update_records
+                    else:
+                        kept_row = group.iloc[0].to_dict()
+                        new_records.append(kept_row)
+                else:  # 无关联，合并企业名称
+                    # 选择基准行
+                    has_record_id = any(rid != "" for rid in group[record_id_col])
+                    if has_record_id:
+                        base_row = group[group[record_id_col] != ""].iloc[0].to_dict()
+                    else:
+                        base_row = group.iloc[0].to_dict()
+
+                    # 将所有不同的企业名称用分号拼接
+                    original_company = base_row[company_col]
+                    base_row[company_col] = ";".join(unique_companies)
+
+                    # 判断企业名称是否真的发生了变化
+                    name_changed = original_company != base_row[company_col]
+
+                    # 根据record_id和是否发生合并决定去向
+                    if base_row[record_id_col] == "":
+                        new_records.append(base_row)
+                    elif name_changed:  # 有record_id且发生了合并，需要更新
+                        update_records.append(base_row)
+                    # 有record_id但没有变化，不添加到update_records
+
+        # 添加无电话号码的行
+        for _, row in df_temp[df_temp[phone_col] == ""].iterrows():
+            row_dict = row.to_dict()
+            # 根据record_id决定去向
+            if row_dict[record_id_col] == "":
+                new_records.append(row_dict)
+            # 有record_id且没有合并，不需要更新，不添加到update_records
+    else:
+        # 如果没有所需列，简单根据record_id分类
+        for _, row in df_original.iterrows():
+            row_dict = row.to_dict()
+            if row_dict[record_id_col] == "":
+                new_records.append(row_dict)
+            # 有record_id但没有经过合并处理，不添加到update_records
+
+    # 转为DataFrame
+    df_new = (
+        pd.DataFrame(new_records)
+        if new_records
+        else pd.DataFrame(columns=df_original.columns)
+    )
+    df_update = (
+        pd.DataFrame(update_records)
+        if update_records
+        else pd.DataFrame(columns=df_original.columns)
+    )
+
+    print(f"数据分类完成:")
+    print(f"- 原始数据: {len(df_original)} 行")
+    print(f"- 新增数据: {len(df_new)} 行")
     print(f"- 更新数据: {len(df_update)} 行")
 
-    # 创建一个ExcelWriter对象
+    # 保存到Excel
     with pd.ExcelWriter(output_filepath, engine="openpyxl") as writer:
-        # 将原始数据保存到第一个Sheet，命名为"原始数据"
-        # 注意：这里使用的是原始后处理数据，未合并重复电话
-        df_processed.to_excel(writer, sheet_name="原始数据", index=False)
-
-        # 将新增和更新数据保存到对应Sheet
-        df_add.to_excel(writer, sheet_name="新增", index=False)
+        df_original.to_excel(writer, sheet_name="原始数据", index=False)
+        df_new.to_excel(writer, sheet_name="新增", index=False)
         df_update.to_excel(writer, sheet_name="更新", index=False)
 
     print(f"多Sheet页Excel文件创建完成: {output_filepath}")

@@ -16,7 +16,7 @@
     "feishu_config": {
         "APP_ID": "cli_a36634dc16b8d00e",
         "APP_SECRET": "RoXYTnSBGGsLLyvONbSCYe15Jm6bv5Xn",
-        "APP_TOKEN": "DPwobNjCLaZHOasEErsc7UxWnZe",
+        "APP_TOKEN": "XyUFbxc8JaDkTJscEigcbkxgnqe",
         "TABLE_IDS": [
             "tblEGrUKq8KKOPAc"
         ],
@@ -26,7 +26,7 @@
         "RELATED_COMPANY_COLUMN_NAME": "关联公司名称(LLM)",
         "ADD_TARGET_TABLE_ID": "",
         "ADD_TARGET_TABLE_IDS": [
-            "tble3uypxJ3wkpCf"
+            "tblEGrUKq8KKOPAc"
         ]
     },
     "post_processing_config": {

@@ -423,49 +423,20 @@
                 </div>
             </form>
 
-            <h4 class="mt-4">第五步：检查差异</h4>
-            <p class="text-muted">对比您上传的调整后文件与系统处理完成的文件之间的差异。</p>
+            <h4 class="mt-4">第五步：同步到飞书</h4>
+            <p class="text-muted">将编辑后的多Sheet页Excel文件中的内容同步到飞书多维表格。"新增"Sheet页的数据将直接新增，"更新"Sheet页的数据将与原始数据比较后只更新有差异的部分。
+            </p>
             <div class="mb-3">
-                <!-- 检查差异按钮 (从下面移动到这里，并保持结构) -->
-                <button type="button" class="btn btn-info" id="check-diff-btn" disabled>检查差异</button>
-                <!-- 新增：同步到飞书按钮 -->
-                <button type="button" class="btn btn-warning ms-2" id="sync-feishu-btn" disabled>同步到飞书</button>
+                <!-- 移除检查差异按钮，只保留同步按钮 -->
+                <button type="button" class="btn btn-warning" id="sync-feishu-btn" disabled>同步到飞书</button>
                 <span id="sync-status" class="ms-2"></span> <!-- 用于显示同步状态 -->
             </div>
 
-            <!-- 差异结果显示区域 (从下面移动到这里) -->
+            <!-- 隐藏差异结果显示区域 -->
             <div id="diff-results-container" class="mt-4" style="display: none;">
-                <h5>差异比较结果</h5>
-                <div id="diff-summary" class="mb-2"></div> <!-- Added margin-bottom -->
-                <!-- Pagination Controls -->
-                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
-                    <!-- Added flex-wrap for responsiveness -->
-                    <span id="diff-summary-stats"></span> <!-- Separate span for stats -->
-                    <div class="diff-pagination-controls"> <!-- Group controls -->
-                        <label for="diff-rows-per-page" class="form-label form-label-sm me-1">每页:</label>
-                        <select id="diff-rows-per-page" class="form-select form-select-sm d-inline-block w-auto me-2">
-                            <option value="10">10</option>
-                            <option value="25" selected>25</option> <!-- Default to 25 -->
-                            <option value="50">50</option>
-                            <option value="100">100</option>
-                            <option value="999999">All</option> <!-- Option for all rows -->
-                        </select>
-                        <button class="btn btn-sm btn-outline-secondary me-1" id="diff-prev-page" disabled>上一页</button>
-                        <span id="diff-page-info" class="me-1 align-middle"></span>
-                        <!-- align-middle for better looks -->
-                        <button class="btn btn-sm btn-outline-secondary" id="diff-next-page" disabled>下一页</button>
-                    </div>
-                </div>
-                <div id="diff-table-container" class="table-responsive">
-                    <table class="table table-bordered table-sm table-hover" id="diff-results-table">
-                        <thead>
-                            <!-- 表头将由JS动态生成 -->
-                        </thead>
-                        <tbody>
-                            <!-- 差异数据将由JS动态填充 -->
-                        </tbody>
-                    </table>
-                </div>
+                <!-- 此处内容保留但默认隐藏 -->
+                <h5>处理结果</h5>
+                <div id="diff-summary" class="mb-2"></div>
             </div>
         </div>
         <!-- 结束：人工检查与差异对比部分 -->
@@ -473,7 +444,7 @@
     </div> <!-- End container -->
 
     <script>
-        // --- DOM Element References ---
+        // DOM element references
         const uploadForm = document.getElementById('upload-form');
         const fileInput = document.getElementById('file-input');
         const progressContainer = document.getElementById('progress-container');
@@ -510,27 +481,13 @@
         const editedFileInput = document.getElementById('edited-file-input');
         const selectedEditedFileListDiv = document.getElementById('selected-edited-file-list');
         const uploadEditedBtn = document.getElementById('upload-edited-btn');
-        const checkDiffBtn = document.getElementById('check-diff-btn');
         const diffResultsContainer = document.getElementById('diff-results-container');
         const diffSummaryDiv = document.getElementById('diff-summary');
-        const diffTableContainer = document.getElementById('diff-table-container');
-        const diffRowsPerPageSelect = document.getElementById('diff-rows-per-page');
-        const diffPrevPageBtn = document.getElementById('diff-prev-page');
-        const diffPageInfoSpan = document.getElementById('diff-page-info');
-        const diffNextPageBtn = document.getElementById('diff-next-page');
-        const diffResultsTable = document.getElementById('diff-results-table');
-        const diffResultsTableHeader = diffResultsTable ? diffResultsTable.querySelector('thead') : null;
-        const diffResultsTableBody = diffResultsTable ? diffResultsTable.querySelector('tbody') : null;
-        const diffSummaryStatsSpan = document.getElementById('diff-summary-stats'); // New span for stats
-        const syncFeishuBtn = document.getElementById('sync-feishu-btn'); // Get sync button
-        const syncStatusSpan = document.getElementById('sync-status'); // Get sync status span
-
+        const syncFeishuBtn = document.getElementById('sync-feishu-btn'); // Sync button
+        const syncStatusSpan = document.getElementById('sync-status'); // Sync status span
 
         let intervalId = null; // To store the interval timer
         let currentTaskId = null; // Store the current task ID
-        let currentDiffData = null; // Store the full diff results
-        let currentPage = 1;
-        let rowsPerPage = 25; // Default, will sync with select element
 
         // Store default post-processing columns from backend
         const defaultPostProcessingCols = {{ default_post_processing_cols| tojson | safe }};
@@ -559,11 +516,7 @@
         selectEditedFileBtn.addEventListener('click', () => editedFileInput.click());
         editedFileInput.addEventListener('change', displaySelectedEditedFile);
         uploadEditedBtn.addEventListener('click', handleUploadEditedFile);
-        checkDiffBtn.addEventListener('click', fetchAndDisplayDifferences); // Use the new function name
-        diffRowsPerPageSelect.addEventListener('change', handleDiffDisplayChange);
-        diffPrevPageBtn.addEventListener('click', handleDiffPrevPage);
-        diffNextPageBtn.addEventListener('click', handleDiffNextPage);
-        syncFeishuBtn.addEventListener('click', handleSyncToFeishu); // Add listener for sync button
+        syncFeishuBtn.addEventListener('click', handleSyncToFeishu); // 保留同步按钮事件
 
         // --- Functions ---
 
@@ -580,8 +533,6 @@
             });
 
             resetProgress(); // Ensure progress bar is hidden initially
-            // Sync rows per page from select
-            rowsPerPage = parseInt(diffRowsPerPageSelect.value) || 25;
         }
 
         // Handle file upload form submission
@@ -591,7 +542,6 @@
 
             // Store Task ID globally when upload starts
             currentTaskId = null; // Reset task ID
-            currentDiffData = null; // Reset diff data
 
             resetProgress();
             progressContainer.style.display = 'block';
@@ -783,8 +733,6 @@
                 statusMessage.textContent = '处理完成! 请进入第三步进行人工检查。';
                 reviewSection.style.display = 'block';
                 uploadEditedBtn.disabled = true; // Should be disabled until a file is selected
-                checkDiffBtn.disabled = true; // Should be disabled until edited file is uploaded
-
             } else if (status === 'Error') {
                 statusMessage.className = 'alert alert-danger';
                 statusMessage.textContent = `Processing failed: ${error || 'Unknown error'}`;
@@ -835,7 +783,6 @@
             if (editedFileInput) editedFileInput.value = ''; // Clear edited file input
             if (selectedEditedFileListDiv) selectedEditedFileListDiv.textContent = '尚未选择文件';
             if (uploadEditedBtn) uploadEditedBtn.disabled = true;
-            if (checkDiffBtn) checkDiffBtn.disabled = true;
             if (diffResultsContainer) diffResultsContainer.style.display = 'none';
             if (syncFeishuBtn) syncFeishuBtn.disabled = true; // Ensure sync button is disabled on reset
             if (syncStatusSpan) syncStatusSpan.textContent = ''; // Clear sync status on reset
@@ -1074,12 +1021,10 @@
                 const fileSize = (file.size / 1024).toFixed(1);
                 selectedEditedFileListDiv.textContent = `已选择: ${file.name} (${fileSize} KB)`;
                 uploadEditedBtn.disabled = false; // Enable upload button
-                checkDiffBtn.disabled = true; // Disable diff button until new file is uploaded
-                diffResultsContainer.style.display = 'none'; // Hide previous diff results
+                diffResultsContainer.style.display = 'none'; // Hide previous results
             } else {
                 selectedEditedFileListDiv.textContent = '尚未选择文件';
                 uploadEditedBtn.disabled = true;
-                checkDiffBtn.disabled = true; // Keep disabled if no file
             }
         }
 
@@ -1103,8 +1048,8 @@
             console.log(`为任务 ${currentTaskId} 上传调整后文件: ${file.name}`);
             uploadEditedBtn.disabled = true;
             uploadEditedBtn.textContent = '上传中...';
-            checkDiffBtn.disabled = true; // Disable diff button during upload
-            diffResultsContainer.style.display = 'none'; // Hide previous results
+            // 隐藏之前的结果
+            diffResultsContainer.style.display = 'none';
 
             try {
                 const response = await fetch(`/upload_edited/${currentTaskId}`, {
@@ -1116,242 +1061,125 @@
                 if (response.ok && result.success) {
                     console.log('调整后文件上传成功:', result);
                     alert(result.message || '调整后文件上传成功！');
-                    checkDiffBtn.disabled = false; // Enable diff button now
-                    checkDiffBtn.textContent = '检查差异'; // Reset button text
+                    // 直接启用同步按钮
+                    if (syncFeishuBtn) syncFeishuBtn.disabled = false;
+                    if (syncStatusSpan) syncStatusSpan.textContent = ''; // 清除之前的同步状态
                 } else {
                     console.error('上传调整后文件失败:', result.error);
                     alert(`上传失败: ${result.error || '服务器错误'}`);
-                    checkDiffBtn.disabled = true; // Keep diff disabled if upload fails
+                    if (syncFeishuBtn) syncFeishuBtn.disabled = true;
                 }
             } catch (error) {
                 console.error('上传调整后文件时发生网络错误:', error);
                 alert('上传调整后文件时发生网络错误。');
-                checkDiffBtn.disabled = true; // Keep diff disabled if upload fails
+                if (syncFeishuBtn) syncFeishuBtn.disabled = true;
             } finally {
                 uploadEditedBtn.disabled = false; // Re-enable upload button
                 uploadEditedBtn.textContent = '上传调整后数据';
             }
         }
 
-        // Renamed from handleCheckDifferences
-        async function fetchAndDisplayDifferences() {
+        // --- Sync to Feishu Logic ---
+        async function handleSyncToFeishu() {
             if (!currentTaskId) {
-                alert('没有有效的任务 ID。');
+                alert('错误：找不到任务 ID，无法同步。');
                 return;
             }
-            console.log(`开始为任务 ${currentTaskId} 检查差异...`);
-            diffSummaryDiv.textContent = ''; // Clear summary area
-            diffSummaryStatsSpan.textContent = '正在比较差异...'; // Use stats span for loading msg
-            if (diffResultsTableBody) diffResultsTableBody.innerHTML = ''; // Clear previous table body
-            if (diffResultsTableHeader) diffResultsTableHeader.innerHTML = ''; // Clear previous table header
-            diffResultsContainer.style.display = 'block'; // Show container
-            checkDiffBtn.disabled = true; // Disable button during check
-            checkDiffBtn.textContent = '正在比较...';
-            disablePaginationControls(); // Disable pagination during load
+
+            if (!confirm('确认要将更改同步到飞书吗？此操作会修改飞书表格数据。')) {
+                return;
+            }
+
+            console.log(`开始为任务 ${currentTaskId} 同步到飞书...`);
+            if (syncFeishuBtn) syncFeishuBtn.disabled = true;
+            if (syncFeishuBtn) syncFeishuBtn.textContent = '同步中...';
+            if (syncStatusSpan) syncStatusSpan.textContent = '正在同步...';
+            if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-muted';
+
+            // 显示处理结果区域，用于显示同步结果
+            if (diffResultsContainer) {
+                diffResultsContainer.style.display = 'block';
+                diffSummaryDiv.textContent = '同步进行中...';
+            }
 
             try {
-                const response = await fetch(`/check_diff/${currentTaskId}`);
+                // Make POST request to the backend sync endpoint
+                const response = await fetch(`/sync_to_feishu/${currentTaskId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
                 const result = await response.json();
 
                 if (response.ok && result.success) {
-                    console.log('差异比较成功:', result.results);
-                    currentDiffData = result.results; // Store full data
-                    currentPage = 1; // Reset to first page
-                    rowsPerPage = parseInt(diffRowsPerPageSelect.value) || 25;
-                    displayDiffPage(); // Display the first page
-                    checkDiffBtn.textContent = '重新比较差异'; // Update button text
-                    // Enable Sync button only if diff check was successful
-                    if (syncFeishuBtn) syncFeishuBtn.disabled = false;
-                    if (syncStatusSpan) syncStatusSpan.textContent = ''; // Clear previous sync status
+                    console.log('同步成功:', result);
+                    if (syncStatusSpan) syncStatusSpan.textContent = result.message || '同步成功！';
+                    if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-success';
+
+                    // 显示同步结果详情
+                    if (diffResultsContainer && diffSummaryDiv) {
+                        let summaryHtml = `<p class="text-success">✅ ${result.message}</p>`;
+
+                        // 如果有差异详情，展示它们
+                        if (result.summary && result.summary.diff_details && result.summary.diff_details.length > 0) {
+                            summaryHtml += `<p><strong>更新的数据字段差异:</strong></p><ul>`;
+                            result.summary.diff_details.forEach(detail => {
+                                summaryHtml += `<li><strong>记录ID ${detail.record_id}:</strong><ul>`;
+                                detail.changes.forEach(change => {
+                                    summaryHtml += `<li>${change}</li>`;
+                                });
+                                summaryHtml += `</ul></li>`;
+                            });
+                            summaryHtml += `</ul>`;
+                        }
+
+                        diffSummaryDiv.innerHTML = summaryHtml;
+                    }
                 } else {
-                    console.error('差异比较失败:', result.error);
-                    diffSummaryStatsSpan.textContent = ``;
-                    diffSummaryDiv.textContent = `比较失败: ${result.error}`;
-                    if (diffTableContainer) diffTableContainer.innerHTML = '<p class="text-danger">无法加载差异信息。</p>'; // Clear table area too
-                    currentDiffData = null; // Clear data on error
-                    checkDiffBtn.textContent = '检查差异'; // Reset button text
-                    if (syncFeishuBtn) syncFeishuBtn.disabled = true; // Disable sync if diff fails
+                    console.error('同步失败:', result.error);
+                    if (syncStatusSpan) syncStatusSpan.textContent = `同步失败: ${result.error || '未知错误'}`;
+                    if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-danger';
+
+                    // 显示错误信息
+                    if (diffResultsContainer && diffSummaryDiv) {
+                        let errorHtml = `<p class="text-danger">❌ 同步失败: ${result.error || '未知错误'}</p>`;
+                        if (result.summary && result.summary.errors && result.summary.errors.length > 0) {
+                            errorHtml += `<p><strong>错误详情:</strong></p><ul>`;
+                            result.summary.errors.forEach(error => {
+                                errorHtml += `<li>${error}</li>`;
+                            });
+                            errorHtml += `</ul>`;
+                        }
+                        diffSummaryDiv.innerHTML = errorHtml;
+                    }
+
+                    // Re-enable button on failure to allow retry
+                    if (syncFeishuBtn) syncFeishuBtn.disabled = false;
                 }
             } catch (error) {
-                console.error('检查差异时发生网络错误:', error);
-                diffSummaryStatsSpan.textContent = ``;
-                diffSummaryDiv.textContent = '比较时发生网络错误。';
-                if (diffTableContainer) diffTableContainer.innerHTML = '<p class="text-danger">无法连接服务器进行比较。</p>';
-                currentDiffData = null; // Clear data on error
-                checkDiffBtn.textContent = '检查差异'; // Reset button text
-                if (syncFeishuBtn) syncFeishuBtn.disabled = true; // Disable sync if diff fails
-            } finally {
-                checkDiffBtn.disabled = false; // Re-enable button
-                // Pagination controls are enabled/disabled within displayDiffPage
-            }
-        }
+                console.error('同步到飞书时发生网络错误:', error);
+                if (syncStatusSpan) syncStatusSpan.textContent = '同步时发生网络错误。';
+                if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-danger';
 
-        function displayDiffPage() {
-            if (!currentDiffData) {
-                console.warn('No diff data available to display.');
-                if (diffTableContainer) diffTableContainer.innerHTML = '<p class="text-info">没有可显示的差异数据。</p>';
-                disablePaginationControls();
-                return;
-            }
-
-            const summary = currentDiffData.summary;
-            const diffs = currentDiffData.diffs || [];
-            const columns = currentDiffData.columns || [];
-
-            // *** SORTING: Sort diffs by original_index ***
-            diffs.sort((a, b) => {
-                const indexA = (typeof a.original_index === 'number') ? a.original_index : Infinity;
-                const indexB = (typeof b.original_index === 'number') ? b.original_index : Infinity;
-                return indexA - indexB;
-            });
-            // *** END SORTING ***
-
-            const totalRows = diffs.length;
-            // Use Math.max(1, ...) for rowsPerPage to avoid division by zero if 'All' is selected incorrectly
-            const effectiveRowsPerPage = (rowsPerPage >= totalRows && totalRows > 0) ? totalRows : Math.max(1, rowsPerPage); // Handle 'All' option
-            const totalPages = Math.ceil(totalRows / effectiveRowsPerPage);
-
-            // Validate currentPage
-            currentPage = Math.max(1, Math.min(currentPage, totalPages || 1));
-
-            // Update summary stats
-            diffSummaryStatsSpan.textContent = `比较完成: 新增 ${summary.added}, 删除 ${summary.deleted}, 修改 ${summary.modified} (共 ${totalRows} 项差异)`;
-            diffSummaryDiv.textContent = ''; // Clear any error messages from summary
-
-            if (totalRows === 0) {
-                if (diffTableContainer) diffTableContainer.innerHTML = '<p class="text-success">文件内容无差异。</p>';
-                updatePaginationControls(totalRows, totalPages);
-                return;
-            }
-
-            // Calculate row slice for current page
-            const startRow = (currentPage - 1) * effectiveRowsPerPage;
-            const endRow = startRow + effectiveRowsPerPage;
-            const pageDiffs = diffs.slice(startRow, endRow);
-
-            // Ensure table elements exist
-            if (!diffResultsTable || !diffResultsTableHeader || !diffResultsTableBody) {
-                console.error("Diff table elements not found!");
-                if (diffTableContainer) diffTableContainer.innerHTML = '<p class="text-danger">无法渲染表格，HTML 结构错误。</p>';
-                return;
-            }
-
-            // --- Render Table Header --- 
-            let headerHtml = '<tr><th>#</th><th>状态</th>'; // Add row number and status columns
-            columns.forEach(col => {
-                // Optionally hide internal ID columns
-                // if (col !== 'local_row_id' && col !== 'record_id') {
-                headerHtml += `<th>${escapeHtml(col)}</th>`;
-                // }
-            });
-            headerHtml += '</tr>';
-            diffResultsTableHeader.innerHTML = headerHtml;
-
-            // --- Render Table Body --- 
-            let bodyHtml = '';
-            pageDiffs.forEach((diff, index) => {
-                const status = diff.status;
-                const rowNum = startRow + index + 1; // Overall row number
-                let rowClass = '';
-                if (status === 'Added') {
-                    rowClass = 'table-success';
-                } else if (status === 'Deleted') {
-                    rowClass = 'table-danger';
-                } else if (status === 'Modified') {
-                    rowClass = 'table-warning';
+                // 显示网络错误
+                if (diffResultsContainer && diffSummaryDiv) {
+                    diffSummaryDiv.innerHTML = `<p class="text-danger">❌ 同步时发生网络错误: ${error.message || '无法连接服务器'}</p>`;
                 }
 
-                bodyHtml += `<tr class="${rowClass}">`;
-                bodyHtml += `<td>${rowNum}</td>`; // Row number cell
-                bodyHtml += `<td>${escapeHtml(status)}</td>`; // Status cell
-
-                // Data cells
-                columns.forEach(col => {
-                    // if (col !== 'local_row_id' && col !== 'record_id') { // If hiding columns
-                    let cellContent = diff.data ? diff.data[col] : ''; // Handle case where data might be missing
-                    let cellClass = '';
-                    let cellTitle = ''; // For tooltip
-
-                    cellContent = (cellContent === null || cellContent === undefined) ? '' : cellContent;
-
-                    if (status === 'Deleted') {
-                        // Strikethrough is handled by row class .table-danger td CSS
-                        cellContent = escapeHtml(String(cellContent));
-                    }
-                    else if (status === 'Modified' && diff.changes && diff.changes[col]) {
-                        cellClass = 'cell-modified'; // Highlighting class
-                        const oldVal = diff.changes[col].old;
-                        const newVal = diff.changes[col].new;
-                        // Add old value to tooltip, ensure string conversion
-                        cellTitle = `旧值: ${escapeHtml(String(oldVal === null || oldVal === undefined ? '' : oldVal))}`;
-                        cellContent = escapeHtml(String(newVal)); // Show new value
-                    }
-                    else {
-                        cellContent = escapeHtml(String(cellContent));
-                    }
-
-                    bodyHtml += `<td class="${cellClass}" title="${cellTitle}">${cellContent}</td>`;
-                    // }
-                });
-                bodyHtml += '</tr>';
-            });
-            diffResultsTableBody.innerHTML = bodyHtml;
-            // Ensure the table container is visible if it wasn't (e.g., if first diff display)
-            if (diffTableContainer) diffTableContainer.style.display = '';
-
-            // Update pagination controls state
-            updatePaginationControls(totalRows, totalPages);
-        }
-
-        function updatePaginationControls(totalRows, totalPages) {
-            if (totalRows > 0) {
-                diffPageInfoSpan.textContent = `第 ${currentPage} / ${totalPages} 页`;
-                diffPrevPageBtn.disabled = (currentPage <= 1);
-                diffNextPageBtn.disabled = (currentPage >= totalPages);
-                diffRowsPerPageSelect.disabled = false;
-            } else {
-                // No data or no diffs
-                diffPageInfoSpan.textContent = '无差异';
-                disablePaginationControls();
+                // Re-enable button on network error
+                if (syncFeishuBtn) syncFeishuBtn.disabled = false;
+            } finally {
+                // Re-enable button unless intentionally disabled after success
+                if (syncFeishuBtn && syncStatusSpan.className !== 'ms-2 text-success') {
+                    syncFeishuBtn.disabled = false;
+                }
+                if (syncFeishuBtn) syncFeishuBtn.textContent = '同步到飞书';
             }
         }
+        // --- End Sync Logic ---
 
-        function disablePaginationControls() {
-            if (diffPageInfoSpan) diffPageInfoSpan.textContent = '-';
-            if (diffPrevPageBtn) diffPrevPageBtn.disabled = true;
-            if (diffNextPageBtn) diffNextPageBtn.disabled = true;
-            if (diffRowsPerPageSelect) diffRowsPerPageSelect.disabled = true;
-        }
-
-        function handleDiffDisplayChange() {
-            // Called when rows per page changes
-            const newRowsPerPage = parseInt(diffRowsPerPageSelect.value);
-            if (newRowsPerPage && newRowsPerPage !== rowsPerPage) {
-                rowsPerPage = newRowsPerPage;
-                currentPage = 1; // Go back to first page when changing rows per page
-                displayDiffPage();
-            }
-        }
-
-        function handleDiffPrevPage() {
-            if (currentPage > 1) {
-                currentPage--;
-                displayDiffPage();
-            }
-        }
-
-        function handleDiffNextPage() {
-            if (!currentDiffData) return;
-            const totalRows = currentDiffData.diffs ? currentDiffData.diffs.length : 0;
-            const effectiveRowsPerPage = (rowsPerPage >= totalRows && totalRows > 0) ? totalRows : Math.max(1, rowsPerPage); // Handle 'All' option
-            const totalPages = Math.ceil(totalRows / effectiveRowsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                displayDiffPage();
-            }
-        }
-
-        // Helper function to escape HTML (robust version)
+        // 辅助函数：HTML转义
         function escapeHtml(unsafe) {
             if (typeof unsafe !== 'string') {
                 if (unsafe === null || unsafe === undefined) return '';
@@ -1375,67 +1203,6 @@
                 return '[转换错误]';
             }
         }
-
-        // --- Sync to Feishu Logic --- (No changes needed here yet, logic is backend) ---
-        async function handleSyncToFeishu() {
-            if (!currentTaskId) {
-                alert('错误：找不到任务 ID，无法同步。');
-                return;
-            }
-            if (!currentDiffData) {
-                alert('错误：没有可用的差异数据，请先执行检查差异。');
-                return;
-            }
-
-            if (!confirm('确认要将更改同步到飞书吗？此操作会修改飞书表格数据。')) {
-                return;
-            }
-
-            console.log(`开始为任务 ${currentTaskId} 同步到飞书...`);
-            if (syncFeishuBtn) syncFeishuBtn.disabled = true;
-            if (syncFeishuBtn) syncFeishuBtn.textContent = '同步中...';
-            if (syncStatusSpan) syncStatusSpan.textContent = '正在同步...';
-            if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-muted';
-
-            try {
-                // Make POST request to the backend sync endpoint
-                const response = await fetch(`/sync_to_feishu/${currentTaskId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json' // Indicate we might send data if needed later
-                    },
-                    // body: JSON.stringify({ ... }) // No body needed for now, backend reads files
-                });
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    console.log('同步成功:', result);
-                    if (syncStatusSpan) syncStatusSpan.textContent = result.message || '同步成功！';
-                    if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-success';
-                    // Optionally disable sync button after successful sync?
-                    // if(syncFeishuBtn) syncFeishuBtn.disabled = true; 
-                } else {
-                    console.error('同步失败:', result.error);
-                    if (syncStatusSpan) syncStatusSpan.textContent = `同步失败: ${result.error || '未知错误'}`;
-                    if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-danger';
-                    // Re-enable button on failure to allow retry?
-                    if (syncFeishuBtn) syncFeishuBtn.disabled = false;
-                }
-            } catch (error) {
-                console.error('同步到飞书时发生网络错误:', error);
-                if (syncStatusSpan) syncStatusSpan.textContent = '同步时发生网络错误。';
-                if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-danger';
-                // Re-enable button on network error?
-                if (syncFeishuBtn) syncFeishuBtn.disabled = false;
-            } finally {
-                // Re-enable button unless intentionally disabled after success
-                if (syncFeishuBtn && syncStatusSpan.className !== 'ms-2 text-success') {
-                    syncFeishuBtn.disabled = false;
-                }
-                if (syncFeishuBtn) syncFeishuBtn.textContent = '同步到飞书';
-            }
-        }
-        // --- End Sync Logic ---
 
     </script>
     <!-- 引入 Bootstrap 的 JavaScript 包 -->

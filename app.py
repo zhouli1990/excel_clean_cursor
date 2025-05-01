@@ -19,6 +19,7 @@ from flask import (
     request,
     jsonify,
     send_file,
+    send_from_directory,
     url_for,
     flash,
     redirect,
@@ -1256,7 +1257,7 @@ def sync_to_feishu(task_id):
 
     基于多Sheet页Excel文件执行两种操作:
     1. 添加新记录 - 从"新增"Sheet页读取数据
-    2. 更新记录 - 从"更新"Sheet页读取数据
+    2. 更新记录 - 将"更新"Sheet页的数据与原始数据Sheet比较，只更新有差异的字段
 
     不再执行删除操作。
 
@@ -1352,16 +1353,44 @@ def sync_to_feishu(task_id):
         "update_errors": 0,
         "add_errors": 0,
         "errors": [],
+        "diff_details": [],  # 新增：记录差异详情
     }
 
     try:
-        # --- 1. 从多Sheet页Excel文件读取新增和更新数据 --- #
-        print(f"  步骤 1: 从 '{edited_filepath}' 读取新增和更新数据...")
+        # --- 1. 从多Sheet页Excel文件读取各Sheet页数据 --- #
+        print(f"  步骤 1: 从 '{edited_filepath}' 读取各Sheet页数据...")
         try:
             # 读取Excel文件的Sheet页
             with pd.ExcelFile(edited_filepath) as xls:
                 sheets = xls.sheet_names
                 print(f"    -> 文件包含以下Sheet页: {sheets}")
+
+                # 确保所需Sheet都存在
+                if "原始数据" not in sheets:
+                    print(f"    -> 警告: 未找到'原始数据'Sheet页，无法进行差异比较")
+
+                # 读取原始数据Sheet页
+                df_original = pd.DataFrame()
+                if "原始数据" in sheets:
+                    df_original = pd.read_excel(xls, sheet_name="原始数据")
+                    print(f"    -> 从'原始数据'Sheet读取了 {len(df_original)} 行数据")
+                    # 确保record_id列存在并清理格式
+                    if feishu_id_col in df_original.columns:
+                        df_original[feishu_id_col] = (
+                            df_original[feishu_id_col]
+                            .fillna("")
+                            .astype(str)
+                            .str.strip()
+                        )
+                        # 处理"none"值
+                        df_original.loc[
+                            df_original[feishu_id_col].str.lower() == "none",
+                            feishu_id_col,
+                        ] = ""
+                    else:
+                        print(
+                            f"    -> 警告: '原始数据'Sheet中缺少'{feishu_id_col}'列，可能影响差异比较"
+                        )
 
                 # 读取"新增"Sheet页
                 df_add = pd.DataFrame()
@@ -1388,12 +1417,16 @@ def sync_to_feishu(task_id):
                     df_add[feishu_id_col] = (
                         df_add[feishu_id_col].fillna("").astype(str).str.strip()
                     )
+                    # 处理"none"值
+                    df_add.loc[
+                        df_add[feishu_id_col].str.lower() == "none", feishu_id_col
+                    ] = ""
 
                 # 筛选确保只处理record_id为空的行
                 df_add = df_add[df_add[feishu_id_col] == ""]
-                print(f"    -> '新增'Sheet中有 {len(df_add)} 行有效数据")
+                print(f"    -> '新增'Sheet中有 {len(df_add)} 行有效数据(record_id为空)")
 
-                # 准备新增数据
+                # 准备新增数据 (与原代码相同)
                 for _, row in df_add.iterrows():
                     add_payload = {"fields": {}}
                     for col in target_columns:
@@ -1421,7 +1454,7 @@ def sync_to_feishu(task_id):
 
                 print(f"    -> 准备了 {len(records_to_add)} 条记录待新增。")
 
-            # 准备更新记录
+            # 准备更新记录 - 改为与原始数据对比
             if not df_update.empty:
                 # 确保record_id列存在 (在更新数据中不应该为空)
                 if feishu_id_col not in df_update.columns:
@@ -1433,42 +1466,141 @@ def sync_to_feishu(task_id):
                     df_update[feishu_id_col] = (
                         df_update[feishu_id_col].fillna("").astype(str).str.strip()
                     )
+                    # 处理"none"值
+                    df_update.loc[
+                        df_update[feishu_id_col].str.lower() == "none", feishu_id_col
+                    ] = ""
+
                     # 筛选有效记录
                     df_update = df_update[df_update[feishu_id_col] != ""]
                     print(
                         f"    -> '更新'Sheet中有 {len(df_update)} 行包含有效record_id"
                     )
 
-                    # 准备更新数据
-                    for _, row in df_update.iterrows():
-                        record_id = row[feishu_id_col]
-                        update_payload = {"record_id": record_id, "fields": {}}
+                    # 修改: 准备更新数据 - 与原始数据比较
+                    diff_count = 0
+                    for _, update_row in df_update.iterrows():
+                        record_id = update_row[feishu_id_col]
 
-                        for col in target_columns:
-                            if col in row.index and col != feishu_id_col:
-                                value = row[col]
-                                # 跳过None值
-                                if pd.isna(value) or value is None:
-                                    continue
+                        # 在原始数据中查找相同record_id的行
+                        if (
+                            not df_original.empty
+                            and feishu_id_col in df_original.columns
+                        ):
+                            original_rows = df_original[
+                                df_original[feishu_id_col] == record_id
+                            ]
 
-                                # 处理不同类型
-                                if isinstance(value, (list, dict)):
-                                    processed_value = json.dumps(
-                                        value, ensure_ascii=False
-                                    )
-                                else:
-                                    processed_value = str(value)
+                            if original_rows.empty:
+                                print(
+                                    f"    -> 警告: 原始数据中找不到record_id '{record_id}'，该行将被完整更新"
+                                )
+                                # 准备完整更新
+                                update_payload = {"record_id": record_id, "fields": {}}
 
-                                update_payload["fields"][col] = processed_value
+                                for col in target_columns:
+                                    if col in update_row.index and col != feishu_id_col:
+                                        value = update_row[col]
+                                        if pd.isna(value) or value is None:
+                                            continue
 
-                        # 只有当fields非空时才添加到列表
-                        if update_payload["fields"]:
-                            records_to_update.append(update_payload)
+                                        # 处理不同类型
+                                        if isinstance(value, (list, dict)):
+                                            processed_value = json.dumps(
+                                                value, ensure_ascii=False
+                                            )
+                                        else:
+                                            processed_value = str(value)
 
-                    print(f"    -> 准备了 {len(records_to_update)} 条记录待更新。")
+                                        update_payload["fields"][col] = processed_value
+
+                                if update_payload["fields"]:
+                                    records_to_update.append(update_payload)
+                                    diff_count += 1
+                            else:
+                                # 存在原始行，进行字段级差异比较
+                                original_row = original_rows.iloc[0]
+                                update_payload = {"record_id": record_id, "fields": {}}
+                                diff_found = False
+                                diff_fields = []
+
+                                for col in target_columns:
+                                    if (
+                                        col in update_row.index
+                                        and col in original_row.index
+                                        and col != feishu_id_col
+                                    ):
+                                        update_value = update_row[col]
+                                        original_value = original_row[col]
+
+                                        # 处理空值
+                                        if pd.isna(update_value):
+                                            update_value = ""
+                                        if pd.isna(original_value):
+                                            original_value = ""
+
+                                        # 转换为字符串进行比较
+                                        update_str = str(update_value).strip()
+                                        original_str = str(original_value).strip()
+
+                                        # 如果有差异，则添加到更新字段
+                                        if update_str != original_str:
+                                            diff_found = True
+                                            diff_fields.append(
+                                                f"{col}: '{original_str}' -> '{update_str}'"
+                                            )
+
+                                            if isinstance(update_value, (list, dict)):
+                                                processed_value = json.dumps(
+                                                    update_value, ensure_ascii=False
+                                                )
+                                            else:
+                                                processed_value = update_str
+
+                                            update_payload["fields"][
+                                                col
+                                            ] = processed_value
+
+                                # 只有找到差异的记录才添加到更新列表
+                                if diff_found and update_payload["fields"]:
+                                    records_to_update.append(update_payload)
+                                    diff_count += 1
+                                    # 记录差异详情
+                                    if diff_fields:
+                                        results["diff_details"].append(
+                                            {
+                                                "record_id": record_id,
+                                                "changes": diff_fields,
+                                            }
+                                        )
+                        else:
+                            # 原始数据为空或缺少record_id列，只能完整更新
+                            update_payload = {"record_id": record_id, "fields": {}}
+
+                            for col in target_columns:
+                                if col in update_row.index and col != feishu_id_col:
+                                    value = update_row[col]
+                                    if pd.isna(value) or value is None:
+                                        continue
+
+                                    # 处理不同类型
+                                    if isinstance(value, (list, dict)):
+                                        processed_value = json.dumps(
+                                            value, ensure_ascii=False
+                                        )
+                                    else:
+                                        processed_value = str(value)
+
+                                    update_payload["fields"][col] = processed_value
+
+                            if update_payload["fields"]:
+                                records_to_update.append(update_payload)
+                                diff_count += 1
+
+                    print(f"    -> 经过差异比较，有 {diff_count} 条记录需要更新")
 
             print(
-                f"    -> 总共准备 {len(records_to_add)} 条新增记录和 {len(records_to_update)} 条更新记录。"
+                f"    -> 最终准备: {len(records_to_add)} 条新增记录和 {len(records_to_update)} 条更新记录。"
             )
 
         except FileNotFoundError:
@@ -1712,6 +1844,11 @@ def sync_to_feishu(task_id):
     success_msg = (
         f"同步完成: 新增 {results['added']} 条, 更新 {results['updated']} 条。"
     )
+
+    # 如果有差异详情，添加到响应中
+    if results["diff_details"]:
+        results["diff_count"] = len(results["diff_details"])
+
     if total_errors > 0:
         error_details = []
         if results["update_errors"] > 0:
