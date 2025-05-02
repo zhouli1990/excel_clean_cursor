@@ -48,7 +48,18 @@ def read_input_file(
     logger.info(f"Reading file: {file_path}")
     try:
         if file_path.endswith((".xlsx", ".xls")):
-            df = pd.read_excel(file_path, engine="openpyxl")
+            # 添加converters参数确保电话列为字符串
+            # 注意：由于这里无法访问config，使用所有可能的电话列名作为字符串转换
+            possible_phone_cols = [
+                "电话",
+                "手机",
+                "电话号码",
+                "手机号码",
+                "联系方式",
+                "电话/手机",
+            ]
+            converters = {col: str for col in possible_phone_cols}
+            df = pd.read_excel(file_path, engine="openpyxl", converters=converters)
         elif file_path.endswith(".csv"):
             try:
                 df = pd.read_csv(file_path, encoding="utf-8")

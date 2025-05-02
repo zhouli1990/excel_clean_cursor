@@ -851,9 +851,6 @@ def create_multi_sheet_excel(
 
     # 步骤2: 对原始数据进行分析处理，同时进行数据分类
     new_records = []  # 新增数据（record_id为空）
-    # 获取备注列名，用于过滤手机号格式错误数据
-    remark_col = feishu_config.get("REMARK_COLUMN_NAME", "备注")
-    phone_format_error_count = 0  # 用于统计过滤的手机号格式错误记录数
     update_records = []  # 更新数据（record_id不为空且企业名称合并）
 
     # 清理并准备数据
@@ -870,12 +867,7 @@ def create_multi_sheet_excel(
             if len(group) == 1:  # 非重复电话，根据record_id进行分类
                 row = group.iloc[0].to_dict()
                 if row[record_id_col] == "":
-                    # 检查是否包含手机号格式错误
-                    if remark_col not in row or "手机号格式错误" not in str(row.get(remark_col, "")):
-                        new_records.append(row)
-                    else:
-                        phone_format_error_count += 1
-                        # print(f"过滤手机号格式错误的记录: {row.get(phone_col, '无电话')}")
+                    new_records.append(row)
                 # 有record_id且没有合并，不需要更新，不添加到update_records
                 continue
 
@@ -895,20 +887,10 @@ def create_multi_sheet_excel(
                         kept_row = valid_rows.iloc[0].to_dict()
                     else:
                         kept_row = group[group[record_id_col] != ""].iloc[0].to_dict()
-                    # 检查是否包含手机号格式错误
-                    if remark_col not in kept_row or "手机号格式错误" not in str(kept_row.get(remark_col, "")):
-                        new_records.append(kept_row)
-                    else:
-                        phone_format_error_count += 1
-                        # print(f"过滤手机号格式错误的记录: {kept_row.get(phone_col, '无电话')}")
+                    # 有record_id且没有合并，不需要更新，不添加到update_records
                 else:
                     kept_row = group.iloc[0].to_dict()
-                    # 检查是否包含手机号格式错误
-                    if remark_col not in kept_row or "手机号格式错误" not in str(kept_row.get(remark_col, "")):
-                        new_records.append(kept_row)
-                    else:
-                        phone_format_error_count += 1
-                        # print(f"过滤手机号格式错误的记录: {kept_row.get(phone_col, '无电话')}")
+                    new_records.append(kept_row)
             else:  # 企业名称不同，检查是否有关联
                 # 检查公司关联性
                 has_relation = False
@@ -932,21 +914,10 @@ def create_multi_sheet_excel(
                             kept_row = (
                                 group[group[record_id_col] != ""].iloc[0].to_dict()
                             )
-                            # 检查是否包含手机号格式错误
-                            if remark_col not in kept_row or "手机号格式错误" not in str(kept_row.get(remark_col, "")):
-                                new_records.append(kept_row)
-                            else:
-                                phone_format_error_count += 1
-                                # print(f"过滤手机号格式错误的记录: {kept_row.get(phone_col, '无电话')}")
                         # 有record_id且没有合并，不需要更新，不添加到update_records
                     else:
                         kept_row = group.iloc[0].to_dict()
-                        # 检查是否包含手机号格式错误
-                        if remark_col not in kept_row or "手机号格式错误" not in str(kept_row.get(remark_col, "")):
-                            new_records.append(kept_row)
-                        else:
-                            phone_format_error_count += 1
-                            # print(f"过滤手机号格式错误的记录: {kept_row.get(phone_col, '无电话')}")
+                        new_records.append(kept_row)
                 else:  # 无关联，合并企业名称
                     # 选择基准行 - 优先选择有record_id和table_id的行
                     has_record_id = any(rid != "" for rid in group[record_id_col])
@@ -974,12 +945,7 @@ def create_multi_sheet_excel(
 
                     # 根据record_id和是否发生合并决定去向
                     if base_row[record_id_col] == "":
-                        # 检查是否包含手机号格式错误
-                        if remark_col not in base_row or "手机号格式错误" not in str(base_row.get(remark_col, "")):
-                            new_records.append(base_row)
-                        else:
-                            phone_format_error_count += 1
-                            # print(f"过滤手机号格式错误的记录: {base_row.get(phone_col, '无电话')}")
+                        new_records.append(base_row)
                     elif name_changed:  # 有record_id且发生了合并，需要更新
                         # 确保存在table_id才添加到更新列表
                         if table_id_col in base_row and base_row[table_id_col]:
@@ -990,29 +956,19 @@ def create_multi_sheet_excel(
                             )
                     # 有record_id但没有变化，不添加到update_records
 
-            # 添加无电话号码的行
-            for _, row in df_temp[df_temp[phone_col] == ""].iterrows():
-                row_dict = row.to_dict()
-                # 根据record_id决定去向
-                if row_dict[record_id_col] == "":
-                    # 检查是否包含手机号格式错误
-                    if remark_col not in row_dict or "手机号格式错误" not in str(row_dict.get(remark_col, "")):
-                        new_records.append(row_dict)
-                    else:
-                        phone_format_error_count += 1
-                        # print(f"过滤无电话但备注有格式错误的记录")
-                # 有record_id且没有合并，不需要更新，不添加到update_records
+        # 添加无电话号码的行
+        for _, row in df_temp[df_temp[phone_col] == ""].iterrows():
+            row_dict = row.to_dict()
+            # 根据record_id决定去向
+            if row_dict[record_id_col] == "":
+                new_records.append(row_dict)
+            # 有record_id且没有合并，不需要更新，不添加到update_records
     else:
         # 如果没有所需列，简单根据record_id分类
         for _, row in df_original.iterrows():
             row_dict = row.to_dict()
             if row_dict[record_id_col] == "":
-                # 检查是否包含手机号格式错误
-                if remark_col not in row_dict or "手机号格式错误" not in str(row_dict.get(remark_col, "")):
-                    new_records.append(row_dict)
-                else:
-                    phone_format_error_count += 1
-                    # print(f"过滤无所需列但备注有格式错误的记录")
+                new_records.append(row_dict)
             # 有record_id但没有经过合并处理，不添加到update_records
 
     # 转为DataFrame
@@ -1029,7 +985,7 @@ def create_multi_sheet_excel(
 
     print(f"数据分类完成:")
     print(f"- 原始数据: {len(df_original)} 行")
-    print(f"- 新增数据: {len(df_new)} 行 (过滤了 {phone_format_error_count} 条手机号格式错误的数据)")
+    print(f"- 新增数据: {len(df_new)} 行")
     print(f"- 更新数据: {len(df_update)} 行")
 
     # 同样确保新增和更新sheet的手机号列也是字符串

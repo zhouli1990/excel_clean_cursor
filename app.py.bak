@@ -1481,7 +1481,7 @@ def sync_to_feishu(task_id):
                 df_add = df_add[df_add[feishu_id_col] == ""]
                 print(f"    -> '新增'Sheet中有 {len(df_add)} 行有效数据(record_id为空)")
 
-                # 准备新增数据 (与原代码相同)
+                # 准备新增数据并过滤掉手机号格式错误的记录
                 for _, row in df_add.iterrows():
                     add_payload = {"fields": {}}
                     for col in target_columns:
