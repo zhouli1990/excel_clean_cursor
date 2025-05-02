@@ -834,7 +834,11 @@ def create_multi_sheet_excel(
 
     # 步骤1: 存储原始数据到Sheet页
     df_original = df_processed.copy()
-
+    
+    # 在处理所有数据之前先确保电话列为字符串类型
+    if phone_col in df_original.columns:
+        df_original[phone_col] = df_original[phone_col].astype(str).replace('\.0$', '', regex=True)
+    
     # 清理数据中的ID相关列
     for col in [record_id_col, table_id_col, local_row_id_col]:
         if col in df_original.columns:
@@ -980,7 +984,16 @@ def create_multi_sheet_excel(
     print(f"- 新增数据: {len(df_new)} 行")
     print(f"- 更新数据: {len(df_update)} 行")
 
-    # 保存到Excel
+    # 同样确保新增和更新sheet的手机号列也是字符串
+    df_new = pd.DataFrame(new_records) if new_records else pd.DataFrame(columns=df_original.columns)
+    if phone_col in df_new.columns:
+        df_new[phone_col] = df_new[phone_col].astype(str).replace('\.0$', '', regex=True)
+        
+    df_update = pd.DataFrame(update_records) if update_records else pd.DataFrame(columns=df_original.columns)
+    if phone_col in df_update.columns:
+        df_update[phone_col] = df_update[phone_col].astype(str).replace('\.0$', '', regex=True)
+    
+    # 保存到Excel时使用ExcelWriter的字符串选项
     with pd.ExcelWriter(output_filepath, engine="openpyxl") as writer:
         df_original.to_excel(writer, sheet_name="原始数据", index=False)
         df_new.to_excel(writer, sheet_name="新增", index=False)

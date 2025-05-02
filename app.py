@@ -28,6 +28,7 @@ import shutil
 import postprocessor
 import processor
 import feishu_utils
+import re
 
 # 定义配置文件路径
 CONFIG_FILE = "config.json"
