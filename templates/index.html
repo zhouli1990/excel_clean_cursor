@@ -75,7 +75,10 @@
 
 <body>
     <div class="container">
-        <h1>表格数据清洗</h1>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>表格数据清洗</h1>
+            <a href="/history" class="btn btn-outline-secondary">查看历史记录</a>
+        </div>
         <p>上传一个或多个Excel（.xlsx、.xls）或CSV（.CSV）文件，并拉取飞书多维表格数据以进行整合和标准化，最后更新飞书多维表格。</p>
         <!-- 操作说明 -->
         <div class="accordion mb-3" id="instructionsAccordion">
@@ -178,6 +181,33 @@
                                                 value="{{ default_llm_config.DEEPSEEK_API_KEY }}">
                                             <div class="form-text">您的 DeepSeek API 密钥。如果留空，将尝试使用服务器端的默认配置 (若有)。</div>
                                         </div>
+
+                                        <!-- 阿里云百炼API配置 -->
+                                        <div class="mb-3">
+                                            <label for="dashscope-api-key" class="form-label">阿里云百炼 API Key:</label>
+                                            <input type="password" class="form-control" id="dashscope-api-key"
+                                                placeholder="输入您的阿里云百炼 API Key (例如 sk-xxxx)"
+                                                value="{{ default_llm_config.DASHSCOPE_API_KEY }}">
+                                            <div class="form-text">您的阿里云百炼 API 密钥。此配置优先级高于DeepSeek API
+                                                Key，如果有效将使用百炼批处理接口。</div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="bailian-model-name" class="form-label">百炼模型名称:</label>
+                                                <input type="text" class="form-control" id="bailian-model-name"
+                                                    placeholder="例如: qwen-turbo-latest"
+                                                    value="{{ default_llm_config.BAILIAN_MODEL_NAME }}">
+                                                <div class="form-text">百炼API使用的模型名称，默认qwen-turbo-latest</div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="bailian-completion-window" class="form-label">完成窗口:</label>
+                                                <input type="text" class="form-control" id="bailian-completion-window"
+                                                    value="{{ default_llm_config.BAILIAN_COMPLETION_WINDOW }}">
+                                                <div class="form-text">批处理完成窗口，例如"24h"</div>
+                                            </div>
+                                        </div>
+
                                         <div class="row">
                                             <div class="col-md-4 mb-3">
                                                 <label for="batch-size" class="form-label">批处理大小 (Batch Size):</label>
@@ -389,6 +419,32 @@
             </div>
         </form>
 
+        <!-- 添加替代流程提示 -->
+        <div class="alert alert-secondary mb-4">
+            <strong>替代流程：直接同步到飞书</strong> - 如果您已有符合格式的文件，可以跳过上方处理步骤，直接上传并同步到飞书。
+        </div>
+
+        <!-- 将直接导入飞书功能移到这里，作为独立部分 -->
+        <div class="mb-4 p-3 border rounded">
+            <h4>直接导入飞书（跳过处理步骤）</h4>
+            <p class="text-muted">上传符合要求的Excel文件，直接导入到飞书多维表格，无需通过LLM处理。</p>
+            <form id="direct-import-form" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="direct-import-file-input" class="form-label fw-bold">选择文件:</label><br>
+                    <button type="button" class="btn btn-secondary mb-2"
+                        id="select-direct-import-file-btn">选择文件</button>
+                    <input type="file" class="visually-hidden" id="direct-import-file-input" accept=".xlsx,.xls,.csv">
+                    <div id="selected-direct-import-file-list" class="text-muted small mb-2">尚未选择文件</div>
+                    <button type="button" class="btn btn-warning" id="upload-direct-import-btn"
+                        disabled>上传并准备导入</button>
+                </div>
+            </form>
+            <div id="direct-import-status" class="alert alert-info mt-2" style="display: none;"></div>
+            <div class="mt-3">
+                <button type="button" class="btn btn-warning" id="direct-sync-feishu-btn" disabled>同步到飞书</button>
+                <span id="direct-sync-status" class="ms-2"></span>
+            </div>
+        </div>
 
         <!-- 处理状态/进度条区域 -->
         <div id="progress-container" class="progress-container mt-4">
@@ -458,6 +514,10 @@
         const batchSizeInput = document.getElementById('batch-size');
         const maxTokensInput = document.getElementById('max-tokens');
         const apiTimeoutInput = document.getElementById('api-timeout');
+        // 阿里云百炼API配置
+        const dashscopeApiKeyInput = document.getElementById('dashscope-api-key');
+        const bailianModelNameInput = document.getElementById('bailian-model-name');
+        const bailianCompletionWindowInput = document.getElementById('bailian-completion-window');
         // Feishu Config
         const feishuAppIdInput = document.getElementById('feishu-app-id');
         const feishuAppSecretInput = document.getElementById('feishu-app-secret');
@@ -492,6 +552,19 @@
         // Store default post-processing columns from backend
         const defaultPostProcessingCols = {{ default_post_processing_cols| tojson | safe }};
 
+        // 直接导入文件功能
+        const selectDirectImportFileBtn = document.getElementById('select-direct-import-file-btn');
+        const directImportFileInput = document.getElementById('direct-import-file-input');
+        const selectedDirectImportFileList = document.getElementById('selected-direct-import-file-list');
+        const uploadDirectImportBtn = document.getElementById('upload-direct-import-btn');
+        const directImportStatus = document.getElementById('direct-import-status');
+        // 添加直接导入同步按钮的引用
+        const directSyncFeishuBtn = document.getElementById('direct-sync-feishu-btn');
+        const directSyncStatusSpan = document.getElementById('direct-sync-status');
+
+        // 直接导入文件的任务ID
+        let currentDirectImportTaskId = null;
+
         // --- Event Listeners ---
         uploadForm.addEventListener('submit', handleUploadSubmit);
         addColumnBtn.addEventListener('click', handleAddTargetColumn);
@@ -517,6 +590,76 @@
         editedFileInput.addEventListener('change', displaySelectedEditedFile);
         uploadEditedBtn.addEventListener('click', handleUploadEditedFile);
         syncFeishuBtn.addEventListener('click', handleSyncToFeishu); // 保留同步按钮事件
+
+        // 绑定直接导入文件的选择按钮事件
+        selectDirectImportFileBtn.addEventListener('click', function () {
+            directImportFileInput.click();
+        });
+
+        // 直接导入文件选择变化时的事件
+        directImportFileInput.addEventListener('change', function () {
+            if (this.files.length > 0) {
+                const file = this.files[0];
+                selectedDirectImportFileList.textContent = `已选择: ${file.name} (${formatFileSize(file.size)})`;
+                uploadDirectImportBtn.disabled = false;
+            } else {
+                selectedDirectImportFileList.textContent = '尚未选择文件';
+                uploadDirectImportBtn.disabled = true;
+            }
+        });
+
+        // 添加直接导入同步按钮的点击事件
+        directSyncFeishuBtn.addEventListener('click', handleDirectSyncToFeishu);
+
+        // 上传直接导入文件的事件
+        uploadDirectImportBtn.addEventListener('click', function () {
+            if (!directImportFileInput.files.length) {
+                alert('请先选择一个文件');
+                return;
+            }
+
+            const file = directImportFileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // 显示上传中状态
+            directImportStatus.textContent = '文件上传中...';
+            directImportStatus.style.display = 'block';
+            directImportStatus.className = 'alert alert-info mt-2';
+            uploadDirectImportBtn.disabled = true;
+
+            // 发送到新的智能上传路由
+            fetch('/upload_new_or_associate_file', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        directImportStatus.textContent = data.message;
+                        directImportStatus.className = 'alert alert-success mt-2';
+
+                        // 存储任务ID，用于后续同步操作
+                        currentDirectImportTaskId = data.task_id;
+
+                        // 启用直接导入同步按钮
+                        directSyncFeishuBtn.disabled = false;
+
+                        // 更新界面状态提示：准备直接导入
+                        directImportStatus.innerHTML = `文件已上传成功！<br>任务ID: ${data.task_id}<br>您可以点击"同步到飞书"按钮将数据导入到飞书多维表格。`;
+                    } else {
+                        directImportStatus.textContent = `错误: ${data.error}`;
+                        directImportStatus.className = 'alert alert-danger mt-2';
+                        uploadDirectImportBtn.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('直接导入文件上传失败:', error);
+                    directImportStatus.textContent = `上传失败: ${error.message || '未知错误'}`;
+                    directImportStatus.className = 'alert alert-danger mt-2';
+                    uploadDirectImportBtn.disabled = false;
+                });
+        });
 
         // --- Functions ---
 
@@ -599,6 +742,12 @@
             formData.append('config_batch_size', batchSizeInput.value);
             formData.append('config_max_tokens', maxTokensInput.value);
             formData.append('config_api_timeout', apiTimeoutInput.value);
+
+            // 添加阿里云百炼API相关配置
+            formData.append('config_dashscope_api_key', dashscopeApiKeyInput.value.trim());
+            formData.append('config_bailian_model_name', bailianModelNameInput.value.trim());
+            formData.append('config_bailian_completion_window', bailianCompletionWindowInput.value.trim());
+
             // Feishu Config
             formData.append('feishu_app_id', feishuAppIdInput.value.trim());
             formData.append('feishu_app_secret', feishuAppSecretInput.value.trim());
@@ -691,6 +840,35 @@
                     updateProgressBar(task.progress);
                     updateStatusMessage(task.status, task.error);
 
+                    // 添加对百炼批处理状态的特殊处理
+                    if (task.status === 'BatchProcessing') {
+                        // 调用检查百炼批处理状态的API
+                        console.log(`检测到百炼批处理任务，调用check_batch_status API检查状态...`);
+                        try {
+                            const batchResponse = await fetch(`/check_batch_status/${taskId}`);
+                            const batchResult = await batchResponse.json();
+                            console.log('百炼批处理状态检查结果:', batchResult);
+
+                            if (batchResponse.ok) {
+                                if (batchResult.status === 'completed') {
+                                    // 百炼任务已完成，更新UI显示
+                                    updateStatusMessage('百炼批处理已完成，正在处理结果中...', null);
+                                    updateProgressBar(90);
+                                    // 这里不需要停止轮询，继续轮询/progress以获取后续处理结果
+                                } else {
+                                    // 显示百炼任务的状态信息
+                                    updateStatusMessage(batchResult.message || `百炼批处理中: ${batchResult.status}`, null);
+                                }
+                            } else {
+                                console.warn(`检查百炼批处理状态失败: ${batchResult.error || '未知错误'}`);
+                                // 继续常规轮询，不中断
+                            }
+                        } catch (batchError) {
+                            console.error('检查百炼批处理状态时发生错误:', batchError);
+                            // 继续常规轮询，不中断
+                        }
+                    }
+
                     if (task.progress >= 100) {
                         clearInterval(intervalId);
                         progressBar.classList.remove('progress-bar-animated');
@@ -737,6 +915,12 @@
                 statusMessage.className = 'alert alert-danger';
                 statusMessage.textContent = `Processing failed: ${error || 'Unknown error'}`;
                 reviewSection.style.display = 'none'; // Hide review on error
+            } else if (status === 'BatchProcessing' || status.includes('百炼批处理')) {
+                // 添加对百炼批处理状态的特殊样式
+                statusMessage.className = 'alert alert-info';
+                reviewSection.style.display = 'none'; // 批处理中隐藏审核部分
+                // 使用带有进度指示的文本
+                statusMessage.innerHTML = `${status} <div class="spinner-border spinner-border-sm text-info ms-2" role="status"><span class="visually-hidden">批处理中...</span></div>`;
             } else {
                 statusMessage.className = 'alert alert-info';
                 reviewSection.style.display = 'none'; // Hide review while processing
@@ -798,7 +982,15 @@
                     DEEPSEEK_API_KEY: apiKeyInput.value.trim(),
                     BATCH_SIZE: parseInt(batchSizeInput.value) || 160,
                     MAX_COMPLETION_TOKENS: parseInt(maxTokensInput.value) || 8192,
-                    API_TIMEOUT: parseInt(apiTimeoutInput.value) || 180
+                    API_TIMEOUT: parseInt(apiTimeoutInput.value) || 180,
+
+                    // 添加阿里云百炼API相关配置
+                    DASHSCOPE_API_KEY: dashscopeApiKeyInput.value.trim(),
+                    BAILIAN_MODEL_NAME: bailianModelNameInput.value.trim(),
+                    BAILIAN_COMPLETION_WINDOW: bailianCompletionWindowInput.value.trim(),
+                    // 默认保留这些配置，不需要用户手动输入
+                    BAILIAN_BASE_URL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+                    BAILIAN_BATCH_ENDPOINT: "/v1/chat/completions"
                 },
                 feishu_config: {
                     APP_ID: feishuAppIdInput.value.trim(),
@@ -1043,7 +1235,7 @@
 
             const file = editedFileInput.files[0];
             const formData = new FormData();
-            formData.append('edited_file', file);
+            formData.append('file', file);
 
             console.log(`为任务 ${currentTaskId} 上传调整后文件: ${file.name}`);
             uploadEditedBtn.disabled = true;
@@ -1052,7 +1244,7 @@
             diffResultsContainer.style.display = 'none';
 
             try {
-                const response = await fetch(`/upload_edited/${currentTaskId}`, {
+                const response = await fetch(`/upload_new_or_associate_file`, {
                     method: 'POST',
                     body: formData
                 });
@@ -1081,34 +1273,22 @@
 
         // --- Sync to Feishu Logic ---
         async function handleSyncToFeishu() {
-            if (!currentTaskId) {
-                alert('错误：找不到任务 ID，无法同步。');
+            const taskId = currentDirectImportTaskId || currentTaskId;
+            if (!taskId) {
+                alert('没有有效的任务ID，请先上传文件');
                 return;
             }
 
-            if (!confirm('确认要将更改同步到飞书吗？此操作会修改飞书表格数据。')) {
+            if (!confirm('确定要同步到飞书多维表格吗？此操作无法撤销。')) {
                 return;
             }
 
-            console.log(`开始为任务 ${currentTaskId} 同步到飞书...`);
-            if (syncFeishuBtn) syncFeishuBtn.disabled = true;
-            if (syncFeishuBtn) syncFeishuBtn.textContent = '同步中...';
-            if (syncStatusSpan) syncStatusSpan.textContent = '正在同步...';
-            if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-muted';
-
-            // 显示处理结果区域，用于显示同步结果
-            if (diffResultsContainer) {
-                diffResultsContainer.style.display = 'block';
-                diffSummaryDiv.textContent = '同步进行中...';
-            }
+            syncFeishuBtn.disabled = true;
+            syncStatusSpan.textContent = '同步中...';
 
             try {
-                // Make POST request to the backend sync endpoint
-                const response = await fetch(`/sync_to_feishu/${currentTaskId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                const response = await fetch(`/sync_to_feishu/${taskId}`, {
+                    method: 'POST'
                 });
                 const result = await response.json();
 
@@ -1117,58 +1297,17 @@
                     if (syncStatusSpan) syncStatusSpan.textContent = result.message || '同步成功！';
                     if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-success';
 
-                    // 显示同步结果详情
-                    if (diffResultsContainer && diffSummaryDiv) {
-                        let summaryHtml = `<p class="text-success">✅ ${result.message}</p>`;
-
-                        // 如果有差异详情，展示它们
-                        if (result.summary && result.summary.diff_details && result.summary.diff_details.length > 0) {
-                            summaryHtml += `<p><strong>更新的数据字段差异:</strong></p><ul>`;
-                            result.summary.diff_details.forEach(detail => {
-                                summaryHtml += `<li><strong>记录ID ${detail.record_id}:</strong><ul>`;
-                                detail.changes.forEach(change => {
-                                    summaryHtml += `<li>${change}</li>`;
-                                });
-                                summaryHtml += `</ul></li>`;
-                            });
-                            summaryHtml += `</ul>`;
-                        }
-
-                        diffSummaryDiv.innerHTML = summaryHtml;
-                    }
+                    // 同步成功后重置当前直接导入任务ID
+                    currentDirectImportTaskId = null;
                 } else {
                     console.error('同步失败:', result.error);
                     if (syncStatusSpan) syncStatusSpan.textContent = `同步失败: ${result.error || '未知错误'}`;
                     if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-danger';
-
-                    // 显示错误信息
-                    if (diffResultsContainer && diffSummaryDiv) {
-                        let errorHtml = `<p class="text-danger">❌ 同步失败: ${result.error || '未知错误'}</p>`;
-                        if (result.summary && result.summary.errors && result.summary.errors.length > 0) {
-                            errorHtml += `<p><strong>错误详情:</strong></p><ul>`;
-                            result.summary.errors.forEach(error => {
-                                errorHtml += `<li>${error}</li>`;
-                            });
-                            errorHtml += `</ul>`;
-                        }
-                        diffSummaryDiv.innerHTML = errorHtml;
-                    }
-
-                    // Re-enable button on failure to allow retry
-                    if (syncFeishuBtn) syncFeishuBtn.disabled = false;
                 }
             } catch (error) {
                 console.error('同步到飞书时发生网络错误:', error);
                 if (syncStatusSpan) syncStatusSpan.textContent = '同步时发生网络错误。';
                 if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-danger';
-
-                // 显示网络错误
-                if (diffResultsContainer && diffSummaryDiv) {
-                    diffSummaryDiv.innerHTML = `<p class="text-danger">❌ 同步时发生网络错误: ${error.message || '无法连接服务器'}</p>`;
-                }
-
-                // Re-enable button on network error
-                if (syncFeishuBtn) syncFeishuBtn.disabled = false;
             } finally {
                 // Re-enable button unless intentionally disabled after success
                 if (syncFeishuBtn && syncStatusSpan.className !== 'ms-2 text-success') {
@@ -1201,6 +1340,54 @@
             } else {
                 // Should not happen due to checks above, but as a final fallback
                 return '[转换错误]';
+            }
+        }
+
+        // 文件大小格式化辅助函数
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            else return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        // 为直接导入添加同步到飞书的处理函数
+        async function handleDirectSyncToFeishu() {
+            if (!currentDirectImportTaskId) {
+                alert('没有有效的任务ID，请先上传文件');
+                return;
+            }
+
+            if (!confirm('确定要同步到飞书多维表格吗？此操作无法撤销。')) {
+                return;
+            }
+
+            directSyncFeishuBtn.disabled = true;
+            directSyncStatusSpan.textContent = '同步中...';
+
+            try {
+                const response = await fetch(`/sync_to_feishu/${currentDirectImportTaskId}`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    console.log('同步成功:', result);
+                    directSyncStatusSpan.textContent = result.message || '同步成功！';
+                    directSyncStatusSpan.className = 'ms-2 text-success';
+
+                    // 同步成功后重置
+                    currentDirectImportTaskId = null;
+                } else {
+                    console.error('同步失败:', result.error);
+                    directSyncStatusSpan.textContent = `同步失败: ${result.error || '未知错误'}`;
+                    directSyncStatusSpan.className = 'ms-2 text-danger';
+                    directSyncFeishuBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('同步到飞书时发生网络错误:', error);
+                directSyncStatusSpan.textContent = '同步时发生网络错误。';
+                directSyncStatusSpan.className = 'ms-2 text-danger';
+                directSyncFeishuBtn.disabled = false;
             }
         }
 

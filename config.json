@@ -9,17 +9,21 @@
         ],
         "DEEPSEEK_API_KEY": "sk-9df835c781904b2289663567d05c94d9",
         "DEEPSEEK_API_ENDPOINT": "https://api.deepseek.com/chat/completions",
-        "BATCH_SIZE": 160,
+        "BATCH_SIZE": 50,
         "MAX_COMPLETION_TOKENS": 8192,
-        "API_TIMEOUT": 180
+        "API_TIMEOUT": 180,
+        "DASHSCOPE_API_KEY": "sk-ef56a7163b2b4eafb87eb1bdd579bb6f",
+        "BAILIAN_BASE_URL": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "BAILIAN_BATCH_ENDPOINT": "/v1/chat/completions",
+        "BAILIAN_MODEL_NAME": "qwen-turbo-latest",
+        "BAILIAN_COMPLETION_WINDOW": "24h"
     },
     "feishu_config": {
         "APP_ID": "cli_a36634dc16b8d00e",
         "APP_SECRET": "RoXYTnSBGGsLLyvONbSCYe15Jm6bv5Xn",
         "APP_TOKEN": "XyUFbxc8JaDkTJscEigcbkxgnqe",
         "TABLE_IDS": [
-            "tblEGrUKq8KKOPAc",
-            "tble3uypxJ3wkpCf"
+            "tblEGrUKq8KKOPAc"
         ],
         "COMPANY_NAME_COLUMN": "企业名称",
         "PHONE_NUMBER_COLUMN": "电话",

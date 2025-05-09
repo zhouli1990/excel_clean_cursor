@@ -25,5 +25,8 @@ charset-normalizer==3.1.0
 idna==3.4
 certifi==2022.12.7
 
+# 阿里云百炼 Batch API
+openai>=1.0.0
+
 
  

@@ -51,7 +51,7 @@ def read_input_file(
     """
     Reads an Excel or CSV file into a Pandas DataFrame.
     # Removed validation of required columns.
-    Adds a unique 行ID to each row if needed.
+    Adds a unique local_row_id to each row.
     *** Removed adding '来源' column here. ***
     """
     logger.info(f"Reading file: {file_path}")
@@ -93,24 +93,21 @@ def read_input_file(
         #         raise ValueError(f"Missing required columns in {file_path}: {', '.join(missing_cols)}")
         #     logger.info(f"All required columns {required_columns} found in {file_path}.")
 
-        # Add 行ID instead of local_row_id
-        if "行ID" not in df.columns:
-            df["行ID"] = [str(uuid.uuid4()) for _ in range(len(df))]
-            logger.info(f"Added '行ID' column to DataFrame from {file_path}.")
+        # Add local_row_id
+        if "local_row_id" not in df.columns:
+            df["local_row_id"] = [str(uuid.uuid4()) for _ in range(len(df))]
+            logger.info(f"Added 'local_row_id' column to DataFrame from {file_path}.")
         else:
             # Handle case where column might exist but contain NaNs or duplicates
-            existing_ids = df["行ID"].dropna().astype(str)
+            existing_ids = df["local_row_id"].dropna().astype(str)
             if len(existing_ids) != len(df) or existing_ids.duplicated().any():
                 logger.warning(
-                    f"'行ID' column exists in {file_path} but contains nulls or duplicates. Regenerating IDs."
+                    f"'local_row_id' column exists in {file_path} but contains nulls or duplicates. Regenerating IDs."
                 )
-                df["行ID"] = [str(uuid.uuid4()) for _ in range(len(df))]
+                df["local_row_id"] = [str(uuid.uuid4()) for _ in range(len(df))]
 
-        # Add source information ('来源' column)
-        df["来源"] = os.path.basename(file_path)
-        logger.info(
-            f"Added source filename as '来源' column: {os.path.basename(file_path)}"
-        )
+        # *** REMOVED adding '来源' column here ***
+        # df["来源"] = os.path.basename(file_path)
 
         # Fill NaN values with empty strings BEFORE processing
         df = df.fillna("")  # Important: Prevents issues with NaN in string operations
@@ -210,8 +207,8 @@ def create_bailian_batch_input(df: pd.DataFrame, task_id: str, config: dict) -> 
             end_idx = min(start_idx + batch_size, total_rows)
             batch_df = df.iloc[start_idx:end_idx]
 
-            # 获取批次中所有行的行ID，用作custom_id
-            batch_row_ids = batch_df["行ID"].tolist()
+            # 获取批次中所有行的local_row_id，用作custom_id
+            batch_row_ids = batch_df["local_row_id"].tolist()
             batch_custom_id = f"batch_{batch_idx}_{len(batch_row_ids)}"
 
             # 保存批次ID到行ID的映射
@@ -221,10 +218,10 @@ def create_bailian_batch_input(df: pd.DataFrame, task_id: str, config: dict) -> 
             batch_content = []
             for _, row in batch_df.iterrows():
                 row_str = "\n".join(
-                    [f"{k}: {v}" for k, v in row.items() if k != "行ID"]
+                    [f"{k}: {v}" for k, v in row.items() if k != "local_row_id"]
                 )
-                # 添加行ID作为行标识
-                row_str += f"\n行ID: {row['行ID']}"
+                # 添加local_row_id作为行标识
+                row_str += f"\n行ID: {row['local_row_id']}"
                 batch_content.append(row_str)
 
             # 合并所有行内容
@@ -674,12 +671,12 @@ def download_and_process_bailian_results(
                                     )
                                     continue
 
-                                # 为每个项目添加必要的字段，但不再添加local_row_id
-                                # item["local_row_id"] = (
-                                #     batch_row_ids[i] if i < len(batch_row_ids) else ""
-                                # )
+                                # 为每个项目添加必要的字段
+                                item["local_row_id"] = (
+                                    batch_row_ids[i] if i < len(batch_row_ids) else ""
+                                )
 
-                                # 保留原始来源字段值，这是关键 - 确保不修改文件名
+                                # 保留原始来源字段值，这是关键
                                 if "来源" in item:
                                     source_value = item["来源"]
                                     if i < 3:  # 只记录前几个项的日志，避免日志过多
@@ -690,21 +687,9 @@ def download_and_process_bailian_results(
                                     )
                                     item["来源"] = ""
 
-                                # 确保行ID存在，这是非常重要的唯一标识符
-                                if "行ID" not in item or not item["行ID"]:
-                                    print(
-                                        f"   >> 警告: 结果项中缺少'行ID'字段，生成UUID"
-                                    )
-                                    item["行ID"] = str(uuid.uuid4())
-
-                                # 添加飞书所需系统字段，但不再生成record_table字段
+                                # 添加飞书所需系统字段
                                 item["record_id"] = ""  # 留空，表示新记录
-                                # 删除下面这行，不再添加record_table字段
-                                # item["record_table"] = ""  # 留空，表示不和任何表关联
-
-                                # 记录行ID
-                                if i < 3:  # 只记录前几个项的日志
-                                    print(f"   >> 使用行ID: '{item['行ID']}'")
+                                item["record_table"] = ""  # 留空
 
                                 # 收集解析结果
                                 parsed_results.append(item)
@@ -921,16 +906,13 @@ def extract_standardize_batch_with_llm(
                                 if original_idx not in original_row_mapping:
                                     original_row_mapping[original_idx] = 0
 
-                                # 获取原始行中的行ID（如果存在）或生成新的行ID
-                                if "行ID" in batch_rows[original_idx]:
-                                    row_id = batch_rows[original_idx]["行ID"]
-                                else:
-                                    row_id = str(uuid.uuid4())
+                                # 获取这个原始行的local_id
+                                local_id = batch_rows[original_idx]["local_row_id"]
 
-                                # 保存结果行信息，使用行ID而不是local_row_id
-                                result_row["行ID"] = row_id
+                                # 保存结果行信息
+                                result_row["local_row_id"] = local_id
                                 source_name = local_id_to_source_map.get(
-                                    row_id, "UNKNOWN_SOURCE"
+                                    local_id, "UNKNOWN_SOURCE"
                                 )
                                 result_row[source_column_name] = source_name
                                 processed_batch_with_ids_and_source.append(result_row)
@@ -945,20 +927,17 @@ def extract_standardize_batch_with_llm(
                                 )
                                 # 确定最相近的原始行索引
                                 original_idx = min(result_idx, len(batch_rows) - 1)
-
-                                # 获取原始行中的行ID（如果存在）或生成新的行ID
-                                if "行ID" in batch_rows[original_idx]:
-                                    row_id = batch_rows[original_idx]["行ID"]
-                                else:
-                                    row_id = str(uuid.uuid4())
+                                local_id = batch_rows[original_idx]["local_row_id"]
 
                                 error_row = {
                                     col: "LLM_ITEM_FORMAT_ERROR"
                                     for col in target_columns
                                 }
-                                error_row["行ID"] = row_id
+                                error_row["local_row_id"] = local_id
                                 error_row[source_column_name] = (
-                                    local_id_to_source_map.get(row_id, "UNKNOWN_SOURCE")
+                                    local_id_to_source_map.get(
+                                        local_id, "UNKNOWN_SOURCE"
+                                    )
                                 )
                                 processed_batch_with_ids_and_source.append(error_row)
 
@@ -978,8 +957,8 @@ def extract_standardize_batch_with_llm(
                             if not any(
                                 str(v).startswith(("LLM_", "API_KEY_"))
                                 for k, v in res.items()
-                                # Exclude 行ID and 来源 from error check
-                                if k not in ["行ID", source_column_name]
+                                # Exclude local_id and 来源 from error check
+                                if k not in ["local_row_id", source_column_name]
                             )
                         ]
                         consolidated_data.extend(
@@ -1000,7 +979,7 @@ def extract_standardize_batch_with_llm(
                             error_row = {
                                 col: "BATCH_LENGTH_MISMATCH" for col in target_columns
                             }
-                            error_row["行ID"] = local_id
+                            error_row["local_row_id"] = local_id
                             error_row[source_column_name] = local_id_to_source_map.get(
                                 local_id, "UNKNOWN_SOURCE"
                             )
@@ -1270,9 +1249,9 @@ def process_files_and_consolidate(
                 # 添加源文件名称到数据中
                 df_source["来源"] = file_basename
 
-                # 为每个行ID建立到源文件名的映射
-                for row_id in df_source["行ID"].tolist():
-                    local_id_to_source_map[row_id] = file_basename
+                # 为每个local_row_id建立到源文件名的映射
+                for local_id in df_source["local_row_id"].tolist():
+                    local_id_to_source_map[local_id] = file_basename
                 print(
                     f"   >> 已添加 {len(df_source)} 个行ID到来源 '{file_basename}' 的映射"
                 )
@@ -1299,7 +1278,7 @@ def process_files_and_consolidate(
                     batch_df = df_source.iloc[start_idx:end_idx]
 
                     # 获取批次中所有行的行ID
-                    batch_row_ids = batch_df["行ID"].tolist()
+                    batch_row_ids = batch_df["local_row_id"].tolist()
 
                     # 创建批次ID，确保全局唯一（添加文件索引作为前缀）
                     batch_custom_id = (
@@ -1313,10 +1292,10 @@ def process_files_and_consolidate(
                     batch_content = []
                     for _, row in batch_df.iterrows():
                         row_str = "\n".join(
-                            [f"{k}: {v}" for k, v in row.items() if k != "行ID"]
+                            [f"{k}: {v}" for k, v in row.items() if k != "local_row_id"]
                         )
                         # 添加行ID作为行标识
-                        row_str += f"\n行ID: {row['行ID']}"
+                        row_str += f"\n行ID: {row['local_row_id']}"
                         batch_content.append(row_str)
 
                     # 合并所有行内容

@@ -1,3 +1,5 @@
+from typing import Optional, List, Dict, Any, Union
+
 # -*- coding: utf-8 -*-
 import requests
 import time
@@ -149,12 +151,14 @@ def fetch_all_records_from_table(access_token, app_token, table_id):
     return all_records_data
 
 
-def fetch_and_prepare_feishu_data(feishu_config):
+def fetch_and_prepare_feishu_data(feishu_config, target_columns=None):
     """
     获取所有指定飞书表格的数据，并将其合并、准备成 DataFrame。
+    如果提供了target_columns参数，将只保留record_id、table_id和这些目标列，过滤掉其他飞书特有列。
 
     Args:
         feishu_config (dict): 包含飞书 API 配置的字典。
+        target_columns (list, optional): 需要保留的目标业务列列表。默认为None，表示保留所有列。
 
     Returns:
         pd.DataFrame: 包含所有表格数据的合并 DataFrame，如果出错则返回空 DataFrame。
@@ -208,8 +212,38 @@ def fetch_and_prepare_feishu_data(feishu_config):
             )
             df_feishu = pd.DataFrame(all_feishu_records)
             print("   ✅ 飞书数据已成功转换为 DataFrame。")
-            # 注意：此时的列名是飞书表格的原始列名，并且包含了 record_id
-            # 列名标准化和选择将在合并阶段进行
+
+            # 4. 新增：根据target_columns过滤列
+            if target_columns and isinstance(target_columns, list):
+                # 确保始终保留系统必要列
+                required_cols = ["record_id", "table_id"]
+                cols_to_keep = required_cols + [
+                    col for col in target_columns if col in df_feishu.columns
+                ]
+
+                # 记录过滤前后的列数量
+                original_cols = list(df_feishu.columns)
+                original_col_count = len(original_cols)
+
+                # 应用过滤
+                available_cols = [
+                    col for col in cols_to_keep if col in df_feishu.columns
+                ]
+                if available_cols:
+                    df_feishu = df_feishu[available_cols]
+                    filtered_col_count = len(df_feishu.columns)
+                    removed_cols = set(original_cols) - set(available_cols)
+
+                    print(
+                        f"   🔍 列过滤: 原始列数 {original_col_count} -> 过滤后列数 {filtered_col_count}"
+                    )
+                    print(f"   🔍 保留的列: {list(df_feishu.columns)}")
+                    print(f"   🔍 过滤掉的列: {list(removed_cols)}")
+                else:
+                    print("   ⚠️ 过滤后没有保留任何列，返回原始DataFrame")
+            else:
+                print("   ℹ️ 未提供目标列表，返回所有列")
+
             return df_feishu
 
     except Exception as e:
@@ -225,7 +259,7 @@ def fetch_and_prepare_feishu_data(feishu_config):
 
 def get_table_record_count(
     access_token: str, app_token: str, table_id: str
-) -> int | None:
+) -> Optional[int]:
     """
     获取指定飞书多维表格的记录总数。
     使用 /records/search?page_size=1 端点获取包含 total 字段的响应。
@@ -236,7 +270,7 @@ def get_table_record_count(
         table_id (str): 要查询的 Table ID。
 
     Returns:
-        int | None: 表格中的记录总数。如果获取失败，则返回 None。
+        Optional[int]: 表格中的记录总数。如果获取失败，则返回 None。
     """
     # *** 修改：使用 /records/search 端点和 POST 方法 ***
     url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records/search"
@@ -307,7 +341,7 @@ def get_table_record_count(
 
 
 def batch_delete_records(
-    app_token: str, table_id: str, record_ids: list[str], app_id: str, app_secret: str
+    app_token: str, table_id: str, record_ids: List[str], app_id: str, app_secret: str
 ) -> dict:
     """批量删除飞书多维表格中的记录。"""
     results = {"success_count": 0, "error_count": 0, "errors": []}
@@ -401,7 +435,7 @@ def batch_delete_records(
 def batch_update_records(
     app_token: str,
     table_id: str,
-    records_to_update: list[dict],
+    records_to_update: List[Dict],
     app_id: str,
     app_secret: str,
 ) -> dict:
@@ -432,6 +466,67 @@ def batch_update_records(
         # 飞书批量更新限制通常也是 500
         # TODO: 查阅飞书文档确认 batch_update 的具体限制和请求/响应格式
         BATCH_UPDATE_SIZE = 500
+
+        # 新增：定义API保留字段黑名单
+        BLACKLIST_FIELDS = [
+            "table_id",
+            "Table_ID",
+            "tableid",
+            "TableID",
+            "tableID",
+            "tableId",
+            "record_id",
+            "Record_ID",
+            "recordid",
+            "RecordID",
+            "recordID",
+            "recordId",
+            "app_token",
+            "App_Token",
+            "apptoken",
+            "AppToken",
+            "appToken",
+            "app_id",
+            "App_ID",
+            "appid",
+            "AppID",
+            "appID",
+            "appId",
+            "app_secret",
+            "App_Secret",
+            "appsecret",
+            "AppSecret",
+            "appSecret",
+        ]
+        print(f"   [Feishu Update] 应用字段黑名单过滤: {BLACKLIST_FIELDS}")
+
+        # 新增：应用黑名单过滤
+        filtered_records = []
+        field_removal_count = 0
+
+        for record in records_to_update:
+            filtered_record = record.copy()
+            filtered_fields = {}
+
+            # 复制原始字段，排除黑名单字段
+            for field_name, field_value in record.get("fields", {}).items():
+                if field_name not in BLACKLIST_FIELDS:
+                    filtered_fields[field_name] = field_value
+                else:
+                    field_removal_count += 1
+                    print(f"      [Safety] 记录中移除黑名单字段: '{field_name}'")
+
+            # 更新过滤后的字段
+            filtered_record["fields"] = filtered_fields
+            filtered_records.append(filtered_record)
+
+        # 使用过滤后的记录替代原始记录
+        records_to_update = filtered_records
+
+        if field_removal_count > 0:
+            print(
+                f"   [Feishu Update] 安全过滤: 共移除 {field_removal_count} 个黑名单字段实例"
+            )
 
         for i in range(0, len(records_to_update), BATCH_UPDATE_SIZE):
             batch_records = records_to_update[i : i + BATCH_UPDATE_SIZE]
@@ -513,7 +608,7 @@ def batch_update_records(
 def batch_add_records(
     app_token: str,
     table_id: str,
-    records_to_add: list[dict],  # List of dicts, each containing {'fields': {...}}
+    records_to_add: List[Dict],  # List of dicts, each containing {'fields': {...}}
     app_id: str,
     app_secret: str,
 ) -> dict:
@@ -537,65 +632,266 @@ def batch_add_records(
 
         BATCH_CREATE_SIZE = 500
 
-        for i in range(0, len(records_to_add), BATCH_CREATE_SIZE):
-            batch_records_payload = records_to_add[i : i + BATCH_CREATE_SIZE]
-            payload = {"records": batch_records_payload}
-            # print(f"payload: {payload}")
+        # 首先输出所有记录中使用的字段名统计
+        all_field_names = set()
+        field_usage_count = {}
+        for record in records_to_add:
+            record_fields = record.get("fields", {})
+            for field_name in record_fields:
+                all_field_names.add(field_name)
+                field_usage_count[field_name] = field_usage_count.get(field_name, 0) + 1
+
+        print(
+            f"   [DEBUG] 找到 {len(all_field_names)} 个不同的字段名在 {len(records_to_add)} 条记录中"
+        )
+        print(f"   [DEBUG] 字段使用频率统计 (前10个):")
+        sorted_fields = sorted(
+            field_usage_count.items(), key=lambda x: x[1], reverse=True
+        )
+        for field, count in sorted_fields[:10]:
             print(
-                f"      > 正在新增批次 {i // BATCH_CREATE_SIZE + 1} (共 {len(batch_records_payload)} 条)..."
+                f"      - '{field}': 出现在 {count} 条记录中 ({count/len(records_to_add)*100:.1f}%)"
             )
 
+        # 检查是否存在可能导致问题的字段
+        # 新增：扩展黑名单字段
+        BLACKLIST_FIELDS = [
+            "table_id",
+            "Table_ID",
+            "tableid",
+            "TableID",
+            "tableID",
+            "tableId",
+            "record_id",
+            "Record_ID",
+            "recordid",
+            "RecordID",
+            "recordID",
+            "recordId",
+            "app_token",
+            "App_Token",
+            "apptoken",
+            "AppToken",
+            "appToken",
+            "app_id",
+            "App_ID",
+            "appid",
+            "AppID",
+            "appID",
+            "appId",
+            "app_secret",
+            "App_Secret",
+            "appsecret",
+            "AppSecret",
+            "appSecret",
+        ]
+        print(f"   [Feishu Add] 应用字段黑名单过滤: {BLACKLIST_FIELDS}")
+
+        # 新增：应用黑名单过滤
+        filtered_records = []
+        field_removal_count = 0
+
+        for record in records_to_add:
+            filtered_record = record.copy()
+            filtered_fields = {}
+
+            # 复制原始字段，排除黑名单字段
+            for field_name, field_value in record.get("fields", {}).items():
+                if field_name not in BLACKLIST_FIELDS:
+                    filtered_fields[field_name] = field_value
+                else:
+                    field_removal_count += 1
+                    print(f"      [Safety] 记录中移除黑名单字段: '{field_name}'")
+
+            # 更新过滤后的字段
+            filtered_record["fields"] = filtered_fields
+            filtered_records.append(filtered_record)
+
+        # 使用过滤后的记录替代原始记录
+        records_to_add = filtered_records
+
+        if field_removal_count > 0:
+            print(
+                f"   [Feishu Add] 安全过滤: 共移除 {field_removal_count} 个黑名单字段实例"
+            )
+
+        for i in range(0, len(records_to_add), BATCH_CREATE_SIZE):
+            batch_records_payload = records_to_add[i : i + BATCH_CREATE_SIZE]
+            batch_number = i // BATCH_CREATE_SIZE + 1
+            payload = {"records": batch_records_payload}
+
+            # 详细记录每个批次的信息
+            print(
+                f"      > 正在新增批次 {batch_number} (共 {len(batch_records_payload)} 条)..."
+            )
+
+            # 如果是第一批或最后一批，详细记录更多信息
+            if batch_number == 1 or batch_number * BATCH_CREATE_SIZE >= len(
+                records_to_add
+            ):
+                print(f"      [DEBUG] 批次 {batch_number} 详细信息:")
+                # 获取第一条和最后一条记录的字段列表
+                first_record = (
+                    batch_records_payload[0] if batch_records_payload else None
+                )
+                last_record = (
+                    batch_records_payload[-1] if batch_records_payload else None
+                )
+
+                if first_record:
+                    first_fields = first_record.get("fields", {})
+                    print(
+                        f"      [DEBUG] 第一条记录包含 {len(first_fields)} 个字段: {list(first_fields.keys())}"
+                    )
+
+                if last_record and last_record != first_record:
+                    last_fields = last_record.get("fields", {})
+                    print(
+                        f"      [DEBUG] 最后一条记录包含 {len(last_fields)} 个字段: {list(last_fields.keys())}"
+                    )
+
+                # 再次检查是否存在异常字段（过滤后应该没有了）
+                problem_records = []
+                for idx, record in enumerate(batch_records_payload):
+                    record_fields = record.get("fields", {})
+                    for prob_field in BLACKLIST_FIELDS:
+                        if prob_field in record_fields:
+                            problem_records.append((idx, prob_field))
+
+                if problem_records:
+                    print(
+                        f"      [WARNING] 在批次 {batch_number} 中仍然发现 {len(problem_records)} 条记录包含可能导致问题的字段 (过滤失败?):"
+                    )
+                    for idx, field in problem_records[:5]:  # 只显示前5个
+                        record = batch_records_payload[idx]
+                        print(
+                            f"         - 记录 #{idx}: 包含字段 '{field}', 值: {record['fields'].get(field)}"
+                        )
+                    if len(problem_records) > 5:
+                        print(
+                            f"         - ... 以及其他 {len(problem_records)-5} 条记录"
+                        )
+
             try:
+                # 添加请求详情日志
+                print(f"      [DEBUG] 发送请求到 {BASE_URL}")
+                print(f"      [DEBUG] 请求头: {headers}")
+                if len(batch_records_payload) > 0:
+                    sample_record = batch_records_payload[0]
+                    print(
+                        f"      [DEBUG] 样本记录字段: {list(sample_record.get('fields', {}).keys())}"
+                    )
+
                 response = requests.post(
                     BASE_URL, headers=headers, json=payload, timeout=120
                 )
-                # 不需要手动 raise_for_status()，因为我们会检查 code
-                # response.raise_for_status()
-                data = response.json()
 
-                if data.get("code") == 0:
-                    added_records_info = data.get("data", {}).get("records", [])
-                    success_in_batch = len(added_records_info)
-                    # 理论上 batch_create 在 code=0 时，响应的 records 列表长度应与请求批次一致
-                    # 但为保险起见，仍以响应中的记录数为准。
-                    if success_in_batch != len(batch_records_payload):
+                # 记录响应状态和响应头
+                print(f"      [DEBUG] 响应状态码: {response.status_code}")
+                print(f"      [DEBUG] 响应头: {dict(response.headers)}")
+
+                # 记录完整响应内容
+                try:
+                    data = response.json()
+                    print(f"      [DEBUG] 响应内容: {data}")
+
+                    if data.get("code") == 0:
+                        added_records_info = data.get("data", {}).get("records", [])
+                        success_in_batch = len(added_records_info)
+
+                        # 理论上 batch_create 在 code=0 时，响应的 records 列表长度应与请求批次一致
+                        # 但为保险起见，仍以响应中的记录数为准。
+                        if success_in_batch != len(batch_records_payload):
+                            print(
+                                f"       ⚠️ 新增响应记录数({success_in_batch})与请求数({len(batch_records_payload)})不符，可能部分失败，请检查飞书后台。"
+                            )
+                            # 记录一个通用错误，因为无法确定哪些失败了
+                            results["errors"].append(
+                                f"批次 {batch_number}: 新增响应记录数与请求数不符"
+                            )
+                            results["error_count"] += (
+                                len(batch_records_payload) - success_in_batch
+                            )
+
+                        results["success_count"] += success_in_batch
                         print(
-                            f"       ⚠️ 新增响应记录数({success_in_batch})与请求数({len(batch_records_payload)})不符，可能部分失败，请检查飞书后台。"
+                            f"         批次新增完成 (API Code 0)，成功 {success_in_batch} 条。"
                         )
-                        # 记录一个通用错误，因为无法确定哪些失败了
-                        results["errors"].append(
-                            f"批次 {i // BATCH_CREATE_SIZE + 1}: 新增响应记录数与请求数不符"
+                    else:
+                        # *** 修改：提取更详细的错误信息 ***
+                        error_code = data.get("code")
+                        error_msg = data.get("msg", "未知错误")
+                        detailed_error = data.get("error", {}).get(
+                            "message", ""
+                        )  # 尝试获取详细错误
+                        log_id = data.get("error", {}).get("log_id", "N/A")
+                        print(
+                            f"      ❌ 批次新增失败: Code={error_code}, Msg={error_msg}"
                         )
-                        results["error_count"] += (
-                            len(batch_records_payload) - success_in_batch
-                        )
+                        if detailed_error:
+                            print(f"         详细错误: {detailed_error}")
+                        print(f"         Log ID: {log_id}")
 
-                    results["success_count"] += success_in_batch
+                        # 分析错误信息中是否包含字段名相关的错误，如果有，查看是哪个字段导致的问题
+                        if (
+                            "field_name not found" in detailed_error.lower()
+                            or "fields." in detailed_error
+                        ):
+                            print(f"      [ERROR] 检测到字段名相关错误!")
+                            if "fields." in detailed_error:
+                                # 尝试从错误消息中提取出有问题的字段名
+                                import re
+
+                                field_matches = re.findall(
+                                    r"fields\.([^\s'\"\.]+)", detailed_error
+                                )
+                                if field_matches:
+                                    problem_field = field_matches[0]
+                                    print(
+                                        f"      [ERROR] 可能的问题字段: '{problem_field}'"
+                                    )
+
+                                    # 新增：将问题字段添加到黑名单
+                                    if problem_field not in BLACKLIST_FIELDS:
+                                        BLACKLIST_FIELDS.append(problem_field)
+                                        print(
+                                            f"      [SAFETY] 已将字段 '{problem_field}' 添加到黑名单"
+                                        )
+
+                                    # 检查这个字段在记录中的分布情况
+                                    records_with_field = [
+                                        idx
+                                        for idx, rec in enumerate(batch_records_payload)
+                                        if problem_field in rec.get("fields", {})
+                                    ]
+                                    if records_with_field:
+                                        print(
+                                            f"      [ERROR] 该字段出现在批次的 {len(records_with_field)} 条记录中，索引: {records_with_field[:5]}..."
+                                        )
+
+                                        # 显示第一条包含问题字段的记录的完整内容
+                                        if records_with_field:
+                                            problem_record = batch_records_payload[
+                                                records_with_field[0]
+                                            ]
+                                            print(
+                                                f"      [ERROR] 问题记录示例: {problem_record}"
+                                            )
+
+                        results["error_count"] += len(
+                            batch_records_payload
+                        )  # 假设整个批次失败
+                        error_log_entry = (
+                            f"批次新增API错误 (Code: {error_code}, Msg: {error_msg}"
+                            + (f", Detail: {detailed_error}" if detailed_error else "")
+                            + f", LogID: {log_id}) (影响 {len(batch_records_payload)} 条记录)"
+                        )
+                        results["errors"].append(error_log_entry)
+                except Exception as json_err:
+                    print(f"      [ERROR] 解析响应JSON时出错: {json_err}")
                     print(
-                        f"         批次新增完成 (API Code 0)，成功 {success_in_batch} 条。"
-                    )
-                else:
-                    # *** 修改：提取更详细的错误信息 ***
-                    error_code = data.get("code")
-                    error_msg = data.get("msg", "未知错误")
-                    detailed_error = data.get("error", {}).get(
-                        "message", ""
-                    )  # 尝试获取详细错误
-                    log_id = data.get("error", {}).get("log_id", "N/A")
-                    print(f"      ❌ 批次新增失败: Code={error_code}, Msg={error_msg}")
-                    if detailed_error:
-                        print(f"         详细错误: {detailed_error}")
-                    print(f"         Log ID: {log_id}")
-
-                    results["error_count"] += len(
-                        batch_records_payload
-                    )  # 假设整个批次失败
-                    error_log_entry = (
-                        f"批次新增API错误 (Code: {error_code}, Msg: {error_msg}"
-                        + (f", Detail: {detailed_error}" if detailed_error else "")
-                        + f", LogID: {log_id}) (影响 {len(batch_records_payload)} 条记录)"
-                    )
-                    results["errors"].append(error_log_entry)
+                        f"      [ERROR] 原始响应内容: {response.text[:500]}..."
+                    )  # 只显示前500个字符
 
             except requests.exceptions.Timeout:
                 print(f"      ❌ 批次新增请求超时。")

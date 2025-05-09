@@ -1,0 +1,1038 @@
+2025-05-09 14:22:32,655 - task_manager - INFO - 已从 task_history.json 加载 8 条历史记录
+2025-05-09 14:27:13,779 - task_manager - INFO - 已从 task_history.json 加载 8 条历史记录
+2025-05-09 14:27:16,091 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:27:16,500 - task_manager - INFO - 已从 task_history.json 加载 8 条历史记录
+2025-05-09 14:27:18,053 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:30:39,865 - task_manager - INFO - 已从 task_history.json 加载 8 条历史记录
+2025-05-09 14:30:40,859 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:30:41,050 - task_manager - INFO - 已从 task_history.json 加载 8 条历史记录
+2025-05-09 14:30:41,744 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:30:53,800 - task_manager - INFO - 已保存 9 条历史记录到 task_history.json
+2025-05-09 14:30:53,801 - task_manager - INFO - 已添加任务 task_20250509_143053_874baa10 的历史记录，类型为 complete_processing
+2025-05-09 14:30:53,801 - task_manager - INFO - 已创建新任务 task_20250509_143053_874baa10，类型为 complete_processing，关联 1 个文件
+2025-05-09 14:30:53,807 - task_manager - INFO - 任务 task_20250509_143053_874baa10 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 14:30:54,439 - task_manager - INFO - 任务 task_20250509_143053_874baa10 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 14:30:58,194 - task_manager - INFO - 任务 task_20250509_143053_874baa10 进度: 已提交百炼Batch任务(ID: batch_bc6e45a0-e269-4d84-9501-b2fc41b8800f)，等待处理... - 80% (1/1 文件)
+2025-05-09 14:30:58,194 - task_manager - INFO - 任务 task_20250509_143053_874baa10 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 14:31:08,370 - task_manager - INFO - 任务 task_20250509_143053_874baa10 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 14:31:08,370 - task_manager - INFO - 任务 task_20250509_143053_874baa10 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 14:31:08,371 - task_manager - INFO - 已将任务 task_20250509_143053_874baa10 设置为最近完成的预处理任务
+2025-05-09 14:31:08,373 - task_manager - INFO - 已保存 9 条历史记录到 task_history.json
+2025-05-09 14:31:08,373 - task_manager - INFO - 已更新任务 task_20250509_143053_874baa10 的历史记录
+2025-05-09 14:31:08,373 - task_manager - INFO - 任务 task_20250509_143053_874baa10 已标记为完成，结果文件: final_task_20250509_143053_874baa10.xlsx
+2025-05-09 14:32:13,236 - task_manager - INFO - 已从 task_history.json 加载 9 条历史记录
+2025-05-09 14:32:14,155 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:32:22,663 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 14:32:22,663 - task_manager - INFO - 已添加任务 task_20250509_143222_7e8d9ad9 的历史记录，类型为 complete_processing
+2025-05-09 14:32:22,663 - task_manager - INFO - 已创建新任务 task_20250509_143222_7e8d9ad9，类型为 complete_processing，关联 1 个文件
+2025-05-09 14:32:22,666 - task_manager - INFO - 任务 task_20250509_143222_7e8d9ad9 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 14:32:22,790 - task_manager - INFO - 任务 task_20250509_143222_7e8d9ad9 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 14:32:26,074 - task_manager - INFO - 任务 task_20250509_143222_7e8d9ad9 进度: 已提交百炼Batch任务(ID: batch_07c6784c-c488-4c4c-bfd2-6bb93c390a90)，等待处理... - 80% (1/1 文件)
+2025-05-09 14:32:26,074 - task_manager - INFO - 任务 task_20250509_143222_7e8d9ad9 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 14:32:33,972 - task_manager - INFO - 任务 task_20250509_143222_7e8d9ad9 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 14:32:50,639 - task_manager - INFO - 任务 task_20250509_143222_7e8d9ad9 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 14:33:12,916 - task_manager - INFO - 任务 task_20250509_143222_7e8d9ad9 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 14:33:12,916 - task_manager - INFO - 任务 task_20250509_143222_7e8d9ad9 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 14:33:12,923 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 14:33:12,923 - task_manager - INFO - 已更新任务 task_20250509_143222_7e8d9ad9 的历史记录
+2025-05-09 14:33:12,924 - task_manager - ERROR - 任务 task_20250509_143222_7e8d9ad9 已标记为失败: 处理百炼批处理结果时出错: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+2025-05-09 14:33:43,412 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:33:44,378 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:33:53,936 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 14:33:53,936 - task_manager - INFO - 已添加任务 task_20250509_143353_bd5855cf 的历史记录，类型为 complete_processing
+2025-05-09 14:33:53,936 - task_manager - INFO - 已创建新任务 task_20250509_143353_bd5855cf，类型为 complete_processing，关联 1 个文件
+2025-05-09 14:33:53,940 - task_manager - INFO - 任务 task_20250509_143353_bd5855cf 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 14:33:54,064 - task_manager - INFO - 任务 task_20250509_143353_bd5855cf 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 14:33:57,304 - task_manager - INFO - 任务 task_20250509_143353_bd5855cf 进度: 已提交百炼Batch任务(ID: batch_49c9a0de-fdb9-441f-a66c-375437af669b)，等待处理... - 80% (1/1 文件)
+2025-05-09 14:33:57,305 - task_manager - INFO - 任务 task_20250509_143353_bd5855cf 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 14:34:06,354 - task_manager - INFO - 任务 task_20250509_143353_bd5855cf 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 14:35:24,763 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:35:26,379 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:35:38,646 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 14:35:38,646 - task_manager - INFO - 已添加任务 task_20250509_143538_b1b7715b 的历史记录，类型为 complete_processing
+2025-05-09 14:35:38,647 - task_manager - INFO - 已创建新任务 task_20250509_143538_b1b7715b，类型为 complete_processing，关联 1 个文件
+2025-05-09 14:35:38,649 - task_manager - INFO - 任务 task_20250509_143538_b1b7715b 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 14:35:38,801 - task_manager - INFO - 任务 task_20250509_143538_b1b7715b 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 14:35:41,999 - task_manager - INFO - 任务 task_20250509_143538_b1b7715b 进度: 已提交百炼Batch任务(ID: batch_96e97090-375d-45aa-b5c2-35b73ac4aaba)，等待处理... - 80% (1/1 文件)
+2025-05-09 14:35:42,001 - task_manager - INFO - 任务 task_20250509_143538_b1b7715b 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 14:35:50,905 - task_manager - INFO - 任务 task_20250509_143538_b1b7715b 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 14:36:13,000 - task_manager - INFO - 任务 task_20250509_143538_b1b7715b 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 14:37:16,586 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:37:17,494 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:38:03,664 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:38:04,587 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:38:40,258 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:38:41,365 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:38:42,975 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:38:44,083 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:38:52,686 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 14:38:52,687 - task_manager - INFO - 已添加任务 task_20250509_143852_41bfc3e0 的历史记录，类型为 complete_processing
+2025-05-09 14:38:52,687 - task_manager - INFO - 已创建新任务 task_20250509_143852_41bfc3e0，类型为 complete_processing，关联 1 个文件
+2025-05-09 14:38:52,689 - task_manager - INFO - 任务 task_20250509_143852_41bfc3e0 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 14:38:52,843 - task_manager - INFO - 任务 task_20250509_143852_41bfc3e0 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 14:38:56,183 - task_manager - INFO - 任务 task_20250509_143852_41bfc3e0 进度: 已提交百炼Batch任务(ID: batch_6d28cb3f-dca2-40c0-a521-cd50b35fdf2a)，等待处理... - 80% (1/1 文件)
+2025-05-09 14:38:56,183 - task_manager - INFO - 任务 task_20250509_143852_41bfc3e0 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 14:39:05,235 - task_manager - INFO - 任务 task_20250509_143852_41bfc3e0 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 14:40:14,518 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:40:15,999 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:41:06,721 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:41:07,788 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:41:49,048 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:41:49,962 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:42:21,060 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:42:22,091 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:42:24,454 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:42:25,512 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:43:21,804 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 14:43:21,805 - task_manager - INFO - 已添加任务 task_20250509_144321_af79e983 的历史记录，类型为 complete_processing
+2025-05-09 14:43:21,806 - task_manager - INFO - 已创建新任务 task_20250509_144321_af79e983，类型为 complete_processing，关联 1 个文件
+2025-05-09 14:43:21,832 - task_manager - INFO - 任务 task_20250509_144321_af79e983 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 14:43:22,860 - task_manager - INFO - 任务 task_20250509_144321_af79e983 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 14:43:26,832 - task_manager - INFO - 任务 task_20250509_144321_af79e983 进度: 已提交百炼Batch任务(ID: batch_53344982-a223-4839-ad52-9a9bf6134cfc)，等待处理... - 80% (1/1 文件)
+2025-05-09 14:43:26,832 - task_manager - INFO - 任务 task_20250509_144321_af79e983 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 14:47:02,420 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:47:08,930 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:47:11,978 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 14:47:11,978 - task_manager - INFO - 已添加任务 task_20250509_144711_5dbeeb18 的历史记录，类型为 complete_processing
+2025-05-09 14:47:11,978 - task_manager - INFO - 已创建新任务 task_20250509_144711_5dbeeb18，类型为 complete_processing，关联 1 个文件
+2025-05-09 14:47:11,997 - task_manager - INFO - 任务 task_20250509_144711_5dbeeb18 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 14:47:12,386 - task_manager - INFO - 任务 task_20250509_144711_5dbeeb18 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 14:47:16,387 - task_manager - INFO - 任务 task_20250509_144711_5dbeeb18 进度: 已提交百炼Batch任务(ID: batch_bb72f909-4dde-49c5-9e9b-6604900e2760)，等待处理... - 80% (1/1 文件)
+2025-05-09 14:47:16,390 - task_manager - INFO - 任务 task_20250509_144711_5dbeeb18 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 14:49:19,162 - task_manager - INFO - 任务 task_20250509_144711_5dbeeb18 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 14:52:24,012 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 14:52:24,012 - task_manager - INFO - 已添加任务 task_20250509_145224_56be1aec 的历史记录，类型为 complete_processing
+2025-05-09 14:52:24,012 - task_manager - INFO - 已创建新任务 task_20250509_145224_56be1aec，类型为 complete_processing，关联 1 个文件
+2025-05-09 14:52:24,021 - task_manager - INFO - 任务 task_20250509_145224_56be1aec 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 14:52:24,075 - task_manager - INFO - 任务 task_20250509_145224_56be1aec 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 14:52:27,438 - task_manager - INFO - 任务 task_20250509_145224_56be1aec 进度: 已提交百炼Batch任务(ID: batch_83bf9ffd-a68a-499a-be34-a18f4ec73119)，等待处理... - 80% (1/1 文件)
+2025-05-09 14:52:27,442 - task_manager - INFO - 任务 task_20250509_145224_56be1aec 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 14:57:51,679 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:57:53,598 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:57:53,951 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:57:54,822 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:57:58,118 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 14:57:58,119 - task_manager - INFO - 已添加任务 task_20250509_145758_beb6367b 的历史记录，类型为 complete_processing
+2025-05-09 14:57:58,119 - task_manager - INFO - 已创建新任务 task_20250509_145758_beb6367b，类型为 complete_processing，关联 1 个文件
+2025-05-09 14:57:58,122 - task_manager - INFO - 任务 task_20250509_145758_beb6367b 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 14:57:58,260 - task_manager - INFO - 任务 task_20250509_145758_beb6367b 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 14:58:01,632 - task_manager - INFO - 任务 task_20250509_145758_beb6367b 进度: 已提交百炼Batch任务(ID: batch_597bebc8-b4fc-4547-b5e3-3ffd5fdff835)，等待处理... - 80% (1/1 文件)
+2025-05-09 14:58:01,633 - task_manager - INFO - 任务 task_20250509_145758_beb6367b 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 14:58:01,643 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 14:58:01,643 - task_manager - INFO - 已更新任务 task_20250509_145758_beb6367b 的历史记录
+2025-05-09 14:58:01,643 - task_manager - ERROR - 任务 task_20250509_145758_beb6367b 已标记为失败: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+2025-05-09 14:58:34,118 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:58:47,042 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:58:58,603 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:59:00,180 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:59:01,988 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:59:27,082 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:59:28,101 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:59:28,101 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:59:28,294 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:59:29,019 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 14:59:29,020 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 14:59:34,851 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 14:59:34,852 - task_manager - INFO - 已添加任务 task_20250509_145934_45e018c0 的历史记录，类型为 complete_processing
+2025-05-09 14:59:34,852 - task_manager - INFO - 已创建新任务 task_20250509_145934_45e018c0，类型为 complete_processing，关联 1 个文件
+2025-05-09 14:59:34,855 - task_manager - INFO - 任务 task_20250509_145934_45e018c0 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 14:59:34,990 - task_manager - INFO - 任务 task_20250509_145934_45e018c0 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 14:59:38,530 - task_manager - INFO - 任务 task_20250509_145934_45e018c0 进度: 已提交百炼Batch任务(ID: batch_5c32c1b0-4db8-4b80-b6fb-950143c3d67f)，等待处理... - 80% (1/1 文件)
+2025-05-09 14:59:38,530 - task_manager - INFO - 任务 task_20250509_145934_45e018c0 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 15:00:28,120 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:00:29,025 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:00:32,174 - task_manager - INFO - 任务 task_20250509_145934_45e018c0 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:01:28,137 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:01:32,179 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:01:34,575 - task_manager - INFO - 任务 task_20250509_145934_45e018c0 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:02:28,145 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:02:34,578 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:02:37,116 - task_manager - INFO - 任务 task_20250509_145934_45e018c0 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:03:28,153 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:03:37,121 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:03:39,376 - task_manager - INFO - 任务 task_20250509_145934_45e018c0 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:04:28,161 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:04:39,380 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:04:41,841 - task_manager - INFO - 任务 task_20250509_145934_45e018c0 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:04:52,826 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:04:52,827 - task_manager - INFO - 已添加任务 task_20250509_150452_b961d034 的历史记录，类型为 complete_processing
+2025-05-09 15:04:52,827 - task_manager - INFO - 已创建新任务 task_20250509_150452_b961d034，类型为 complete_processing，关联 1 个文件
+2025-05-09 15:04:52,832 - task_manager - INFO - 任务 task_20250509_150452_b961d034 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 15:04:52,868 - task_manager - INFO - 任务 task_20250509_150452_b961d034 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 15:04:57,184 - task_manager - INFO - 任务 task_20250509_150452_b961d034 进度: 已提交百炼Batch任务(ID: batch_894e4b57-0ba5-4740-96b9-8ad882b82098)，等待处理... - 80% (1/1 文件)
+2025-05-09 15:04:57,196 - task_manager - INFO - 任务 task_20250509_150452_b961d034 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 15:05:28,168 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:05:42,693 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:05:43,917 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:05:43,917 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:05:44,168 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:05:44,984 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:05:44,984 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:05:52,712 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:05:52,712 - task_manager - INFO - 已添加任务 task_20250509_150552_660699d1 的历史记录，类型为 complete_processing
+2025-05-09 15:05:52,712 - task_manager - INFO - 已创建新任务 task_20250509_150552_660699d1，类型为 complete_processing，关联 1 个文件
+2025-05-09 15:05:52,715 - task_manager - INFO - 任务 task_20250509_150552_660699d1 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 15:05:52,860 - task_manager - INFO - 任务 task_20250509_150552_660699d1 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 15:05:56,142 - task_manager - INFO - 任务 task_20250509_150552_660699d1 进度: 已提交百炼Batch任务(ID: batch_02f3da99-82f7-4eed-80bc-e08e5657257d)，等待处理... - 80% (1/1 文件)
+2025-05-09 15:05:56,142 - task_manager - INFO - 任务 task_20250509_150552_660699d1 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 15:06:43,923 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:06:44,986 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:06:47,503 - task_manager - INFO - 任务 task_20250509_150552_660699d1 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:07:43,929 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:07:47,506 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:07:49,771 - task_manager - INFO - 任务 task_20250509_150552_660699d1 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:11:49,140 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:11:51,175 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:11:51,368 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:11:52,100 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:11:56,901 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:12:01,053 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:12:01,053 - task_manager - INFO - 已添加任务 task_20250509_151201_a0a16697 的历史记录，类型为 complete_processing
+2025-05-09 15:12:01,053 - task_manager - INFO - 已创建新任务 task_20250509_151201_a0a16697，类型为 complete_processing，关联 1 个文件
+2025-05-09 15:12:01,057 - task_manager - INFO - 任务 task_20250509_151201_a0a16697 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 15:12:01,198 - task_manager - INFO - 任务 task_20250509_151201_a0a16697 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 15:12:04,407 - task_manager - INFO - 任务 task_20250509_151201_a0a16697 进度: 已提交百炼Batch任务(ID: batch_1ceb0d4b-0ec8-4d52-b06f-84ceee3c21c9)，等待处理... - 80% (1/1 文件)
+2025-05-09 15:12:04,407 - task_manager - INFO - 任务 task_20250509_151201_a0a16697 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 15:12:56,910 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:12:59,072 - task_manager - INFO - 任务 task_20250509_151201_a0a16697 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 15:13:59,077 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:14:01,531 - task_manager - INFO - 任务 task_20250509_151201_a0a16697 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 15:14:01,531 - task_manager - INFO - 任务 task_20250509_151201_a0a16697 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:14:04,105 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:14:04,105 - task_manager - INFO - 已更新任务 task_20250509_151201_a0a16697 的历史记录
+2025-05-09 15:14:04,107 - task_manager - ERROR - 任务 task_20250509_151201_a0a16697 已标记为失败: 百炼API结果处理失败，未生成有效数据。
+2025-05-09 15:15:01,535 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:15:03,890 - task_manager - INFO - 任务 task_20250509_151201_a0a16697 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:15:03,891 - task_manager - INFO - 任务 task_20250509_151201_a0a16697 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 15:15:06,659 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:15:06,659 - task_manager - INFO - 已更新任务 task_20250509_151201_a0a16697 的历史记录
+2025-05-09 15:15:06,659 - task_manager - ERROR - 任务 task_20250509_151201_a0a16697 已标记为失败: 百炼API结果处理失败，未生成有效数据。
+2025-05-09 15:16:03,892 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:16:06,134 - task_manager - INFO - 任务 task_20250509_151201_a0a16697 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:16:06,134 - task_manager - INFO - 任务 task_20250509_151201_a0a16697 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 15:16:08,609 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:16:08,610 - task_manager - INFO - 已更新任务 task_20250509_151201_a0a16697 的历史记录
+2025-05-09 15:16:08,610 - task_manager - ERROR - 任务 task_20250509_151201_a0a16697 已标记为失败: 百炼API结果处理失败，未生成有效数据。
+2025-05-09 15:17:06,136 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:17:08,472 - task_manager - INFO - 任务 task_20250509_151201_a0a16697 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 15:17:08,473 - task_manager - INFO - 任务 task_20250509_151201_a0a16697 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:17:11,272 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:17:11,273 - task_manager - INFO - 已更新任务 task_20250509_151201_a0a16697 的历史记录
+2025-05-09 15:17:11,274 - task_manager - ERROR - 任务 task_20250509_151201_a0a16697 已标记为失败: 百炼API结果处理失败，未生成有效数据。
+2025-05-09 15:18:08,478 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:18:10,899 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:18:12,783 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:18:15,993 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:28:00,133 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:28:00,978 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:28:01,139 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:28:01,685 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:28:29,226 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:28:29,226 - task_manager - INFO - 已添加任务 task_20250509_152829_09eee96f 的历史记录，类型为 complete_processing
+2025-05-09 15:28:29,226 - task_manager - INFO - 已创建新任务 task_20250509_152829_09eee96f，类型为 complete_processing，关联 1 个文件
+2025-05-09 15:28:29,228 - task_manager - INFO - 任务 task_20250509_152829_09eee96f 进度: 处理文件 1/1: 250427-25.4.19CIO_1.xlsx - 0% (0/1 文件)
+2025-05-09 15:28:29,382 - task_manager - INFO - 任务 task_20250509_152829_09eee96f 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 15:28:33,631 - task_manager - INFO - 任务 task_20250509_152829_09eee96f 进度: 已提交百炼Batch任务(ID: batch_13347cda-7c9a-4c1c-b37b-0a5d03bb73a5)，等待处理... - 80% (1/1 文件)
+2025-05-09 15:28:33,631 - task_manager - INFO - 任务 task_20250509_152829_09eee96f 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 15:31:31,601 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:31:32,845 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:31:32,986 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:31:33,599 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:31:43,926 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:31:43,927 - task_manager - INFO - 已添加任务 task_20250509_153143_b9a8fd17 的历史记录，类型为 complete_processing
+2025-05-09 15:31:43,927 - task_manager - INFO - 已创建新任务 task_20250509_153143_b9a8fd17，类型为 complete_processing，关联 1 个文件
+2025-05-09 15:31:43,933 - task_manager - INFO - 任务 task_20250509_153143_b9a8fd17 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 15:31:44,152 - task_manager - INFO - 任务 task_20250509_153143_b9a8fd17 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 15:31:47,197 - task_manager - INFO - 任务 task_20250509_153143_b9a8fd17 进度: 已提交百炼Batch任务(ID: batch_05f1cb20-2bf1-457f-8de5-77d724cbb526)，等待处理... - 80% (1/1 文件)
+2025-05-09 15:31:47,198 - task_manager - INFO - 任务 task_20250509_153143_b9a8fd17 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 15:33:24,736 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:33:25,523 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:33:25,940 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:33:26,424 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:33:33,556 - task_manager - ERROR - 加载历史记录时出错: Expecting value: line 1 column 1 (char 0)
+2025-05-09 15:33:33,557 - task_manager - INFO - 已保存 0 条历史记录到 task_history.json
+2025-05-09 15:33:33,557 - task_manager - INFO - 已添加任务 task_20250509_153333_5ffbaeeb 的历史记录，类型为 complete_processing
+2025-05-09 15:33:33,557 - task_manager - INFO - 已创建新任务 task_20250509_153333_5ffbaeeb，类型为 complete_processing，关联 1 个文件
+2025-05-09 15:33:33,565 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 处理文件 1/1: 250427-25.4.19CIO_1.xlsx - 0% (0/1 文件)
+2025-05-09 15:33:33,717 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 15:33:37,774 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 已提交百炼Batch任务(ID: batch_353330cd-fea1-4535-aef1-c16c325c076f)，等待处理... - 80% (1/1 文件)
+2025-05-09 15:33:37,774 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 15:34:33,561 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:34:33,767 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 15:34:35,925 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 15:35:35,931 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:35:38,306 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 15:36:38,309 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:36:40,357 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 15:37:40,372 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:37:42,524 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:37:42,524 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 15:37:45,519 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:37:45,520 - task_manager - INFO - 已更新任务 task_20250509_153333_5ffbaeeb 的历史记录
+2025-05-09 15:37:45,520 - task_manager - ERROR - 任务 task_20250509_153333_5ffbaeeb 已标记为失败: 处理百炼批处理结果时出错: '电话'
+2025-05-09 15:38:42,528 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:38:44,814 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:38:44,814 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 15:38:47,826 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:38:47,826 - task_manager - INFO - 已更新任务 task_20250509_153333_5ffbaeeb 的历史记录
+2025-05-09 15:38:47,826 - task_manager - ERROR - 任务 task_20250509_153333_5ffbaeeb 已标记为失败: 处理百炼批处理结果时出错: '电话'
+2025-05-09 15:39:44,822 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:39:46,846 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:39:46,846 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 15:39:49,546 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:39:49,546 - task_manager - INFO - 已更新任务 task_20250509_153333_5ffbaeeb 的历史记录
+2025-05-09 15:39:49,546 - task_manager - ERROR - 任务 task_20250509_153333_5ffbaeeb 已标记为失败: 处理百炼批处理结果时出错: '电话'
+2025-05-09 15:40:46,853 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:40:49,053 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:40:49,053 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 15:40:51,933 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:40:51,934 - task_manager - INFO - 已更新任务 task_20250509_153333_5ffbaeeb 的历史记录
+2025-05-09 15:40:51,934 - task_manager - ERROR - 任务 task_20250509_153333_5ffbaeeb 已标记为失败: 处理百炼批处理结果时出错: '电话'
+2025-05-09 15:41:49,058 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:41:51,369 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 15:41:51,369 - task_manager - INFO - 任务 task_20250509_153333_5ffbaeeb 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 15:41:54,119 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:41:54,119 - task_manager - INFO - 已更新任务 task_20250509_153333_5ffbaeeb 的历史记录
+2025-05-09 15:41:54,120 - task_manager - ERROR - 任务 task_20250509_153333_5ffbaeeb 已标记为失败: 处理百炼批处理结果时出错: '电话'
+2025-05-09 15:44:59,648 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:45:00,438 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:45:00,578 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:45:01,071 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:45:02,838 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:45:02,839 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:45:02,839 - task_manager - INFO - 已添加任务 task_20250509_154502_77369314 的历史记录，类型为 complete_processing
+2025-05-09 15:45:02,839 - task_manager - INFO - 已创建新任务 task_20250509_154502_77369314，类型为 complete_processing，关联 1 个文件
+2025-05-09 15:45:02,842 - task_manager - INFO - 任务 task_20250509_154502_77369314 进度: 处理文件 1/1: 250427-25.4.19CIO_1.xlsx - 0% (0/1 文件)
+2025-05-09 15:45:02,995 - task_manager - INFO - 任务 task_20250509_154502_77369314 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 15:45:06,838 - task_manager - INFO - 任务 task_20250509_154502_77369314 进度: 已提交百炼Batch任务(ID: batch_683b15b5-28dc-4cdf-be80-a2dcb7b542ac)，等待处理... - 80% (1/1 文件)
+2025-05-09 15:45:06,839 - task_manager - INFO - 任务 task_20250509_154502_77369314 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 15:45:27,012 - task_manager - INFO - 任务 task_20250509_154502_77369314 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 15:45:34,000 - task_manager - INFO - 任务 task_20250509_154502_77369314 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 15:46:02,845 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:46:12,676 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:46:13,358 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:52:46,387 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:52:47,116 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:52:47,240 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:52:47,716 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 15:52:53,861 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:52:53,862 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 15:52:53,862 - task_manager - INFO - 已添加任务 task_20250509_155253_32fcc4f4 的历史记录，类型为 complete_processing
+2025-05-09 15:52:53,862 - task_manager - INFO - 已创建新任务 task_20250509_155253_32fcc4f4，类型为 complete_processing，关联 1 个文件
+2025-05-09 15:52:53,864 - task_manager - INFO - 任务 task_20250509_155253_32fcc4f4 进度: 处理文件 1/1: 250427-25.4.19CIO_1.xlsx - 0% (0/1 文件)
+2025-05-09 15:52:53,999 - task_manager - INFO - 任务 task_20250509_155253_32fcc4f4 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 15:52:57,597 - task_manager - INFO - 任务 task_20250509_155253_32fcc4f4 进度: 已提交百炼Batch任务(ID: batch_09a2f5a8-78c0-487e-8b7b-0be41709dc39)，等待处理... - 80% (1/1 文件)
+2025-05-09 15:52:57,598 - task_manager - INFO - 任务 task_20250509_155253_32fcc4f4 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 15:53:05,224 - task_manager - INFO - 任务 task_20250509_155253_32fcc4f4 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 15:53:16,010 - task_manager - INFO - 任务 task_20250509_155253_32fcc4f4 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 15:53:36,558 - task_manager - INFO - 任务 task_20250509_155253_32fcc4f4 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 15:53:53,866 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:53:55,903 - task_manager - INFO - 任务 task_20250509_155253_32fcc4f4 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 15:54:53,867 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:55:09,117 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 15:55:09,731 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:10:47,026 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:10:47,810 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:11:50,432 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:11:51,041 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:11:53,480 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:11:53,964 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:13:31,353 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:13:32,015 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:13:44,942 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:13:45,668 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:13:49,323 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:13:49,839 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:14:01,304 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:14:02,011 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:14:11,593 - task_manager - ERROR - 加载历史记录时出错: Expecting value: line 1 column 1 (char 0)
+2025-05-09 16:14:11,594 - task_manager - INFO - 已保存 0 条历史记录到 task_history.json
+2025-05-09 16:14:11,594 - task_manager - INFO - 已添加任务 task_20250509_161411_7591d58d 的历史记录，类型为 complete_processing
+2025-05-09 16:14:11,594 - task_manager - INFO - 已创建新任务 task_20250509_161411_7591d58d，类型为 complete_processing，关联 1 个文件
+2025-05-09 16:14:11,596 - task_manager - INFO - 任务 task_20250509_161411_7591d58d 进度: 处理文件 1/1: 250427-25.4.19CIO_1.xlsx - 0% (0/1 文件)
+2025-05-09 16:14:11,711 - task_manager - INFO - 任务 task_20250509_161411_7591d58d 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 16:14:16,328 - task_manager - INFO - 任务 task_20250509_161411_7591d58d 进度: 已提交百炼Batch任务(ID: batch_07216436-5145-4ec4-a6dd-bf7dfc868a0d)，等待处理... - 80% (1/1 文件)
+2025-05-09 16:14:16,329 - task_manager - INFO - 任务 task_20250509_161411_7591d58d 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 16:14:26,078 - task_manager - INFO - 任务 task_20250509_161411_7591d58d 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 16:14:38,226 - task_manager - INFO - 任务 task_20250509_161411_7591d58d 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 16:14:52,235 - task_manager - INFO - 任务 task_20250509_161411_7591d58d 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 16:15:11,620 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:15:14,213 - task_manager - INFO - 任务 task_20250509_161411_7591d58d 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 16:15:20,254 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:15:21,033 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:15:30,746 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:15:31,856 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:15:31,996 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:15:32,707 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:15:55,337 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:16:07,114 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:16:07,115 - task_manager - INFO - 已添加任务 task_20250509_161607_a81d6597 的历史记录，类型为 complete_processing
+2025-05-09 16:16:07,115 - task_manager - INFO - 已创建新任务 task_20250509_161607_a81d6597，类型为 complete_processing，关联 1 个文件
+2025-05-09 16:16:07,121 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 16:16:07,343 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 16:16:10,502 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 已提交百炼Batch任务(ID: batch_87a9e3c7-25a5-48cf-b52d-ea69d7e8dc90)，等待处理... - 80% (1/1 文件)
+2025-05-09 16:16:10,503 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 16:16:55,342 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:16:57,124 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:16:57,125 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:16:59,597 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:16:59,600 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:16:59,600 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:16:59,601 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:17:57,133 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:17:59,184 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:17:59,184 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:18:01,598 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:18:01,598 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:18:01,598 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:18:01,599 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:18:59,189 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:19:01,057 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:19:01,057 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:19:03,388 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:19:03,388 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:19:03,388 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:19:03,388 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:20:01,064 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:20:03,010 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:20:03,011 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:20:05,294 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:20:05,294 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:20:05,294 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:20:05,295 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:21:03,018 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:21:04,953 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:21:04,954 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:21:07,541 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:21:07,541 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:21:07,541 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:21:07,541 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:22:04,960 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:22:06,743 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:22:06,745 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:22:09,284 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:22:09,284 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:22:09,284 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:22:09,284 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:23:06,749 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:23:08,738 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:23:08,739 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:23:11,100 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:23:11,101 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:23:11,101 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:23:11,101 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:24:08,742 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:24:10,430 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:24:10,430 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:24:12,593 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:24:12,594 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:24:12,594 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:24:12,594 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:25:10,437 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:25:12,364 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:25:12,365 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:25:14,537 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:25:14,538 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:25:14,538 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:25:14,538 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:26:12,372 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:26:14,350 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:26:14,351 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:26:16,896 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:26:16,897 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:26:16,897 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:26:16,897 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:27:14,355 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:27:16,053 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:27:16,054 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:27:18,303 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:27:18,304 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:27:18,304 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:27:18,304 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:28:16,059 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:28:17,839 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:28:17,840 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:28:20,158 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:28:20,159 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:28:20,159 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:28:20,159 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:29:17,847 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:29:19,690 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:29:19,690 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:29:22,226 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:29:22,226 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:29:22,226 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:29:22,226 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:30:19,696 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:30:21,563 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:30:21,563 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:30:23,932 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:30:23,932 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:30:23,932 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:30:23,932 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:31:21,569 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:31:23,390 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:31:23,391 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:31:25,874 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:31:25,875 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:31:25,875 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:31:25,875 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:32:23,400 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:32:25,267 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:32:25,267 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:32:27,664 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:32:27,664 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:32:27,664 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:32:27,664 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:33:25,273 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:33:27,309 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:33:27,310 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:33:29,547 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:33:29,548 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:33:29,548 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:33:29,548 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:34:27,302 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:34:29,097 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:34:29,098 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:34:31,582 - task_manager - INFO - 已将任务 task_20250509_161607_a81d6597 设置为最近完成的预处理任务
+2025-05-09 16:34:31,582 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:34:31,582 - task_manager - INFO - 已更新任务 task_20250509_161607_a81d6597 的历史记录
+2025-05-09 16:34:31,582 - task_manager - INFO - 任务 task_20250509_161607_a81d6597 已标记为完成，结果文件: final_task_20250509_161607_a81d6597.xlsx
+2025-05-09 16:35:20,107 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:35:21,164 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:35:29,846 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:36:47,893 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:36:48,701 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:36:48,848 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:36:49,556 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:36:50,935 - task_manager - ERROR - 加载历史记录时出错: Expecting value: line 1 column 1 (char 0)
+2025-05-09 16:36:50,935 - task_manager - INFO - 已保存 0 条历史记录到 task_history.json
+2025-05-09 16:36:50,935 - task_manager - INFO - 已添加任务 task_20250509_163650_30ae776f 的历史记录，类型为 complete_processing
+2025-05-09 16:36:50,935 - task_manager - INFO - 已创建新任务 task_20250509_163650_30ae776f，类型为 complete_processing，关联 1 个文件
+2025-05-09 16:36:50,937 - task_manager - INFO - 任务 task_20250509_163650_30ae776f 进度: 处理文件 1/1: 250427-25.4.19CIO_1.xlsx - 0% (0/1 文件)
+2025-05-09 16:36:51,046 - task_manager - INFO - 任务 task_20250509_163650_30ae776f 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 16:36:55,235 - task_manager - INFO - 任务 task_20250509_163650_30ae776f 进度: 已提交百炼Batch任务(ID: batch_2126b9c6-f64f-4dc2-92c9-e885023461c5)，等待处理... - 80% (1/1 文件)
+2025-05-09 16:36:55,235 - task_manager - INFO - 任务 task_20250509_163650_30ae776f 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 16:37:02,715 - task_manager - INFO - 任务 task_20250509_163650_30ae776f 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 16:40:49,910 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:40:51,126 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:40:51,277 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:40:52,019 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:41:10,328 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:41:14,490 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:41:14,490 - task_manager - INFO - 已添加任务 task_20250509_164114_5e0878aa 的历史记录，类型为 complete_processing
+2025-05-09 16:41:14,490 - task_manager - INFO - 已创建新任务 task_20250509_164114_5e0878aa，类型为 complete_processing，关联 1 个文件
+2025-05-09 16:41:14,496 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 16:41:14,721 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 16:41:17,796 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 进度: 已提交百炼Batch任务(ID: batch_ce53750b-3052-443f-a96e-4d9da376c55a)，等待处理... - 80% (1/1 文件)
+2025-05-09 16:41:17,797 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 16:42:10,334 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:42:12,131 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:42:12,132 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:42:20,212 - task_manager - INFO - 已将任务 task_20250509_164114_5e0878aa 设置为最近完成的预处理任务
+2025-05-09 16:42:20,213 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:42:20,213 - task_manager - INFO - 已更新任务 task_20250509_164114_5e0878aa 的历史记录
+2025-05-09 16:42:20,213 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 已标记为完成，结果文件: final_task_20250509_164114_5e0878aa.xlsx
+2025-05-09 16:43:12,139 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:43:14,122 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:43:14,122 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:43:20,526 - task_manager - INFO - 已将任务 task_20250509_164114_5e0878aa 设置为最近完成的预处理任务
+2025-05-09 16:43:20,526 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:43:20,526 - task_manager - INFO - 已更新任务 task_20250509_164114_5e0878aa 的历史记录
+2025-05-09 16:43:20,526 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 已标记为完成，结果文件: final_task_20250509_164114_5e0878aa.xlsx
+2025-05-09 16:44:14,129 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:44:16,048 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:44:16,048 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:44:22,899 - task_manager - INFO - 已将任务 task_20250509_164114_5e0878aa 设置为最近完成的预处理任务
+2025-05-09 16:44:22,900 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:44:22,900 - task_manager - INFO - 已更新任务 task_20250509_164114_5e0878aa 的历史记录
+2025-05-09 16:44:22,900 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 已标记为完成，结果文件: final_task_20250509_164114_5e0878aa.xlsx
+2025-05-09 16:45:16,053 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:45:17,992 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:45:17,992 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:45:24,352 - task_manager - INFO - 已将任务 task_20250509_164114_5e0878aa 设置为最近完成的预处理任务
+2025-05-09 16:45:24,353 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:45:24,353 - task_manager - INFO - 已更新任务 task_20250509_164114_5e0878aa 的历史记录
+2025-05-09 16:45:24,353 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 已标记为完成，结果文件: final_task_20250509_164114_5e0878aa.xlsx
+2025-05-09 16:46:17,999 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:46:19,706 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:46:19,707 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:46:26,853 - task_manager - INFO - 已将任务 task_20250509_164114_5e0878aa 设置为最近完成的预处理任务
+2025-05-09 16:46:26,854 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:46:26,854 - task_manager - INFO - 已更新任务 task_20250509_164114_5e0878aa 的历史记录
+2025-05-09 16:46:26,854 - task_manager - INFO - 任务 task_20250509_164114_5e0878aa 已标记为完成，结果文件: final_task_20250509_164114_5e0878aa.xlsx
+2025-05-09 16:46:40,147 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:46:41,430 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:47:25,771 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:47:26,760 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:47:29,156 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:47:29,872 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:47:48,623 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:47:49,419 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:47:51,911 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:47:53,137 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:47:58,726 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:47:59,463 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:50:45,198 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:50:45,899 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 16:50:58,297 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:51:05,064 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:51:05,064 - task_manager - INFO - 已添加任务 task_20250509_165105_d0be824e 的历史记录，类型为 complete_processing
+2025-05-09 16:51:05,064 - task_manager - INFO - 已创建新任务 task_20250509_165105_d0be824e，类型为 complete_processing，关联 1 个文件
+2025-05-09 16:51:05,070 - task_manager - INFO - 任务 task_20250509_165105_d0be824e 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 16:51:05,289 - task_manager - INFO - 任务 task_20250509_165105_d0be824e 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 16:51:08,173 - task_manager - INFO - 任务 task_20250509_165105_d0be824e 进度: 已提交百炼Batch任务(ID: batch_f345a400-8e40-40ef-ab9f-04806b0d614d)，等待处理... - 80% (1/1 文件)
+2025-05-09 16:51:08,173 - task_manager - INFO - 任务 task_20250509_165105_d0be824e 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 16:51:58,304 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:52:00,184 - task_manager - INFO - 任务 task_20250509_165105_d0be824e 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 16:53:00,187 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:53:02,028 - task_manager - INFO - 任务 task_20250509_165105_d0be824e 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 16:53:02,029 - task_manager - INFO - 任务 task_20250509_165105_d0be824e 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 16:53:09,637 - task_manager - INFO - 已将任务 task_20250509_165105_d0be824e 设置为最近完成的预处理任务
+2025-05-09 16:53:09,638 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 16:53:09,638 - task_manager - INFO - 已更新任务 task_20250509_165105_d0be824e 的历史记录
+2025-05-09 16:53:09,638 - task_manager - INFO - 任务 task_20250509_165105_d0be824e 已标记为完成，结果文件: final_task_20250509_165105_d0be824e.xlsx
+2025-05-09 16:54:09,645 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:55:09,656 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:56:09,683 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:57:09,695 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:58:09,698 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 16:59:09,701 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:00:09,709 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:01:09,722 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:02:09,732 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:03:09,740 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:04:09,745 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:05:09,752 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:06:09,760 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:07:09,765 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:07:58,153 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:07:59,098 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 17:08:11,121 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:08:15,795 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 17:08:15,795 - task_manager - INFO - 已添加任务 task_20250509_170815_8b3eee3a 的历史记录，类型为 complete_processing
+2025-05-09 17:08:15,795 - task_manager - INFO - 已创建新任务 task_20250509_170815_8b3eee3a，类型为 complete_processing，关联 1 个文件
+2025-05-09 17:08:15,799 - task_manager - INFO - 任务 task_20250509_170815_8b3eee3a 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 17:08:16,001 - task_manager - INFO - 任务 task_20250509_170815_8b3eee3a 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 17:08:19,188 - task_manager - INFO - 任务 task_20250509_170815_8b3eee3a 进度: 已提交百炼Batch任务(ID: batch_5924976c-30fa-4389-a0c8-1a887562203e)，等待处理... - 80% (1/1 文件)
+2025-05-09 17:08:19,189 - task_manager - INFO - 任务 task_20250509_170815_8b3eee3a 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 17:09:11,127 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:09:12,893 - task_manager - INFO - 任务 task_20250509_170815_8b3eee3a 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 17:09:12,894 - task_manager - INFO - 任务 task_20250509_170815_8b3eee3a 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 17:09:23,426 - task_manager - INFO - 已将任务 task_20250509_170815_8b3eee3a 设置为最近完成的预处理任务
+2025-05-09 17:09:23,427 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 17:09:23,427 - task_manager - INFO - 已更新任务 task_20250509_170815_8b3eee3a 的历史记录
+2025-05-09 17:09:23,427 - task_manager - INFO - 任务 task_20250509_170815_8b3eee3a 已标记为完成，结果文件: final_task_20250509_170815_8b3eee3a.xlsx
+2025-05-09 17:10:23,434 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:11:23,442 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:12:23,456 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:13:23,465 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:14:23,471 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:15:23,477 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:16:23,481 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:17:13,009 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:17:14,005 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 17:17:16,423 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:17:17,064 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 17:17:41,250 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:17:45,004 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 17:17:45,004 - task_manager - INFO - 已添加任务 task_20250509_171745_b586bf25 的历史记录，类型为 complete_processing
+2025-05-09 17:17:45,004 - task_manager - INFO - 已创建新任务 task_20250509_171745_b586bf25，类型为 complete_processing，关联 1 个文件
+2025-05-09 17:17:45,009 - task_manager - INFO - 任务 task_20250509_171745_b586bf25 进度: 处理文件 1/1: 250428--20254CDIE2.xlsx - 0% (0/1 文件)
+2025-05-09 17:17:45,197 - task_manager - INFO - 任务 task_20250509_171745_b586bf25 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 17:17:48,051 - task_manager - INFO - 任务 task_20250509_171745_b586bf25 进度: 已提交百炼Batch任务(ID: batch_ef495d8a-e217-48e7-b0bd-207f07c05ab5)，等待处理... - 80% (1/1 文件)
+2025-05-09 17:17:48,052 - task_manager - INFO - 任务 task_20250509_171745_b586bf25 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 17:18:41,258 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:18:54,142 - task_manager - INFO - 任务 task_20250509_171745_b586bf25 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 17:18:54,145 - task_manager - INFO - 任务 task_20250509_171745_b586bf25 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 17:19:12,230 - task_manager - INFO - 已将任务 task_20250509_171745_b586bf25 设置为最近完成的预处理任务
+2025-05-09 17:19:12,231 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 17:19:12,231 - task_manager - INFO - 已更新任务 task_20250509_171745_b586bf25 的历史记录
+2025-05-09 17:19:12,231 - task_manager - INFO - 任务 task_20250509_171745_b586bf25 已标记为完成，结果文件: final_task_20250509_171745_b586bf25.xlsx
+2025-05-09 17:20:12,239 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:21:12,243 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:22:12,227 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:23:12,234 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:23:27,374 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:23:28,140 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:27:03,344 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:34:51,259 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:34:51,962 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 17:34:52,369 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:34:52,885 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 17:34:54,900 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:34:59,321 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 17:34:59,321 - task_manager - INFO - 已添加任务 task_20250509_173459_43c9904b 的历史记录，类型为 complete_processing
+2025-05-09 17:34:59,321 - task_manager - INFO - 已创建新任务 task_20250509_173459_43c9904b，类型为 complete_processing，关联 1 个文件
+2025-05-09 17:34:59,323 - task_manager - INFO - 任务 task_20250509_173459_43c9904b 进度: 处理文件 1/1: 250428-活动-2025年4月CDIE名单2.xlsx - 0% (0/1 文件)
+2025-05-09 17:34:59,434 - task_manager - INFO - 任务 task_20250509_173459_43c9904b 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 17:35:03,145 - task_manager - INFO - 任务 task_20250509_173459_43c9904b 进度: 已提交百炼Batch任务(ID: batch_43eb731d-7a5f-4670-93f9-49f246082a04)，等待处理... - 80% (1/1 文件)
+2025-05-09 17:35:03,145 - task_manager - INFO - 任务 task_20250509_173459_43c9904b 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 17:35:54,906 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:35:57,304 - task_manager - INFO - 任务 task_20250509_173459_43c9904b 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 17:36:57,310 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:36:59,742 - task_manager - INFO - 任务 task_20250509_173459_43c9904b 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 17:36:59,743 - task_manager - INFO - 任务 task_20250509_173459_43c9904b 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 17:37:16,329 - task_manager - INFO - 已将任务 task_20250509_173459_43c9904b 设置为最近完成的预处理任务
+2025-05-09 17:37:16,330 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 17:37:16,330 - task_manager - INFO - 已更新任务 task_20250509_173459_43c9904b 的历史记录
+2025-05-09 17:37:16,330 - task_manager - INFO - 任务 task_20250509_173459_43c9904b 已标记为完成，结果文件: final_task_20250509_173459_43c9904b.xlsx
+2025-05-09 17:38:16,333 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:39:16,338 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:40:16,345 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:41:16,349 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:42:16,356 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:43:16,363 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:44:16,376 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:45:16,385 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:46:16,392 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:47:16,396 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:48:16,419 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:49:16,425 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:50:16,482 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:51:16,490 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:52:16,496 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:53:16,504 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:54:16,512 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:55:16,522 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:56:16,530 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:57:16,533 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:58:16,539 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 17:59:16,547 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:00:06,294 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:00:07,049 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:00:15,980 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:00:16,652 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:00:20,221 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:00:20,717 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:00:29,594 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:00:30,163 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:00:35,797 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:00:36,360 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:01:30,855 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:01:31,485 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:01:49,158 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:01:49,909 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:01:53,444 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:01:54,237 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:02:18,419 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:02:19,051 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:02:23,661 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:02:24,119 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:02:37,417 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:02:38,102 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:05:18,339 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:05:18,974 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:05:21,927 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:05:22,586 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:05:47,671 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:05:48,355 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:05:52,252 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:05:52,855 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:05:54,329 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:05:54,830 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:06:27,672 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:06:28,409 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:07:22,782 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:07:28,314 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 18:07:28,314 - task_manager - INFO - 已添加任务 task_20250509_180728_535e5fc1 的历史记录，类型为 complete_processing
+2025-05-09 18:07:28,314 - task_manager - INFO - 已创建新任务 task_20250509_180728_535e5fc1，类型为 complete_processing，关联 1 个文件
+2025-05-09 18:07:28,320 - task_manager - INFO - 任务 task_20250509_180728_535e5fc1 进度: 处理文件 1/1: 250428-活动-2025年4月CDIE名单2.xlsx - 0% (0/1 文件)
+2025-05-09 18:07:28,479 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 18:07:28,480 - task_manager - INFO - 已更新任务 task_20250509_180728_535e5fc1 的历史记录
+2025-05-09 18:07:28,480 - task_manager - ERROR - 任务 task_20250509_180728_535e5fc1 已标记为失败: 'local_row_id'
+2025-05-09 18:08:22,788 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:09:22,792 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:09:39,811 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:09:40,408 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:09:59,370 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:09:59,977 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:10:03,834 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:10:04,500 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:10:25,434 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:10:26,077 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:10:30,692 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:10:31,226 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:12:07,839 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:12:08,456 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:12:12,835 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:12:17,347 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 18:12:17,348 - task_manager - INFO - 已添加任务 task_20250509_181217_9d59f9dc 的历史记录，类型为 complete_processing
+2025-05-09 18:12:17,348 - task_manager - INFO - 已创建新任务 task_20250509_181217_9d59f9dc，类型为 complete_processing，关联 1 个文件
+2025-05-09 18:12:17,356 - task_manager - INFO - 任务 task_20250509_181217_9d59f9dc 进度: 处理文件 1/1: 250428-活动-2025年4月CDIE名单2.xlsx - 0% (0/1 文件)
+2025-05-09 18:12:17,516 - task_manager - INFO - 任务 task_20250509_181217_9d59f9dc 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 18:12:21,234 - task_manager - INFO - 任务 task_20250509_181217_9d59f9dc 进度: 已提交百炼Batch任务(ID: batch_515c6d34-906d-4f62-a9a6-223a64748536)，等待处理... - 80% (1/1 文件)
+2025-05-09 18:12:21,235 - task_manager - INFO - 任务 task_20250509_181217_9d59f9dc 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 18:13:12,842 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:13:14,980 - task_manager - INFO - 任务 task_20250509_181217_9d59f9dc 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 18:13:14,981 - task_manager - INFO - 任务 task_20250509_181217_9d59f9dc 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 18:13:35,995 - task_manager - INFO - 已将任务 task_20250509_181217_9d59f9dc 设置为最近完成的预处理任务
+2025-05-09 18:13:35,996 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 18:13:35,996 - task_manager - INFO - 已更新任务 task_20250509_181217_9d59f9dc 的历史记录
+2025-05-09 18:13:35,996 - task_manager - INFO - 任务 task_20250509_181217_9d59f9dc 已标记为完成，结果文件: final_task_20250509_181217_9d59f9dc.xlsx
+2025-05-09 18:14:36,007 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:15:36,018 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:16:36,025 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:17:36,031 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:17:39,982 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:17:40,591 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:17:44,143 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:17:44,618 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:17:48,201 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:17:48,696 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:17:52,341 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:17:52,804 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:17:56,349 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:17:56,828 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:18:00,395 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:18:00,861 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:18:04,385 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:18:04,872 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:18:08,393 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:18:08,853 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:18:12,383 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:18:12,854 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:18:23,001 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:18:23,722 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:18:40,315 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:18:40,920 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 18:19:25,706 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:19:30,191 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 18:19:30,191 - task_manager - INFO - 已添加任务 task_20250509_181930_326a5395 的历史记录，类型为 complete_processing
+2025-05-09 18:19:30,191 - task_manager - INFO - 已创建新任务 task_20250509_181930_326a5395，类型为 complete_processing，关联 1 个文件
+2025-05-09 18:19:30,193 - task_manager - INFO - 任务 task_20250509_181930_326a5395 进度: 处理文件 1/1: 250428-活动-2025年4月CDIE名单2.xlsx - 0% (0/1 文件)
+2025-05-09 18:19:30,294 - task_manager - INFO - 任务 task_20250509_181930_326a5395 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 18:19:33,866 - task_manager - INFO - 任务 task_20250509_181930_326a5395 进度: 已提交百炼Batch任务(ID: batch_f7c2a713-357f-40d7-bbfc-8182b836d8ad)，等待处理... - 80% (1/1 文件)
+2025-05-09 18:19:33,866 - task_manager - INFO - 任务 task_20250509_181930_326a5395 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 18:20:25,713 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:20:27,752 - task_manager - INFO - 任务 task_20250509_181930_326a5395 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 18:20:27,752 - task_manager - INFO - 任务 task_20250509_181930_326a5395 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 18:20:43,643 - task_manager - INFO - 已将任务 task_20250509_181930_326a5395 设置为最近完成的预处理任务
+2025-05-09 18:20:43,643 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 18:20:43,644 - task_manager - INFO - 已更新任务 task_20250509_181930_326a5395 的历史记录
+2025-05-09 18:20:43,644 - task_manager - INFO - 任务 task_20250509_181930_326a5395 已标记为完成，结果文件: final_task_20250509_181930_326a5395.xlsx
+2025-05-09 18:21:43,652 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:22:43,661 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:23:43,674 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:24:43,685 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:25:43,694 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:26:43,706 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:27:43,724 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:28:43,738 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:29:43,748 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:30:43,759 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:31:43,764 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:32:43,767 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:33:43,778 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:34:43,789 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:35:43,794 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:36:43,800 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:37:43,809 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:38:43,821 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:39:43,830 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:40:43,843 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:41:43,856 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:42:43,868 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:43:43,881 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:44:43,858 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:45:43,861 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:46:43,873 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:47:43,883 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:48:43,893 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:49:43,905 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:50:43,911 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:51:43,920 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:52:43,928 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:53:43,939 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:54:43,951 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:55:43,960 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:56:43,974 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:57:43,980 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:58:43,992 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 18:59:43,997 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:00:44,006 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:01:44,011 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:02:44,019 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:03:44,027 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:04:44,033 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:05:44,036 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:06:44,044 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:07:44,048 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:08:44,055 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:09:44,064 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:10:44,072 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:11:44,078 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:12:44,086 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:13:44,093 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:14:44,101 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:15:44,109 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:16:44,116 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:17:44,120 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:18:44,123 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:19:44,129 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:20:44,134 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:21:44,142 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:22:44,148 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:23:44,151 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:24:44,153 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:25:44,159 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:26:44,168 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:27:44,175 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:28:44,181 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:29:44,185 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:30:44,192 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:31:44,195 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:32:44,201 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:33:44,207 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:34:44,224 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:35:44,232 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:36:44,239 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:37:44,280 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:38:44,287 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:39:44,294 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:40:44,353 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:41:44,361 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:41:45,684 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:41:46,669 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 19:41:48,172 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:41:48,711 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 19:42:02,255 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:42:02,907 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 19:42:41,282 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:42:41,892 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 19:42:47,238 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:42:55,236 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 19:42:55,237 - task_manager - INFO - 已添加任务 task_20250509_194255_6213f893 的历史记录，类型为 complete_processing
+2025-05-09 19:42:55,237 - task_manager - INFO - 已创建新任务 task_20250509_194255_6213f893，类型为 complete_processing，关联 1 个文件
+2025-05-09 19:42:55,242 - task_manager - INFO - 任务 task_20250509_194255_6213f893 进度: 处理文件 1/1: 250428-活动-2025年4月CDIE名单2.xlsx - 0% (0/1 文件)
+2025-05-09 19:42:55,360 - task_manager - INFO - 任务 task_20250509_194255_6213f893 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 19:42:58,943 - task_manager - INFO - 任务 task_20250509_194255_6213f893 进度: 已提交百炼Batch任务(ID: batch_75fbecbf-f043-419a-b2a4-df03973b8030)，等待处理... - 80% (1/1 文件)
+2025-05-09 19:42:58,944 - task_manager - INFO - 任务 task_20250509_194255_6213f893 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 19:43:47,244 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:43:49,258 - task_manager - INFO - 任务 task_20250509_194255_6213f893 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 19:43:49,259 - task_manager - INFO - 任务 task_20250509_194255_6213f893 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 19:44:13,606 - task_manager - INFO - 已将任务 task_20250509_194255_6213f893 设置为最近完成的预处理任务
+2025-05-09 19:44:13,607 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 19:44:13,607 - task_manager - INFO - 已更新任务 task_20250509_194255_6213f893 的历史记录
+2025-05-09 19:44:13,607 - task_manager - INFO - 任务 task_20250509_194255_6213f893 已标记为完成，结果文件: final_task_20250509_194255_6213f893.xlsx
+2025-05-09 19:45:13,658 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:46:13,691 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:47:13,700 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:48:13,706 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:49:13,711 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:50:13,716 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:51:13,727 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:52:13,734 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:53:13,736 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:54:13,743 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:55:13,747 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:56:13,750 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:57:00,159 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:57:00,882 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 19:57:31,477 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:57:32,109 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 19:57:36,055 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:57:40,052 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 19:57:40,052 - task_manager - INFO - 已添加任务 task_20250509_195740_67907851 的历史记录，类型为 complete_processing
+2025-05-09 19:57:40,052 - task_manager - INFO - 已创建新任务 task_20250509_195740_67907851，类型为 complete_processing，关联 1 个文件
+2025-05-09 19:57:40,057 - task_manager - INFO - 任务 task_20250509_195740_67907851 进度: 处理文件 1/1: 250428-活动-2025年4月CDIE名单2.xlsx - 0% (0/1 文件)
+2025-05-09 19:57:40,185 - task_manager - INFO - 任务 task_20250509_195740_67907851 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 19:57:43,475 - task_manager - INFO - 任务 task_20250509_195740_67907851 进度: 已提交百炼Batch任务(ID: batch_03fc3fc3-32c9-480a-b94d-699dd8cd44fd)，等待处理... - 80% (1/1 文件)
+2025-05-09 19:57:43,476 - task_manager - INFO - 任务 task_20250509_195740_67907851 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 19:58:36,061 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 19:58:38,144 - task_manager - INFO - 任务 task_20250509_195740_67907851 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 19:58:38,144 - task_manager - INFO - 任务 task_20250509_195740_67907851 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 19:59:02,764 - task_manager - INFO - 已将任务 task_20250509_195740_67907851 设置为最近完成的预处理任务
+2025-05-09 19:59:02,764 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 19:59:02,764 - task_manager - INFO - 已更新任务 task_20250509_195740_67907851 的历史记录
+2025-05-09 19:59:02,764 - task_manager - INFO - 任务 task_20250509_195740_67907851 已标记为完成，结果文件: final_task_20250509_195740_67907851.xlsx
+2025-05-09 20:00:02,771 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:01:02,780 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:02:02,787 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:03:02,796 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:04:02,802 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:05:02,810 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:06:02,816 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:07:02,821 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:07:10,373 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:07:11,105 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 20:07:12,527 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:07:12,981 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 20:07:41,207 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:07:42,351 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 20:07:47,186 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:07:50,676 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 20:07:50,677 - task_manager - INFO - 已添加任务 task_20250509_200750_b61c5d81 的历史记录，类型为 complete_processing
+2025-05-09 20:07:50,677 - task_manager - INFO - 已创建新任务 task_20250509_200750_b61c5d81，类型为 complete_processing，关联 1 个文件
+2025-05-09 20:07:50,681 - task_manager - INFO - 任务 task_20250509_200750_b61c5d81 进度: 处理文件 1/1: 250428-活动-2025年4月CDIE名单2.xlsx - 0% (0/1 文件)
+2025-05-09 20:07:50,796 - task_manager - INFO - 任务 task_20250509_200750_b61c5d81 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 20:07:54,341 - task_manager - INFO - 任务 task_20250509_200750_b61c5d81 进度: 已提交百炼Batch任务(ID: batch_bb5c0fd0-5c49-49e5-9a5b-8a78295d09c4)，等待处理... - 80% (1/1 文件)
+2025-05-09 20:07:54,341 - task_manager - INFO - 任务 task_20250509_200750_b61c5d81 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 20:08:47,193 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:08:49,342 - task_manager - INFO - 任务 task_20250509_200750_b61c5d81 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 20:08:49,343 - task_manager - INFO - 任务 task_20250509_200750_b61c5d81 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 20:09:01,496 - task_manager - INFO - 已将任务 task_20250509_200750_b61c5d81 设置为最近完成的预处理任务
+2025-05-09 20:09:01,497 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 20:09:01,497 - task_manager - INFO - 已更新任务 task_20250509_200750_b61c5d81 的历史记录
+2025-05-09 20:09:01,497 - task_manager - INFO - 任务 task_20250509_200750_b61c5d81 已标记为完成，结果文件: final_task_20250509_200750_b61c5d81.xlsx
+2025-05-09 20:10:01,505 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:11:01,513 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:12:01,520 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:13:01,527 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:14:01,533 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:15:01,496 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:16:01,498 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:17:01,504 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:18:01,512 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:19:01,518 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:20:01,524 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:21:01,531 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:22:01,538 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:23:01,543 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:24:01,548 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:25:01,551 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:26:01,557 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:27:01,563 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:28:01,567 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:29:01,570 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:30:01,573 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:31:01,579 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:32:01,585 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:33:01,590 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:34:01,595 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:35:01,601 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:36:01,607 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:37:01,622 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:38:01,650 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:38:13,261 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:38:13,966 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 20:39:24,392 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:39:25,007 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-09 20:41:00,826 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:42:00,831 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:43:00,839 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:43:19,870 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 20:43:19,870 - task_manager - INFO - 已添加任务 task_20250509_204319_92349e23 的历史记录，类型为 complete_processing
+2025-05-09 20:43:19,870 - task_manager - INFO - 已创建新任务 task_20250509_204319_92349e23，类型为 complete_processing，关联 1 个文件
+2025-05-09 20:43:19,872 - task_manager - INFO - 任务 task_20250509_204319_92349e23 进度: 处理文件 1/1: 250428-活动-2025年4月CDIE名单2.xlsx - 0% (0/1 文件)
+2025-05-09 20:43:19,987 - task_manager - INFO - 任务 task_20250509_204319_92349e23 进度: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-09 20:43:23,627 - task_manager - INFO - 任务 task_20250509_204319_92349e23 进度: 已提交百炼Batch任务(ID: batch_a9893027-f9f9-4865-9f98-a6c351b3af1c)，等待处理... - 80% (1/1 文件)
+2025-05-09 20:43:23,627 - task_manager - INFO - 任务 task_20250509_204319_92349e23 进度: 百炼批处理中 - 70% (1/1 文件)
+2025-05-09 20:44:00,841 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:44:03,000 - task_manager - INFO - 任务 task_20250509_204319_92349e23 进度: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-09 20:45:03,006 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-09 20:45:05,101 - task_manager - INFO - 任务 task_20250509_204319_92349e23 进度: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-09 20:45:05,102 - task_manager - INFO - 任务 task_20250509_204319_92349e23 进度: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-09 20:45:19,181 - task_manager - INFO - 已将任务 task_20250509_204319_92349e23 设置为最近完成的预处理任务
+2025-05-09 20:45:19,182 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-09 20:45:19,182 - task_manager - INFO - 已更新任务 task_20250509_204319_92349e23 的历史记录
+2025-05-09 20:45:19,182 - task_manager - INFO - 任务 task_20250509_204319_92349e23 已标记为完成，结果文件: final_task_20250509_204319_92349e23.xlsx
+2025-05-09 20:46:19,187 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录

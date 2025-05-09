@@ -4,7 +4,6 @@ import pandas as pd
 import time
 import numpy as np
 import os
-import shutil
 import json
 import traceback  # 用于打印详细的错误堆栈信息
 import math  # 用于计算批处理数量
@@ -14,7 +13,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List, Optional, Tuple, Union
 from pathlib import Path
 import openai  # 新增: 阿里云百炼 OpenAI 兼容接口
-import datetime  # Added import
 
 # === Logger Setup ===
 # Create a logger instance
@@ -41,7 +39,7 @@ if not logger.handlers:  # Avoid adding multiple handlers if reloaded
 # DASHSCOPE_API_KEY = ""                  # 从 app.py 获取
 # BAILIAN_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1" # 从 app.py 获取
 # BAILIAN_BATCH_ENDPOINT = "/v1/chat/completions" # 从 app.py 获取
-# BAILIAN_MODEL_NAME = "qwen-turbo-latest"        # 从 app.py 获取
+# BAILIAN_MODEL_NAME = "qwen-plus"        # 从 app.py 获取
 # BAILIAN_COMPLETION_WINDOW = "24h"       # 从 app.py 获取
 
 
@@ -51,7 +49,7 @@ def read_input_file(
     """
     Reads an Excel or CSV file into a Pandas DataFrame.
     # Removed validation of required columns.
-    Adds a unique 行ID to each row if needed.
+    Adds a unique local_row_id to each row.
     *** Removed adding '来源' column here. ***
     """
     logger.info(f"Reading file: {file_path}")
@@ -93,24 +91,21 @@ def read_input_file(
         #         raise ValueError(f"Missing required columns in {file_path}: {', '.join(missing_cols)}")
         #     logger.info(f"All required columns {required_columns} found in {file_path}.")
 
-        # Add 行ID instead of local_row_id
-        if "行ID" not in df.columns:
-            df["行ID"] = [str(uuid.uuid4()) for _ in range(len(df))]
-            logger.info(f"Added '行ID' column to DataFrame from {file_path}.")
+        # Add local_row_id
+        if "local_row_id" not in df.columns:
+            df["local_row_id"] = [str(uuid.uuid4()) for _ in range(len(df))]
+            logger.info(f"Added 'local_row_id' column to DataFrame from {file_path}.")
         else:
             # Handle case where column might exist but contain NaNs or duplicates
-            existing_ids = df["行ID"].dropna().astype(str)
+            existing_ids = df["local_row_id"].dropna().astype(str)
             if len(existing_ids) != len(df) or existing_ids.duplicated().any():
                 logger.warning(
-                    f"'行ID' column exists in {file_path} but contains nulls or duplicates. Regenerating IDs."
+                    f"'local_row_id' column exists in {file_path} but contains nulls or duplicates. Regenerating IDs."
                 )
-                df["行ID"] = [str(uuid.uuid4()) for _ in range(len(df))]
+                df["local_row_id"] = [str(uuid.uuid4()) for _ in range(len(df))]
 
-        # Add source information ('来源' column)
-        df["来源"] = os.path.basename(file_path)
-        logger.info(
-            f"Added source filename as '来源' column: {os.path.basename(file_path)}"
-        )
+        # *** REMOVED adding '来源' column here ***
+        # df["来源"] = os.path.basename(file_path)
 
         # Fill NaN values with empty strings BEFORE processing
         df = df.fillna("")  # Important: Prevents issues with NaN in string operations
@@ -153,7 +148,7 @@ def create_bailian_batch_input(df: pd.DataFrame, task_id: str, config: dict) -> 
         "TARGET_COLUMNS", ["公司名称", "联系人", "职位", "电话", "来源"]
     )
     source_column_name = "来源"
-    model_name = config.get("BAILIAN_MODEL_NAME", "qwen-turbo-latest")
+    model_name = config.get("BAILIAN_MODEL_NAME", "qwen-plus")
     batch_endpoint = config.get("BAILIAN_BATCH_ENDPOINT", "/v1/chat/completions")
     max_tokens = config.get("MAX_COMPLETION_TOKENS", 8192)
     # 获取批处理大小
@@ -200,9 +195,6 @@ def create_bailian_batch_input(df: pd.DataFrame, task_id: str, config: dict) -> 
         f"   >> 将 {total_rows} 行数据分为 {batch_count} 个批次，每批最多 {batch_size} 行"
     )
 
-    # 创建批次ID到行ID的映射，用于后续恢复
-    batch_mapping = {}
-
     # 将DataFrame的批次转换为请求，写入JSONL文件
     with open(jsonl_path, "w", encoding="utf-8") as f:
         for batch_idx in range(batch_count):
@@ -210,42 +202,25 @@ def create_bailian_batch_input(df: pd.DataFrame, task_id: str, config: dict) -> 
             end_idx = min(start_idx + batch_size, total_rows)
             batch_df = df.iloc[start_idx:end_idx]
 
-            # 获取批次中所有行的行ID，用作custom_id
-            batch_row_ids = batch_df["行ID"].tolist()
+            # 获取批次中所有行的local_row_id，用作custom_id
+            batch_row_ids = batch_df["local_row_id"].tolist()
             batch_custom_id = f"batch_{batch_idx}_{len(batch_row_ids)}"
-
-            # 保存批次ID到行ID的映射
-            batch_mapping[batch_custom_id] = batch_row_ids
 
             # 将批次数据转换为用户可理解的文本格式
             batch_content = []
             for _, row in batch_df.iterrows():
                 row_str = "\n".join(
-                    [f"{k}: {v}" for k, v in row.items() if k != "行ID"]
+                    [f"{k}: {v}" for k, v in row.items() if k != "local_row_id"]
                 )
-                # 添加行ID作为行标识
-                row_str += f"\n行ID: {row['行ID']}"
+                # 添加local_row_id作为行标识
+                row_str += f"\n行ID: {row['local_row_id']}"
                 batch_content.append(row_str)
 
             # 合并所有行内容
             all_rows_content = "\n\n--- 行分隔符 ---\n\n".join(batch_content)
 
-            # 获取源文件名
-            if "source_file" in batch_df.columns:
-                source_filename = batch_df["source_file"].iloc[0]
-            else:
-                # 尝试从batch_row_ids获取原始文件名
-                source_filename = local_id_to_source_map.get(
-                    batch_row_ids[0], "未知来源"
-                )
-
-            # 记录使用的源文件名
-            print(f"   >>> 批次 {batch_idx+1} 使用的源文件名: {source_filename}")
-
             # 用户提示词(user prompt)
             user_content = f"""
-这是本次处理的数据来源: {source_filename}
-
 这是本次需要处理的源数据表格的列标题:
 {source_headers_json}
 
@@ -254,7 +229,6 @@ def create_bailian_batch_input(df: pd.DataFrame, task_id: str, config: dict) -> 
 
 请根据你在System指令中被赋予的角色和规则处理这些数据，并返回标准化的JSON数组。
 每个处理结果必须包含原始行的"行ID"值，以便我们能够追踪结果与原始数据的对应关系。
-同时，在每个结果中添加"来源"字段，值必须完全设为"{source_filename}"，不要对文件名做任何修改。
 """
 
             # 构建消息数组
@@ -283,12 +257,6 @@ def create_bailian_batch_input(df: pd.DataFrame, task_id: str, config: dict) -> 
             # 写入JSONL文件
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-    # 保存批次映射到单独的文件，作为备份
-    mapping_path = os.path.join(task_dir, "batch_mapping.json")
-    with open(mapping_path, "w", encoding="utf-8") as f:
-        json.dump(batch_mapping, f, ensure_ascii=False, indent=2)
-    print(f"   ✓ 已保存批次映射备份到: {mapping_path}")
-
     print(
         f"   ✅ 已成功创建百炼Batch API输入文件: {jsonl_path} (包含 {batch_count} 个批次请求)"
     )
@@ -301,7 +269,7 @@ def submit_bailian_batch_job(jsonl_path: str, task_id: str, config: dict) -> str
 
     Args:
         jsonl_path: JSONL输入文件路径。
-        task_id: 任务ID，使用时间戳格式(如task_20250506_174440)。
+        task_id: 任务ID。
         config: 包含配置信息的字典。
 
     Returns:
@@ -309,92 +277,19 @@ def submit_bailian_batch_job(jsonl_path: str, task_id: str, config: dict) -> str
     """
     print(f"   >> 开始提交百炼Batch任务...")
 
-    # 从嵌套结构中获取llm_config
-    llm_config = config.get("llm_config", {})
-
     # 获取配置
-    api_key = llm_config.get("DASHSCOPE_API_KEY", "")
-    base_url = llm_config.get(
+    api_key = config.get("DASHSCOPE_API_KEY", "")
+    base_url = config.get(
         "BAILIAN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"
     )
-    batch_endpoint = llm_config.get("BAILIAN_BATCH_ENDPOINT", "/v1/chat/completions")
-    completion_window = llm_config.get("BAILIAN_COMPLETION_WINDOW", "24h")
+    batch_endpoint = config.get("BAILIAN_BATCH_ENDPOINT", "/v1/chat/completions")
+    completion_window = config.get("BAILIAN_COMPLETION_WINDOW", "24h")
 
     if not api_key or not api_key.startswith("sk-"):
         print("   ❌ 错误: 百炼API Key未提供或格式无效。")
         raise ValueError("百炼API Key无效")
 
     try:
-        # 确保任务目录存在
-        task_dir = os.path.join("uploads", task_id)
-        os.makedirs(task_dir, exist_ok=True)
-
-        # 确保全局映射目录存在
-        global_mapping_dir = os.path.join("uploads", "global_mappings")
-        os.makedirs(global_mapping_dir, exist_ok=True)
-
-        # 保存JSONL文件本地副本用于后续处理
-        local_copy_path = os.path.join(task_dir, "batch_input.jsonl")
-        # 检查源文件路径和目标路径是否相同
-        if jsonl_path != local_copy_path:
-            try:
-                shutil.copy(jsonl_path, local_copy_path)
-                print(f"   ✓ 已保存JSONL文件本地副本: {local_copy_path}")
-            except Exception as e:
-                print(f"   ⚠️ 复制JSONL文件失败: {e}，将直接使用原始文件")
-                local_copy_path = jsonl_path
-        else:
-            print(f"   ✓ JSONL文件已在任务目录中: {local_copy_path}")
-
-        # 创建和存储批次映射
-        batch_mapping = {}
-        row_to_source_mapping = {}
-
-        # 从输入文件提取批次映射和行ID到源文件映射
-        try:
-            with open(local_copy_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    try:
-                        record = json.loads(line)
-                        custom_id = record.get("custom_id")
-                        row_ids = record.get("row_ids", [])
-                        source_file = record.get("source_file", "未知来源")
-
-                        if custom_id and row_ids:
-                            batch_mapping[custom_id] = row_ids
-
-                        # 记录每个行ID的来源
-                        for row_id in row_ids:
-                            row_to_source_mapping[row_id] = source_file
-                    except Exception as e:
-                        print(f"   ⚠️ 解析JSONL行时出错: {e}")
-                        continue
-
-            # 创建完整的映射数据结构
-            mapping_data = {
-                "batch_mapping": batch_mapping,
-                "local_id_to_source": row_to_source_mapping,
-                "task_id": task_id,
-                "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            }
-
-            # 保存映射到任务目录
-            mapping_path = os.path.join(task_dir, "batch_mapping.json")
-            with open(mapping_path, "w", encoding="utf-8") as f:
-                json.dump(mapping_data, f, ensure_ascii=False, indent=2)
-            print(f"   ✓ 已创建批次映射文件: {mapping_path}")
-
-            # 同时在全局映射目录创建副本，以便于跨任务访问
-            global_copy_path = os.path.join(
-                global_mapping_dir, f"batch_mapping_{task_id}.json"
-            )
-            with open(global_copy_path, "w", encoding="utf-8") as f:
-                json.dump(mapping_data, f, ensure_ascii=False, indent=2)
-            print(f"   ✓ 已创建批次映射全局副本: {global_copy_path}")
-
-        except Exception as e:
-            print(f"   ⚠️ 创建批次映射文件失败: {e}")
-
         # 初始化OpenAI客户端
         client = openai.OpenAI(api_key=api_key, base_url=base_url)
 
@@ -414,36 +309,9 @@ def submit_bailian_batch_job(jsonl_path: str, task_id: str, config: dict) -> str
         print(f"   ✅ Batch任务创建成功! 任务ID: {batch.id}")
 
         # 将batch_id保存到任务目录(方便后续查询)
+        task_dir = os.path.join("uploads", task_id)
         with open(os.path.join(task_dir, "batch_id.txt"), "w") as f:
             f.write(batch.id)
-
-        # 创建批次ID到任务ID的全局映射文件
-        global_batch_mapping_file = os.path.join("uploads", "global_batch_mapping.json")
-        global_batch_mapping = {}
-
-        # 如果文件存在，先读取现有映射
-        if os.path.exists(global_batch_mapping_file):
-            try:
-                with open(global_batch_mapping_file, "r", encoding="utf-8") as f:
-                    global_batch_mapping = json.load(f)
-            except Exception as e:
-                print(f"   ⚠️ 读取全局批次映射失败: {e}")
-
-        # 更新映射：记录哪个批次ID对应哪个任务ID以及映射文件路径
-        global_batch_mapping[batch.id] = {
-            "task_id": task_id,
-            "mapping_file": mapping_path,
-            "global_mapping_file": global_copy_path,  # 添加全局映射文件路径
-            "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        }
-
-        # 保存更新后的全局映射
-        try:
-            with open(global_batch_mapping_file, "w", encoding="utf-8") as f:
-                json.dump(global_batch_mapping, f, ensure_ascii=False, indent=2)
-            print(f"   ✓ 已更新全局批次映射: {global_batch_mapping_file}")
-        except Exception as e:
-            print(f"   ⚠️ 保存全局批次映射失败: {e}")
 
         return batch.id
 
@@ -466,12 +334,9 @@ def check_bailian_job_status(batch_id: str, config: dict) -> dict:
     """
     print(f"   >> 检查Batch任务状态 (ID: {batch_id})...")
 
-    # 从嵌套结构中获取llm_config
-    llm_config = config.get("llm_config", {})
-
     # 获取配置
-    api_key = llm_config.get("DASHSCOPE_API_KEY", "")
-    base_url = llm_config.get(
+    api_key = config.get("DASHSCOPE_API_KEY", "")
+    base_url = config.get(
         "BAILIAN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"
     )
 
@@ -502,86 +367,42 @@ def download_and_process_bailian_results(
 ) -> pd.DataFrame:
     """
     下载并处理阿里云百炼Batch任务结果。
-    支持多文件批次处理，结果按原文件分组并保留来源信息。
 
     Args:
         batch_id: Batch任务ID。
-        original_df: 原始数据DataFrame，此参数将被忽略，不再需要进行合并
-        task_id: 任务ID，使用时间戳格式(如task_20250506_174440)。
+        original_df: 原始数据DataFrame，包含local_row_id。
+        task_id: 任务ID。
         config: 包含配置信息的字典。
 
     Returns:
-        pd.DataFrame: 处理后的DataFrame，仅包含百炼API返回结果。
+        pd.DataFrame: 处理后的DataFrame。
     """
+    print(f"   >> 开始下载并处理百炼Batch任务结果...")
+
+    # 获取配置
+    api_key = config.get("DASHSCOPE_API_KEY", "")
+    base_url = config.get(
+        "BAILIAN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    )
+    target_columns_config = config.get(
+        "TARGET_COLUMNS", ["公司名称", "联系人", "职位", "电话", "来源"]
+    )
+    source_column_name = "来源"
+
+    # 准备给LLM的目标列(不含来源)
+    llm_target_columns = [
+        col for col in target_columns_config if col != source_column_name
+    ]
+
+    # 确保任务目录存在
+    task_dir = os.path.join("uploads", task_id)
+    os.makedirs(task_dir, exist_ok=True)
+
     try:
-        print(f"   >> 开始下载并处理百炼Batch任务结果...（仅处理API返回）")
-
-        # 从嵌套结构中获取llm_config
-        llm_config = config.get("llm_config", {})
-
-        # 获取配置
-        api_key = llm_config.get("DASHSCOPE_API_KEY", "")
-        base_url = llm_config.get(
-            "BAILIAN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"
-        )
-        target_columns_config = llm_config.get("TARGET_COLUMNS", [])
-
-        print(f"   >> 使用API KEY: {api_key[:5]}...，BASE URL: {base_url}")
-
-        # 验证API Key格式
-        if not api_key or not api_key.startswith("sk-"):
-            raise ValueError("缺少有效的阿里云百炼API密钥")
-
-        # 创建任务目录
-        task_dir = os.path.join("uploads", task_id)
-        os.makedirs(task_dir, exist_ok=True)
-
-        # 初始化本地行ID到批次行ID的映射
-        batch_mappings = {}
-        mapping_found = False
-
-        # 尝试多个可能的映射文件位置
-        mapping_files = [
-            os.path.join("uploads", "global_batch_mapping.json"),
-            os.path.join(task_dir, "batch_mapping.json"),
-            os.path.join(task_dir, "file_0", "batch_mapping.json"),
-        ]
-
-        for mapping_file in mapping_files:
-            if os.path.exists(mapping_file):
-                try:
-                    with open(mapping_file, "r", encoding="utf-8") as f:
-                        batch_mappings = json.load(f)
-                    print(f"   ✓ 从 {mapping_file} 加载了批次映射")
-                    mapping_found = True
-                    break
-                except Exception as e:
-                    print(f"   ⚠️ 读取批次映射文件 {mapping_file} 时出错: {e}")
-
-        if not mapping_found:
-            print(f"   ⚠️ 无法找到有效的批次映射，使用空映射继续...")
-
-        # 获取当前批次的行ID列表
-        batch_row_ids = []
-        current_batch_mapping = batch_mappings.get(batch_id, {})
-
-        if not current_batch_mapping:
-            for batch_info in batch_mappings.values():
-                if batch_info.get("batch_id") == batch_id:
-                    current_batch_mapping = batch_info
-                    print(f"   ✓ 找到批次 {batch_id} 的映射")
-                    break
-
-        if current_batch_mapping:
-            batch_row_ids = current_batch_mapping.get("row_ids", [])
-            print(f"   ✓ 找到 {len(batch_row_ids)} 个行ID与批次 {batch_id} 关联")
-        else:
-            print(f"   ⚠️ 警告: 找不到批次 {batch_id} 的行ID映射")
-
         # 初始化OpenAI客户端
         client = openai.OpenAI(api_key=api_key, base_url=base_url)
 
-        # 检查任务状态并获取文件ID
+        # 最终检查任务状态并获取文件ID
         batch = client.batches.retrieve(batch_id=batch_id)
         if batch.status != "completed":
             raise ValueError(f"Batch任务状态为 {batch.status}，而非 completed")
@@ -605,144 +426,298 @@ def download_and_process_bailian_results(
             error_content.write_to_file(error_path)
             print(f"   ✓ 错误文件已保存到: {error_path}")
 
-        # 解析结果文件
+        # 处理结果文件
         print(f"   >> 开始解析结果文件...")
-        llm_results = []
+        results = []
+        # 读取提交的批次请求中保存的row_ids映射
+        batch_row_ids_map = {}
 
-        with open(output_path, "r", encoding="utf-8") as f:
-            line_count = 0
-            for line in f:
-                line_count += 1
-                try:
-                    result_item = json.loads(line)
-                    llm_results.append(result_item)
-                except json.JSONDecodeError as e:
-                    print(f"   ⚠️ 第 {line_count} 行解析错误: {e}")
-
-        # 保存解析后的结果
-        result_json_path = os.path.join(task_dir, "batch_result_parsed.json")
-        with open(result_json_path, "w", encoding="utf-8") as f:
-            json.dump(llm_results, f, ensure_ascii=False, indent=2)
-
-        print(f"   ✓ 成功解析 {len(llm_results)} 个结果项")
-
-        # 处理解析后的结果 - 修复这部分逻辑以正确提取content中的业务数据
-        results_df = pd.DataFrame()
-        parsed_results = []
-
-        # 处理返回的每个结果项
-        matched_count = 0
-        for i, result_item in enumerate(llm_results):
-            # 打印第一个结果项示例
-            if i == 0:
-                print(
-                    f"   >> 结果项示例: {json.dumps(result_item, ensure_ascii=False)[:200]}..."
-                )
-
-            try:
-                # 从嵌套的JSON结构中提取content字段 - 这是百炼API的关键部分
-                content = (
-                    result_item.get("response", {})
-                    .get("body", {})
-                    .get("choices", [{}])[0]
-                    .get("message", {})
-                    .get("content", "")
-                )
-
-                # 记录content内容示例
-                if i == 0 and content:
-                    print(f"   >> Content内容示例: {content[:200]}...")
-
-                # content本身是JSON字符串，需要再次解析
-                if content:
+        # 从输入文件中恢复批次到行ID的映射
+        input_path = os.path.join(task_dir, "batch_input.jsonl")
+        if os.path.exists(input_path):
+            with open(input_path, "r", encoding="utf-8") as f:
+                for line in f:
                     try:
-                        # 尝试解析content中的JSON
-                        content_data = json.loads(content)
-
-                        # 记录解析后的数据结构
-                        if i == 0:
-                            print(
-                                f"   >> 解析后的数据结构: {json.dumps(content_data, ensure_ascii=False)[:200]}..."
-                            )
-
-                        # content通常是一个列表，包含业务数据对象
-                        if isinstance(content_data, list):
-                            for item in content_data:
-                                if not isinstance(item, dict):
-                                    print(
-                                        f"   >> 警告: content_data列表项不是字典，跳过此项"
-                                    )
-                                    continue
-
-                                # 为每个项目添加必要的字段，但不再添加local_row_id
-                                # item["local_row_id"] = (
-                                #     batch_row_ids[i] if i < len(batch_row_ids) else ""
-                                # )
-
-                                # 保留原始来源字段值，这是关键 - 确保不修改文件名
-                                if "来源" in item:
-                                    source_value = item["来源"]
-                                    if i < 3:  # 只记录前几个项的日志，避免日志过多
-                                        print(f"   >> 保留原始来源值: '{source_value}'")
-                                else:
-                                    print(
-                                        f"   >> 警告: 结果项中缺少'来源'字段，添加空值"
-                                    )
-                                    item["来源"] = ""
-
-                                # 确保行ID存在，这是非常重要的唯一标识符
-                                if "行ID" not in item or not item["行ID"]:
-                                    print(
-                                        f"   >> 警告: 结果项中缺少'行ID'字段，生成UUID"
-                                    )
-                                    item["行ID"] = str(uuid.uuid4())
-
-                                # 添加飞书所需系统字段，但不再生成record_table字段
-                                item["record_id"] = ""  # 留空，表示新记录
-                                # 删除下面这行，不再添加record_table字段
-                                # item["record_table"] = ""  # 留空，表示不和任何表关联
-
-                                # 记录行ID
-                                if i < 3:  # 只记录前几个项的日志
-                                    print(f"   >> 使用行ID: '{item['行ID']}'")
-
-                                # 收集解析结果
-                                parsed_results.append(item)
-                                matched_count += 1
-                    except json.JSONDecodeError as e:
-                        print(f"   ⚠️ 解析content字段JSON时出错: {e}")
-                        print(f"   >> content内容: {content[:100]}...")
+                        record = json.loads(line)
+                        custom_id = record.get("custom_id")
+                        row_ids = record.get("row_ids", [])
+                        if custom_id and row_ids:
+                            batch_row_ids_map[custom_id] = row_ids
+                    except Exception as e:
+                        print(f"   ⚠️ 读取输入文件时出错: {e}")
                         continue
-            except Exception as e:
-                print(f"   ⚠️ 解析结果项 {i} 时出错: {e}")
-                traceback.print_exc()
-                continue
 
-        # 将所有结果项转换为DataFrame
-        if parsed_results:
-            results_df = pd.DataFrame(parsed_results)
-            print(f"   ✓ 成功匹配 {matched_count}/{len(llm_results)} 个结果项")
+        # 打印找到的批次映射关系
+        print(f"   ✓ 找到 {len(batch_row_ids_map)} 个批次的行ID映射")
+        for custom_id, row_ids in batch_row_ids_map.items():
+            print(f"   >> 批次 {custom_id} 包含 {len(row_ids)} 个行ID")
 
-            # 记录所有来源值的统计信息
-            if "来源" in results_df.columns:
-                source_values = results_df["来源"].value_counts().to_dict()
-                print(f"   >> 来源字段统计: {source_values}")
-            else:
-                print("   >> 警告: 结果DataFrame中缺少'来源'列")
+        # 解析结果JSONL文件
+        with open(output_path, "r", encoding="utf-8") as f:
+            for line_number, line in enumerate(f, start=1):
+                try:
+                    # 解析JSONL行
+                    record = json.loads(line)
+                    custom_id = record.get("custom_id")
+                    print(f"   >> 处理批次 {custom_id} 的结果...")
 
-            # 保存处理结果
-            results_csv_path = os.path.join(task_dir, "processed_results.csv")
-            results_df.to_csv(results_csv_path, index=False)
-            print(f"   ✓ 已保存处理结果到: {results_csv_path}")
-            print(f"   >> 处理完成，共获取 {len(results_df)} 条结果。")
+                    # 获取对应批次的row_ids
+                    batch_row_ids = batch_row_ids_map.get(custom_id, [])
+                    if not batch_row_ids:
+                        print(f"   ⚠️ 警告: 找不到批次 {custom_id} 的行ID映射")
+                        continue
+
+                    # 提取LLM返回的内容
+                    content = None
+                    if "response" in record and "body" in record["response"]:
+                        content = (
+                            record["response"]["body"]["choices"][0]
+                            .get("message", {})
+                            .get("content", "")
+                        )
+                    elif "body" in record and "choices" in record["body"]:
+                        content = (
+                            record["body"]["choices"][0]
+                            .get("message", {})
+                            .get("content", "")
+                        )
+
+                    if not content:
+                        print(f"   ⚠️ 警告: 批次 {custom_id} 的结果没有content字段")
+                        continue
+
+                    # 打印原始content的前200个字符
+                    print(f"   >> 原始content内容(前200字符): {content[:200]}...")
+
+                    try:
+                        # 尝试解析JSON数组内容
+                        llm_results = json.loads(content)
+                        if not isinstance(llm_results, list):
+                            # 如果不是数组，尝试包装成数组
+                            if isinstance(llm_results, dict):
+                                llm_results = [llm_results]
+                            else:
+                                raise ValueError(
+                                    f"LLM返回的不是有效的JSON数组或对象: {content[:100]}..."
+                                )
+
+                        print(
+                            f"   ✓ 批次 {custom_id} 返回了 {len(llm_results)} 个结果项"
+                        )
+
+                        # 处理返回的每个结果项
+                        for i, result_item in enumerate(llm_results):
+                            # 打印第一个结果项示例
+                            if i == 0:
+                                print(
+                                    f"   >> 结果项示例: {json.dumps(result_item, ensure_ascii=False)[:200]}..."
+                                )
+
+                            # 填充行ID
+                            row_id = None
+
+                            # 如果结果项数量与行ID数量相等，直接按顺序分配
+                            if len(llm_results) == len(batch_row_ids):
+                                row_id = batch_row_ids[i]
+                            else:
+                                # 尝试从结果项中提取行ID
+                                if "行ID" in result_item:
+                                    row_id = result_item.get("行ID")
+                                elif "行id" in result_item:
+                                    row_id = result_item.get("行id")
+                                elif "rowid" in result_item:
+                                    row_id = result_item.get("rowid")
+                                elif "row_id" in result_item:
+                                    row_id = result_item.get("row_id")
+
+                                # 如果仍找不到行ID，且结果数小于行ID数，尝试按顺序分配
+                                if not row_id and i < len(batch_row_ids):
+                                    row_id = batch_row_ids[i]
+
+                            if not row_id:
+                                print(
+                                    f"   ⚠️ 无法确定结果项的行ID，将跳过此项: {json.dumps(result_item, ensure_ascii=False)[:100]}..."
+                                )
+                                continue
+
+                            # 确保所有目标列都存在
+                            result_row = {col: "" for col in llm_target_columns}
+                            for col in llm_target_columns:
+                                target_col_key = col
+                                # 定义可能的列名映射
+                                mappings = {
+                                    "公司名称": [
+                                        "企业名称",
+                                        "公司",
+                                        "企业",
+                                        "company",
+                                        "organization",
+                                    ],
+                                    "联系人": [
+                                        "姓名",
+                                        "人员",
+                                        "名字",
+                                        "contact",
+                                        "name",
+                                    ],
+                                    "职位": [
+                                        "职务",
+                                        "岗位",
+                                        "title",
+                                        "position",
+                                        "job",
+                                    ],
+                                    "电话": [
+                                        "手机",
+                                        "联系方式",
+                                        "mobile",
+                                        "phone",
+                                        "tel",
+                                    ],
+                                }
+
+                                # 先尝试直接匹配
+                                if col in result_item:
+                                    result_row[col] = str(result_item[col])
+                                else:
+                                    # 尝试使用映射查找
+                                    for target, alternatives in mappings.items():
+                                        if col == target:
+                                            for alt in alternatives:
+                                                if alt in result_item:
+                                                    result_row[col] = str(
+                                                        result_item[alt]
+                                                    )
+                                                    break
+
+                            # 添加local_row_id
+                            result_row["local_row_id"] = row_id
+                            results.append(result_row)
+
+                    except json.JSONDecodeError as e:
+                        print(
+                            f"   ⚠️ 无法解析批次 {custom_id} 的JSON内容: {e}\n内容示例: {content[:200]}..."
+                        )
+                        # 为批次中的每一行添加错误标记
+                        for row_id in batch_row_ids:
+                            error_row = {
+                                col: "LLM_OUTPUT_PARSE_ERROR"
+                                for col in llm_target_columns
+                            }
+                            error_row["local_row_id"] = row_id
+                            results.append(error_row)
+                except Exception as e:
+                    print(f"   ⚠️ 处理结果文件第{line_number}行时出错: {e}")
+                    print(f"   >> 错误行内容(前200字符): {line[:200]}...")
+                    print(traceback.format_exc())
+                    continue
+
+        # 处理错误文件(如果存在)
+        if error_file_id and os.path.exists(error_path):
+            print(f"   >> 开始解析错误文件...")
+            with open(error_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    try:
+                        record = json.loads(line)
+                        custom_id = record.get("custom_id")
+                        error_message = record.get("error", {}).get(
+                            "message", "Unknown error"
+                        )
+                        print(f"   ⚠️ 批次请求 {custom_id} 失败: {error_message}")
+
+                        # 获取对应批次的row_ids
+                        batch_row_ids = batch_row_ids_map.get(custom_id, [])
+
+                        # 为批次中的每一行添加错误标记
+                        for row_id in batch_row_ids:
+                            error_row = {
+                                col: "BATCH_PROCESSING_ERROR"
+                                for col in llm_target_columns
+                            }
+                            error_row["local_row_id"] = row_id
+                            results.append(error_row)
+                    except Exception as e:
+                        print(f"   ⚠️ 处理错误文件行时出错: {e}")
+                        continue
+
+        # 创建结果DataFrame
+        print(f"   >> 创建结果DataFrame...")
+        results_df = pd.DataFrame(results)
+
+        # 打印解析结果的行数和列
+        if not results_df.empty:
+            print(
+                f"   ✓ 解析得到 {len(results_df)} 行数据，列名: {list(results_df.columns)}"
+            )
         else:
-            print("   ⚠️ 警告: 未能从百炼API结果中提取有效数据")
-            results_df = pd.DataFrame()
+            print(f"   ⚠️ 警告: 处理后的结果为空DataFrame")
+            # 返回空DataFrame，但确保列名符合预期
+            empty_df = pd.DataFrame(columns=list(llm_target_columns) + ["local_row_id"])
+            # 如果没有任何结果，返回空DataFrame
+            return empty_df
+
+        # 有些行可能在LLM处理中被拆分成多行(手机号拆分)，需要标记这些情况
+        # 获取所有具有重复local_row_id的行
+        dup_local_ids = results_df["local_row_id"].duplicated(keep=False)
+        if dup_local_ids.any():
+            print(
+                f"   ℹ️ 发现 {dup_local_ids.sum()} 行有重复的local_row_id (可能是手机号拆分)"
+            )
+
+        # 检查是否有行ID丢失
+        original_ids = set(original_df["local_row_id"].astype(str))
+        result_ids = set(results_df["local_row_id"].astype(str))
+        missing_ids = original_ids - result_ids
+        if missing_ids:
+            print(f"   ⚠️ 有 {len(missing_ids)} 行数据在处理过程中丢失")
+            # 可以选择为丢失的行添加错误标记
+            for missing_id in missing_ids:
+                error_row = {
+                    col: "ROW_MISSING_IN_RESULTS" for col in llm_target_columns
+                }
+                error_row["local_row_id"] = missing_id
+                # 添加到结果DataFrame
+                results_df = pd.concat(
+                    [results_df, pd.DataFrame([error_row])], ignore_index=True
+                )
+
+        # 为results_df添加来源列 - 从原始DataFrame中获取
+        print(f"   >> 添加来源信息...")
+        # 创建local_row_id到来源的映射
+        source_map = {}
+        for _, row in original_df.iterrows():
+            source_map[str(row["local_row_id"])] = row.get("来源", "未知来源")
+
+        # 添加来源列
+        results_df[source_column_name] = (
+            results_df["local_row_id"].astype(str).map(source_map)
+        )
+        # 对于映射失败的行(来源为NaN)，填充默认值
+        results_df[source_column_name] = results_df[source_column_name].fillna(
+            "未知来源"
+        )
+
+        # 重新排序列，确保标准列序
+        standard_cols = list(llm_target_columns) + [source_column_name]
+        other_cols = [
+            col
+            for col in results_df.columns
+            if col not in standard_cols and col != "local_row_id"
+        ]
+        final_cols = standard_cols + other_cols + ["local_row_id"]
+        results_df = results_df.reindex(
+            columns=[col for col in final_cols if col in results_df.columns]
+        )
+
+        # 保存处理后的数据
+        results_path = os.path.join(task_dir, "processed_results.csv")
+        results_df.to_csv(results_path, index=False)
+        print(f"   ✅ 处理后的结果已保存到: {results_path}")
 
         return results_df
 
     except Exception as e:
-        print(f"   ❌ 下载并处理百炼Batch任务结果失败: {e}")
+        print(f"   ❌ 处理百炼Batch结果时发生错误: {e}")
         print(traceback.format_exc())
         raise
 
@@ -800,7 +775,6 @@ def extract_standardize_batch_with_llm(
 {target_schema_json}
 ```
 **当源数据中电话/手机号列包含多个号码时（可能用分号、逗号、空格等分隔），你必须将该行拆分为多行，每行对应一个手机号，其他信息保持一致。**
-**当手机号为这个格式：133-0437-0109，请转化为正确格式：13304370109。**
 **手机号分隔符识别规则：**
 - 支持的分隔符包括：中英文分号（;；）、中英文逗号（,，）、空格、斜杠（/）
 - 一行中可能包含多个不同类型的分隔符
@@ -843,7 +817,7 @@ def extract_standardize_batch_with_llm(
             {"role": "user", "content": user_content},
         ],
         "max_tokens": max_tokens,
-        "temperature": 0.1,  # 可以考虑设为可配置项，1 表示较高的创造性/随机性
+        "temperature": 1,  # 可以考虑设为可配置项，1 表示较高的创造性/随机性
         # "stream": False, # 流式输出目前不适用于批处理解析
     }
 
@@ -921,16 +895,13 @@ def extract_standardize_batch_with_llm(
                                 if original_idx not in original_row_mapping:
                                     original_row_mapping[original_idx] = 0
 
-                                # 获取原始行中的行ID（如果存在）或生成新的行ID
-                                if "行ID" in batch_rows[original_idx]:
-                                    row_id = batch_rows[original_idx]["行ID"]
-                                else:
-                                    row_id = str(uuid.uuid4())
+                                # 获取这个原始行的local_id
+                                local_id = batch_rows[original_idx]["local_row_id"]
 
-                                # 保存结果行信息，使用行ID而不是local_row_id
-                                result_row["行ID"] = row_id
+                                # 保存结果行信息
+                                result_row["local_row_id"] = local_id
                                 source_name = local_id_to_source_map.get(
-                                    row_id, "UNKNOWN_SOURCE"
+                                    local_id, "UNKNOWN_SOURCE"
                                 )
                                 result_row[source_column_name] = source_name
                                 processed_batch_with_ids_and_source.append(result_row)
@@ -945,20 +916,17 @@ def extract_standardize_batch_with_llm(
                                 )
                                 # 确定最相近的原始行索引
                                 original_idx = min(result_idx, len(batch_rows) - 1)
-
-                                # 获取原始行中的行ID（如果存在）或生成新的行ID
-                                if "行ID" in batch_rows[original_idx]:
-                                    row_id = batch_rows[original_idx]["行ID"]
-                                else:
-                                    row_id = str(uuid.uuid4())
+                                local_id = batch_rows[original_idx]["local_row_id"]
 
                                 error_row = {
                                     col: "LLM_ITEM_FORMAT_ERROR"
                                     for col in target_columns
                                 }
-                                error_row["行ID"] = row_id
+                                error_row["local_row_id"] = local_id
                                 error_row[source_column_name] = (
-                                    local_id_to_source_map.get(row_id, "UNKNOWN_SOURCE")
+                                    local_id_to_source_map.get(
+                                        local_id, "UNKNOWN_SOURCE"
+                                    )
                                 )
                                 processed_batch_with_ids_and_source.append(error_row)
 
@@ -978,8 +946,8 @@ def extract_standardize_batch_with_llm(
                             if not any(
                                 str(v).startswith(("LLM_", "API_KEY_"))
                                 for k, v in res.items()
-                                # Exclude 行ID and 来源 from error check
-                                if k not in ["行ID", source_column_name]
+                                # Exclude local_id and 来源 from error check
+                                if k not in ["local_row_id", source_column_name]
                             )
                         ]
                         consolidated_data.extend(
@@ -1000,7 +968,7 @@ def extract_standardize_batch_with_llm(
                             error_row = {
                                 col: "BATCH_LENGTH_MISMATCH" for col in target_columns
                             }
-                            error_row["行ID"] = local_id
+                            error_row["local_row_id"] = local_id
                             error_row[source_column_name] = local_id_to_source_map.get(
                                 local_id, "UNKNOWN_SOURCE"
                             )
@@ -1113,10 +1081,10 @@ def process_files_and_consolidate(
     修改为使用阿里云百炼 Batch API 处理。
 
     新流程:
-    1. 遍历输入文件列表并逐个处理，不合并文件
-    2. 为每个文件单独创建批次，添加到统一的JSONL文件
-    3. 提交给百炼 Batch API 进行处理
-    4. 返回 batch_id 供 app.py 后续轮询
+    1. 遍历输入文件列表并读取。
+    2. 为每个文件创建百炼 Batch API 输入文件。
+    3. 提交给百炼 Batch API 进行处理。
+    4. 返回 batch_id 供 app.py 后续轮询。
 
     Args:
         input_files: 包含一个或多个输入文件完整路径的列表。
@@ -1133,32 +1101,30 @@ def process_files_and_consolidate(
     # --- 1. 解包配置项 ---
     api_mode = "bailian"  # 默认使用阿里云百炼 API
 
-    # 获取llm_config中的配置（处理嵌套结构）
-    llm_config = config.get("llm_config", {})
+    # 检查是否有有效的阿里云百炼配置
     print(f"config详情: {json.dumps(config, ensure_ascii=False)}")
-
-    # 从llm_config中获取百炼API相关配置
-    dashscope_api_key = llm_config.get("DASHSCOPE_API_KEY", "")
-
     # 检查百炼API相关配置
-    print(f"百炼API配置: DASHSCOPE_API_KEY存在: {bool(dashscope_api_key)}")
     print(
-        f"百炼API配置: DASHSCOPE_API_KEY格式正确: {bool(dashscope_api_key and dashscope_api_key.startswith('sk-'))}"
+        f"百炼API配置: DASHSCOPE_API_KEY存在: {bool(config.get('DASHSCOPE_API_KEY'))}"
     )
     print(
-        f"百炼API配置: BAILIAN_MODEL_NAME: {llm_config.get('BAILIAN_MODEL_NAME', '未配置')}"
+        f"百炼API配置: DASHSCOPE_API_KEY格式正确: {bool(config.get('DASHSCOPE_API_KEY') and config.get('DASHSCOPE_API_KEY').startswith('sk-'))}"
     )
     print(
-        f"百炼API配置: BAILIAN_COMPLETION_WINDOW: {llm_config.get('BAILIAN_COMPLETION_WINDOW', '未配置')}"
+        f"百炼API配置: BAILIAN_MODEL_NAME: {config.get('BAILIAN_MODEL_NAME', '未配置')}"
+    )
+    print(
+        f"百炼API配置: BAILIAN_COMPLETION_WINDOW: {config.get('BAILIAN_COMPLETION_WINDOW', '未配置')}"
     )
 
-    if not dashscope_api_key or not dashscope_api_key.startswith("sk-"):
+    if not config.get("DASHSCOPE_API_KEY") or not config.get(
+        "DASHSCOPE_API_KEY"
+    ).startswith("sk-"):
         api_mode = "deepseek"  # 回退到 DeepSeek API
         print(f"   ⚠️ 警告: 未找到有效的阿里云百炼 API Key，将使用 DeepSeek API。")
 
-    # 生成基于时间戳的任务ID作为本次处理的唯一标识
-    timestamp = time.strftime("%Y%m%d_%H%M%S")
-    task_id = f"task_{timestamp}"
+    # 生成任务ID作为本次处理的唯一标识
+    task_id = str(uuid.uuid4())
     print(f"--- 开始处理，任务ID: {task_id} ---")
 
     # --- 2. 检查输入文件 ---
@@ -1171,6 +1137,49 @@ def process_files_and_consolidate(
     total_files = len(input_files)
     print(f"   📄 处理 {total_files} 个输入文件...")
 
+    # --- 3. 准备数据处理 ---
+    all_dataframes = []  # 用于存储所有读取的 DataFrames
+
+    for i, file_path in enumerate(input_files):
+        current_file_num = i + 1
+        file_basename = os.path.basename(file_path)
+        print(f"\n📄 读取文件 {current_file_num}/{total_files}: {file_basename}")
+
+        # 报告开始处理当前文件
+        if update_progress_callback:
+            progress_pct = int((i / total_files) * 50)  # 文件读取占总进度的50%
+            update_progress_callback(
+                f"读取文件 {current_file_num}/{total_files}: {file_basename}",
+                progress_pct,
+                i,
+                total_files,
+            )
+
+        # 读取文件
+        df_source = read_input_file(file_path)
+
+        # 如果文件读取失败或为空
+        if df_source is None or df_source.empty:
+            print(f"   ⚠️ 跳过文件 {file_basename} (读取失败或为空)。")
+            continue
+
+        # 添加源文件名称到数据中
+        df_source["来源"] = file_basename
+
+        # 将DataFrame添加到列表中
+        all_dataframes.append(df_source)
+        print(f"   ✓ 成功读取 {len(df_source)} 行数据。")
+
+    # 合并所有DataFrame
+    if not all_dataframes:
+        print("❌ 错误: 没有成功读取任何文件。")
+        if update_progress_callback:
+            update_progress_callback("错误: 没有成功读取任何文件", 100, 0, 0)
+        raise ValueError("没有成功读取任何文件")
+
+    merged_df = pd.concat(all_dataframes, ignore_index=True)
+    print(f"   ✓ 成功合并 {len(merged_df)} 行数据。")
+
     # 创建任务目录
     task_dir = os.path.join("uploads", task_id)
     os.makedirs(task_dir, exist_ok=True)
@@ -1180,241 +1189,31 @@ def process_files_and_consolidate(
         "task_id": task_id,
         "input_files": [os.path.basename(f) for f in input_files],
         "output_file": output_file_path,
+        "row_count": len(merged_df),
         "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "api_mode": api_mode,
-        "file_count": total_files,
     }
     with open(os.path.join(task_dir, "task_info.json"), "w") as f:
         json.dump(task_info, f, ensure_ascii=False, indent=2)
 
-    # --- 3. 处理每个文件并创建批次 ---
+    # 保存原始合并数据，以便后续处理
+    original_df_path = os.path.join(task_dir, "original_merged.csv")
+    merged_df.to_csv(original_df_path, index=False)
+
+    # --- 4. 根据API模式处理数据 ---
     if api_mode == "bailian":
         print(f"   >> 使用阿里云百炼 Batch API 处理数据...")
 
-        # 创建批次ID到行ID的全局映射
-        global_batch_mapping = {}
-
-        # 创建local_id到源文件名的映射
-        local_id_to_source_map = {}
-
-        # 创建统一的JSONL文件，用于保存所有文件的批次
-        jsonl_path = os.path.join(task_dir, "batch_input.jsonl")
-
-        # 记录总处理行数
-        total_rows_processed = 0
-
-        # 从llm_config中获取批处理相关配置
-        batch_size = llm_config.get("BATCH_SIZE", 100)
-        model_name = llm_config.get("BAILIAN_MODEL_NAME", "qwen-turbo-latest")
-        batch_endpoint = llm_config.get(
-            "BAILIAN_BATCH_ENDPOINT", "/v1/chat/completions"
-        )
-        max_tokens = llm_config.get("MAX_COMPLETION_TOKENS", 8192)
-
-        # 准备目标列配置
-        target_columns_config = llm_config.get(
-            "TARGET_COLUMNS", ["公司名称", "联系人", "职位", "电话", "来源"]
-        )
-        source_column_name = "来源"
-        llm_target_columns = [
-            col for col in target_columns_config if col != source_column_name
-        ]
-
-        # 构建系统提示词(system prompt)
-        system_content = f"""
-你是一个专业的数据处理引擎。你的核心任务是从用户提供的源数据中，提取信息，并严格按照指定的目标模式 (Target Schema) 进行标准化。
-**重要：你的输出必须是一个有效的 JSON 数组，每个数组元素是一个对象，包含以下键值对：**
-{llm_target_columns}
-**当源数据中电话/手机号列包含多个号码时（可能用分号、逗号、空格等分隔），你必须将该行拆分为多行，每行对应一个手机号，其他信息保持一致。**
-**手机号分隔符识别规则：**
-- 支持的分隔符包括：中英文分号（;；）、中英文逗号（,，）、空格、斜杠（/）
-- 一行中可能包含多个不同类型的分隔符
-
-**处理规则:**
-1.提取与映射: 结合源数据标题和内容，将信息映射到 Target Schema 字段。找不到信息则对应值设为 ""。所有值必须为字符串。
-2.格式整理: 去除多余空格和不必要的标点符号。
-3.规范化: 电话号码应去除非数字字符，保留纯数字形式。
-4.批量处理: 你将收到多行数据，需要处理每一行并返回JSON数组，包含所有处理结果。
-5.最终输出格式: 只返回JSON数组，不要有任何额外的解释。
-"""
-
-        # 开始逐个处理文件
-        with open(jsonl_path, "w", encoding="utf-8") as jsonl_file:
-            for file_index, file_path in enumerate(input_files):
-                current_file_num = file_index + 1
-                file_basename = os.path.basename(file_path)
-                print(
-                    f"\n📄 处理文件 {current_file_num}/{total_files}: {file_basename}"
-                )
-
-                # 报告进度
-                if update_progress_callback:
-                    progress_pct = int(
-                        (file_index / total_files) * 60
-                    )  # 文件处理占总进度的60%
-                    update_progress_callback(
-                        f"处理文件 {current_file_num}/{total_files}: {file_basename}",
-                        progress_pct,
-                        file_index,
-                        total_files,
-                    )
-
-                # 读取当前文件
-                df_source = read_input_file(file_path)
-
-                # 文件读取失败或为空时跳过
-                if df_source is None or df_source.empty:
-                    print(f"   ⚠️ 跳过文件 {file_basename} (读取失败或为空)。")
-                    continue
-
-                # 添加源文件名称到数据中
-                df_source["来源"] = file_basename
-
-                # 为每个行ID建立到源文件名的映射
-                for row_id in df_source["行ID"].tolist():
-                    local_id_to_source_map[row_id] = file_basename
-                print(
-                    f"   >> 已添加 {len(df_source)} 个行ID到来源 '{file_basename}' 的映射"
-                )
-
-                # 保存原始文件数据，用于后续处理
-                file_dir = os.path.join(task_dir, f"file_{file_index}")
-                os.makedirs(file_dir, exist_ok=True)
-                file_df_path = os.path.join(file_dir, "original.csv")
-                df_source.to_csv(file_df_path, index=False)
-
-                # 获取该文件的总行数并按批次划分
-                file_rows = len(df_source)
-                file_batch_count = (
-                    file_rows + batch_size - 1
-                ) // batch_size  # 向上取整
-                print(
-                    f"   >> 文件 {file_basename} 共 {file_rows} 行，划分为 {file_batch_count} 个批次"
-                )
-
-                # 为此文件创建批次
-                for batch_idx in range(file_batch_count):
-                    start_idx = batch_idx * batch_size
-                    end_idx = min(start_idx + batch_size, file_rows)
-                    batch_df = df_source.iloc[start_idx:end_idx]
-
-                    # 获取批次中所有行的行ID
-                    batch_row_ids = batch_df["行ID"].tolist()
-
-                    # 创建批次ID，确保全局唯一（添加文件索引作为前缀）
-                    batch_custom_id = (
-                        f"file{file_index}_batch_{batch_idx}_{len(batch_row_ids)}"
-                    )
-
-                    # 保存批次行ID映射
-                    global_batch_mapping[batch_custom_id] = batch_row_ids
-
-                    # 将批次数据转换为文本格式
-                    batch_content = []
-                    for _, row in batch_df.iterrows():
-                        row_str = "\n".join(
-                            [f"{k}: {v}" for k, v in row.items() if k != "行ID"]
-                        )
-                        # 添加行ID作为行标识
-                        row_str += f"\n行ID: {row['行ID']}"
-                        batch_content.append(row_str)
-
-                    # 合并所有行内容
-                    all_rows_content = "\n\n--- 行分隔符 ---\n\n".join(batch_content)
-
-                    # 获取源列标题
-                    source_headers = batch_df.columns.astype(str).tolist()
-                    source_headers_json = json.dumps(source_headers, ensure_ascii=False)
-
-                    # 获取源文件名
-                    if "source_file" in batch_df.columns:
-                        source_filename = batch_df["source_file"].iloc[0]
-                    else:
-                        # 尝试从batch_row_ids获取原始文件名
-                        source_filename = local_id_to_source_map.get(
-                            batch_row_ids[0], "未知来源"
-                        )
-
-                    # 记录使用的源文件名
-                    print(
-                        f"   >>> 批次 {batch_idx+1} 使用的源文件名: {source_filename}"
-                    )
-
-                    # 用户提示词(user prompt)
-                    user_content = f"""
-这是本次处理的数据来源: {source_filename}
-
-这是本次需要处理的源数据表格的列标题:
-{source_headers_json}
-
-这是需要处理的 {len(batch_df)} 行源数据:
-{all_rows_content}
-
-请根据你在System指令中被赋予的角色和规则处理这些数据，并返回标准化的JSON数组。
-每个处理结果必须包含原始行的"行ID"值，以便我们能够追踪结果与原始数据的对应关系。
-重要：在每个结果中添加"来源"字段，值必须完全设为"{source_filename}"，不要对文件名做任何修改或简化处理。必须保留原始文件名中的所有中文字符和特殊符号。
-"""
-
-                    # 构建消息数组
-                    messages = [
-                        {"role": "system", "content": system_content},
-                        {"role": "user", "content": user_content},
-                    ]
-
-                    # 构建API请求体
-                    body = {
-                        "model": model_name,
-                        "messages": messages,
-                        "max_tokens": max_tokens,
-                        "temperature": 1.0,
-                    }
-
-                    # 构建JSONL记录
-                    record = {
-                        "custom_id": batch_custom_id,
-                        "method": "POST",
-                        "url": batch_endpoint,
-                        "body": body,
-                        "row_ids": batch_row_ids,
-                        "source_file": file_basename,  # 添加源文件信息
-                        "file_index": file_index,  # 添加文件索引信息
-                    }
-
-                    # 写入到统一的JSONL文件
-                    jsonl_file.write(json.dumps(record, ensure_ascii=False) + "\n")
-
-                total_rows_processed += file_rows
-                print(f"   ✓ 已为文件 {file_basename} 创建 {file_batch_count} 个批次")
-
-        # 保存全局批次映射到文件
-        mapping_path = os.path.join(task_dir, "batch_mapping.json")
-        with open(mapping_path, "w", encoding="utf-8") as f:
-            # 添加额外的元数据到映射文件
-            mapping_data = {
-                "batch_mapping": global_batch_mapping,
-                "files": [os.path.basename(f) for f in input_files],
-                "total_rows": total_rows_processed,
-                "batch_size": batch_size,
-                "local_id_to_source": local_id_to_source_map,  # 添加local_id到源文件名的映射
-            }
-            json.dump(mapping_data, f, ensure_ascii=False, indent=2)
-        print(f"   ✓ 已保存全局批次映射到: {mapping_path}")
-
-        # 保存原始文件列表
-        with open(os.path.join(task_dir, "input_files.json"), "w") as f:
-            json.dump(
-                {
-                    "files": [os.path.basename(f) for f in input_files],
-                    "file_paths": input_files,
-                },
-                f,
-                ensure_ascii=False,
-                indent=2,
+        if update_progress_callback:
+            update_progress_callback(
+                "准备百炼Batch API输入文件...",
+                60,
+                total_files,
+                total_files,
             )
 
-        print(
-            f"   ✅ 已成功创建百炼Batch API输入文件: {jsonl_path} (共 {total_rows_processed} 行数据)"
-        )
+        # 创建百炼Batch API输入文件
+        jsonl_path = create_bailian_batch_input(merged_df, task_id, config)
 
         if update_progress_callback:
             update_progress_callback(
@@ -1424,7 +1223,7 @@ def process_files_and_consolidate(
                 total_files,
             )
 
-        # 统一提交百炼Batch任务
+        # 提交百炼Batch任务
         batch_id = submit_bailian_batch_job(jsonl_path, task_id, config)
 
         if update_progress_callback:
@@ -1437,6 +1236,7 @@ def process_files_and_consolidate(
 
         # 返回batch_id和task_id，供app.py后续轮询
         return (batch_id, task_id)
+
     else:
         # 保留原有的DeepSeek API处理逻辑，用于备选
         print("   ⚠️ 使用原有DeepSeek API处理未实现。请先配置阿里云百炼API。")
