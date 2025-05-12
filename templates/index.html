@@ -80,49 +80,6 @@
             <a href="/history" class="btn btn-outline-secondary">查看历史记录</a>
         </div>
         <p>上传一个或多个Excel（.xlsx、.xls）或CSV（.CSV）文件，并拉取飞书多维表格数据以进行整合和标准化，最后更新飞书多维表格。</p>
-        <!-- 操作说明 -->
-        <div class="accordion mb-3" id="instructionsAccordion">
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="instructionsHeading">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#collapseInstructions" aria-expanded="true"
-                        aria-controls="collapseInstructions">
-                        操作说明 (点击折叠/展开)
-                    </button>
-                </h2>
-                <div id="collapseInstructions" class="accordion-collapse collapse show"
-                    aria-labelledby="instructionsHeading" data-bs-parent="#instructionsAccordion">
-                    <div class="accordion-body">
-                        <p><strong>基本流程:</strong></p>
-                        <ol>
-                            <li>(可选) 点击下方的 "配置选项" 展开，根据需要调整参数，完成后可点击 "保存所有设置为默认值"。</li>
-                            <li>(必要) 第一步：上传需要处理的 Excel 或 CSV 文件。</li>
-                            <li>(必要) 第二步：点击 "开始处理" 按钮。等待处理进度更新。处理完成后下载最终结果文件。</li>
-                            <li>(必要) 第三步：进入 "人工检查与调整"，下载文件并在本地修改。</li>
-                            <li>(必要) 第四步：上传调整后数据，选择并上传您修改后的文件。</li>
-                            <li>(可选) 第五步：检查差异，点击 "检查差异" 按钮，会展示您修改的内容，用作辅助验证。</li>
-                            <li>(必要) 第六步：确认差异无误后，点击 "同步到飞书" 将更改应用到飞书表格。</li>
-                        </ol>
-                        <p><strong>注意事项:</strong></p>
-                        <ul>
-                            <li>配置：请确保您的 API Key 正确且有足够的额度。</li>
-                            <li>配置：目标列名请每行输入一个。程序会尝试从源文件中提取信息并填充到这些列中。</li>
-                            <li>配置：目标列名中`来源`请勿删除。</li>
-                            <li>配置：后处理操作的列名选择依赖于 "目标列名" 的设置。请务必确保目标列名中的字段在飞书的表单中存在此字段，否则会无法同步。</li>
-                            <li>配置：批处理大小 (Batch Size) 影响每次调用 API 处理的行数。较大的值可能更快，但也更消耗 Token 和内存，并可能超过 API
-                                的单次请求限制，默认160，不建议再大于此值。</li>
-                            <li>配置：如果遇到 "Context length exceeded" 错误，请尝试减小批处理大小。</li>
-                            <li>配置：飞书数据源配置-->新增目标 Table ID(s):此处配置决定了新增数据同步至哪张多维表格。系统在新增数据时，会首先尝试写入第一个 Table
-                                ID。如果检查发现写入后会超过该表格的行数上限 (企业版最大为 50000 行)，则会自动尝试列表中的下一个 Table
-                                ID，以此类推。如果所有指定的目标表格都已满，新增操作将失败并报错。如果未配置此项，新增数据将写入 "飞书 Table IDs" 列表中的第一个表格。</li>
-                            <li>第三步：`local_row_id` 列与 `record_id` 请勿手动修改，是用作更新的主键。</li>
-                            <li>第四步：需上传系统生成的final_*.xlsx的文件，请勿上传其他文件</li>
-
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
         <!-- 总配置区域 -->
         <div class="accordion mb-3" id="settingsAccordion">
             <div class="accordion-item">
@@ -404,29 +361,37 @@
                 </div>
             </div>
         </div>
-        <!-- 文件上传区域 -->
-        <form id="upload-form" enctype="multipart/form-data" class="mb-4">
-            <div class="mb-3">
-                <label class="form-label fw-bold">第一步: 选择文件</label><br>
-                <button type="button" class="btn btn-primary mb-2" id="select-files-btn">选择文件</button>
-                <input type="file" class="visually-hidden" id="file-input" name="files[]" multiple required
-                    accept=".xlsx,.xls,.csv">
-                <div id="selected-files-list" class="text-muted small"></div>
+        <!-- 数据清洗功能区（样式与同步飞书一致） -->
+        <div class="mb-4 p-3 border rounded">
+            <h4>数据清洗</h4>
+            <form id="upload-form" enctype="multipart/form-data" class="mb-4">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">选择文件</label><br>
+                    <button type="button" class="btn btn-primary mb-2" id="select-files-btn">选择文件</button>
+                    <input type="file" class="visually-hidden" id="file-input" name="files[]" multiple required
+                        accept=".xlsx,.xls,.csv">
+                    <div id="selected-files-list" class="text-muted small"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">数据清洗</label><br>
+                    <button type="submit" class="btn btn-primary">开始处理</button>
+                </div>
+            </form>
+            <!-- 处理状态/进度条区域 -->
+            <div id="progress-container" class="progress-container mt-4">
+                <div id="status-message" class="alert alert-info">等待上传文件...</div>
+                <div class="progress mb-2">
+                    <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                        role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%
+                    </div>
+                </div>
+                <div id="result-link-container"></div>
             </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">第二步: 处理数据</label><br>
-                <button type="submit" class="btn btn-primary">开始处理</button>
-            </div>
-        </form>
-
-        <!-- 添加替代流程提示 -->
-        <div class="alert alert-secondary mb-4">
-            <strong>替代流程：直接同步到飞书</strong> - 如果您已有符合格式的文件，可以跳过上方处理步骤，直接上传并同步到飞书。
         </div>
 
-        <!-- 将直接导入飞书功能移到这里，作为独立部分 -->
+        <!-- 同步飞书功能区 -->
         <div class="mb-4 p-3 border rounded">
-            <h4>直接导入飞书（跳过处理步骤）</h4>
+            <h4>同步飞书（可跳过前序步骤）</h4>
             <p class="text-muted">上传符合要求的Excel文件，直接导入到飞书多维表格，无需通过LLM处理。</p>
             <form id="direct-import-form" enctype="multipart/form-data">
                 <div class="mb-3">
@@ -445,57 +410,6 @@
                 <span id="direct-sync-status" class="ms-2"></span>
             </div>
         </div>
-
-        <!-- 处理状态/进度条区域 -->
-        <div id="progress-container" class="progress-container mt-4">
-            <h2>处理状态</h2>
-            <div id="status-message" class="alert alert-info">等待上传文件...</div>
-            <div class="progress mb-2">
-                <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
-                    role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%
-                </div>
-            </div>
-            <div id="result-link-container"></div>
-        </div>
-
-        <!-- 人工检查与差异对比部分 -->
-        <div id="review-section" class="mt-4 p-3 border rounded" style="display: none;">
-            <hr>
-            <h4>第三步：人工检查与调整</h4>
-            <p class="text-muted">请下载处理完成的文件，在本地进行手动检查和调整。</p>
-            <div id="download-link-step3-placeholder" class="mb-3">
-                <!-- 下载链接会由JS在处理完成后填充到上方的 result-link-container -->
-                <p>下载链接见上方处理状态区域。</p>
-            </div>
-
-            <h4 class="mt-4">第四步：上传调整后数据</h4>
-            <form id="upload-edited-form-step4" enctype="multipart/form-data">
-                <div class="mb-3">
-                    <label for="edited-file-input-step4" class="form-label fw-bold">选择调整后的文件:</label><br>
-                    <button type="button" class="btn btn-secondary mb-2" id="select-edited-file-btn">选择文件</button>
-                    <input type="file" class="visually-hidden" id="edited-file-input" accept=".xlsx,.xls,.csv">
-                    <div id="selected-edited-file-list" class="text-muted small mb-2">尚未选择文件</div>
-                    <button type="button" class="btn btn-primary" id="upload-edited-btn" disabled>上传调整后数据</button>
-                </div>
-            </form>
-
-            <h4 class="mt-4">第五步：同步到飞书</h4>
-            <p class="text-muted">将编辑后的多Sheet页Excel文件中的内容同步到飞书多维表格。"新增"Sheet页的数据将直接新增，"更新"Sheet页的数据将与原始数据比较后只更新有差异的部分。
-            </p>
-            <div class="mb-3">
-                <!-- 移除检查差异按钮，只保留同步按钮 -->
-                <button type="button" class="btn btn-warning" id="sync-feishu-btn" disabled>同步到飞书</button>
-                <span id="sync-status" class="ms-2"></span> <!-- 用于显示同步状态 -->
-            </div>
-
-            <!-- 隐藏差异结果显示区域 -->
-            <div id="diff-results-container" class="mt-4" style="display: none;">
-                <!-- 此处内容保留但默认隐藏 -->
-                <h5>处理结果</h5>
-                <div id="diff-summary" class="mb-2"></div>
-            </div>
-        </div>
-        <!-- 结束：人工检查与差异对比部分 -->
 
     </div> <!-- End container -->
 
@@ -535,16 +449,6 @@
         // New elements for file list display
         const selectFilesBtn = document.getElementById('select-files-btn');
         const selectedFilesListDiv = document.getElementById('selected-files-list');
-        // Elements for review section (Steps 3, 4, 5)
-        const reviewSection = document.getElementById('review-section');
-        const selectEditedFileBtn = document.getElementById('select-edited-file-btn');
-        const editedFileInput = document.getElementById('edited-file-input');
-        const selectedEditedFileListDiv = document.getElementById('selected-edited-file-list');
-        const uploadEditedBtn = document.getElementById('upload-edited-btn');
-        const diffResultsContainer = document.getElementById('diff-results-container');
-        const diffSummaryDiv = document.getElementById('diff-summary');
-        const syncFeishuBtn = document.getElementById('sync-feishu-btn'); // Sync button
-        const syncStatusSpan = document.getElementById('sync-status'); // Sync status span
 
         let intervalId = null; // To store the interval timer
         let currentTaskId = null; // Store the current task ID
@@ -585,11 +489,6 @@
         selectFilesBtn.addEventListener('click', () => fileInput.click());
         // Listener for the actual file input change to update the list
         fileInput.addEventListener('change', displaySelectedFiles);
-        // Listeners for review section
-        selectEditedFileBtn.addEventListener('click', () => editedFileInput.click());
-        editedFileInput.addEventListener('change', displaySelectedEditedFile);
-        uploadEditedBtn.addEventListener('click', handleUploadEditedFile);
-        syncFeishuBtn.addEventListener('click', handleSyncToFeishu); // 保留同步按钮事件
 
         // 绑定直接导入文件的选择按钮事件
         selectDirectImportFileBtn.addEventListener('click', function () {
@@ -621,6 +520,9 @@
             const file = directImportFileInput.files[0];
             const formData = new FormData();
             formData.append('file', file);
+            // 新增：同步目标列配置
+            const targetColumns = typeof getTargetColumns === 'function' ? getTargetColumns() : [];
+            formData.append('config_target_columns', JSON.stringify(targetColumns));
 
             // 显示上传中状态
             directImportStatus.textContent = '文件上传中...';
@@ -720,7 +622,6 @@
 
                 if (result.task_id) {
                     currentTaskId = result.task_id; // Store the task ID
-                    reviewSection.dataset.taskId = currentTaskId; // Optional: store on element
                     statusMessage.textContent = 'Upload successful. Starting processing...';
                     pollProgress(currentTaskId);
                 } else {
@@ -908,22 +809,17 @@
             statusMessage.textContent = status;
             if (status === 'Completed') {
                 statusMessage.className = 'alert alert-success';
-                statusMessage.textContent = '处理完成! 请进入第三步进行人工检查。';
-                reviewSection.style.display = 'block';
-                uploadEditedBtn.disabled = true; // Should be disabled until a file is selected
+                statusMessage.textContent = '处理完成! 您可以下载结果文件。';
             } else if (status === 'Error') {
                 statusMessage.className = 'alert alert-danger';
                 statusMessage.textContent = `Processing failed: ${error || 'Unknown error'}`;
-                reviewSection.style.display = 'none'; // Hide review on error
             } else if (status === 'BatchProcessing' || status.includes('百炼批处理')) {
                 // 添加对百炼批处理状态的特殊样式
                 statusMessage.className = 'alert alert-info';
-                reviewSection.style.display = 'none'; // 批处理中隐藏审核部分
                 // 使用带有进度指示的文本
                 statusMessage.innerHTML = `${status} <div class="spinner-border spinner-border-sm text-info ms-2" role="status"><span class="visually-hidden">批处理中...</span></div>`;
             } else {
                 statusMessage.className = 'alert alert-info';
-                reviewSection.style.display = 'none'; // Hide review while processing
             }
         }
 
@@ -932,7 +828,6 @@
             statusMessage.className = 'alert alert-warning';
             updateProgressBar(100); // Mark as done for polling purposes
             clearInterval(intervalId);
-            reviewSection.style.display = 'none'; // Hide review section
         }
 
         function showErrorStatus(message) {
@@ -940,7 +835,6 @@
             statusMessage.className = 'alert alert-danger';
             updateProgressBar(0); // Reset progress bar on error
             clearInterval(intervalId);
-            reviewSection.style.display = 'none'; // Hide review section
         }
 
         // Display download link
@@ -948,11 +842,6 @@
             const downloadUrl = `/download/${taskId}/${encodeURIComponent(resultFile)}`;
             // Add link to the main result container *and* the step 3 placeholder if needed
             resultLinkContainer.innerHTML = `<a href="${downloadUrl}" class="btn btn-success" target="_blank">下载最终结果 (${resultFile})</a>`;
-            // Optionally update step 3 placeholder if it exists and is separate
-            // const step3Placeholder = document.getElementById('download-link-step3-placeholder');
-            // if (step3Placeholder) {
-            //    step3Placeholder.innerHTML = `<a href="${downloadUrl}" class="btn btn-success" target="_blank">下载待检查文件 (${resultFile})</a>`;
-            // }
         }
 
         // Reset progress display area
@@ -963,13 +852,6 @@
             statusMessage.className = 'alert alert-info';
             resultLinkContainer.innerHTML = '';
             selectedFilesListDiv.innerHTML = '尚未选择文件'; // Clear file list on reset
-            reviewSection.style.display = 'none'; // Hide review section on reset
-            if (editedFileInput) editedFileInput.value = ''; // Clear edited file input
-            if (selectedEditedFileListDiv) selectedEditedFileListDiv.textContent = '尚未选择文件';
-            if (uploadEditedBtn) uploadEditedBtn.disabled = true;
-            if (diffResultsContainer) diffResultsContainer.style.display = 'none';
-            if (syncFeishuBtn) syncFeishuBtn.disabled = true; // Ensure sync button is disabled on reset
-            if (syncStatusSpan) syncStatusSpan.textContent = ''; // Clear sync status on reset
             if (intervalId) clearInterval(intervalId);
         }
 
@@ -1205,118 +1087,6 @@
                 selectedFilesListDiv.textContent = '尚未选择文件';
             }
         }
-
-        // Display the name of the selected edited file (for step 4)
-        function displaySelectedEditedFile() {
-            if (editedFileInput.files.length > 0) {
-                const file = editedFileInput.files[0];
-                const fileSize = (file.size / 1024).toFixed(1);
-                selectedEditedFileListDiv.textContent = `已选择: ${file.name} (${fileSize} KB)`;
-                uploadEditedBtn.disabled = false; // Enable upload button
-                diffResultsContainer.style.display = 'none'; // Hide previous results
-            } else {
-                selectedEditedFileListDiv.textContent = '尚未选择文件';
-                uploadEditedBtn.disabled = true;
-            }
-        }
-
-        // --- Diff Display and Pagination Logic ---
-
-        async function handleUploadEditedFile() {
-            // Get task ID (should be stored in currentTaskId)
-            if (!currentTaskId) {
-                alert('错误：找不到当前任务 ID。无法上传文件。');
-                return;
-            }
-            if (editedFileInput.files.length === 0) {
-                alert('请先选择一个调整后的文件。');
-                return;
-            }
-
-            const file = editedFileInput.files[0];
-            const formData = new FormData();
-            formData.append('file', file);
-
-            console.log(`为任务 ${currentTaskId} 上传调整后文件: ${file.name}`);
-            uploadEditedBtn.disabled = true;
-            uploadEditedBtn.textContent = '上传中...';
-            // 隐藏之前的结果
-            diffResultsContainer.style.display = 'none';
-
-            try {
-                const response = await fetch(`/upload_new_or_associate_file`, {
-                    method: 'POST',
-                    body: formData
-                });
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    console.log('调整后文件上传成功:', result);
-                    alert(result.message || '调整后文件上传成功！');
-                    // 直接启用同步按钮
-                    if (syncFeishuBtn) syncFeishuBtn.disabled = false;
-                    if (syncStatusSpan) syncStatusSpan.textContent = ''; // 清除之前的同步状态
-                } else {
-                    console.error('上传调整后文件失败:', result.error);
-                    alert(`上传失败: ${result.error || '服务器错误'}`);
-                    if (syncFeishuBtn) syncFeishuBtn.disabled = true;
-                }
-            } catch (error) {
-                console.error('上传调整后文件时发生网络错误:', error);
-                alert('上传调整后文件时发生网络错误。');
-                if (syncFeishuBtn) syncFeishuBtn.disabled = true;
-            } finally {
-                uploadEditedBtn.disabled = false; // Re-enable upload button
-                uploadEditedBtn.textContent = '上传调整后数据';
-            }
-        }
-
-        // --- Sync to Feishu Logic ---
-        async function handleSyncToFeishu() {
-            const taskId = currentDirectImportTaskId || currentTaskId;
-            if (!taskId) {
-                alert('没有有效的任务ID，请先上传文件');
-                return;
-            }
-
-            if (!confirm('确定要同步到飞书多维表格吗？此操作无法撤销。')) {
-                return;
-            }
-
-            syncFeishuBtn.disabled = true;
-            syncStatusSpan.textContent = '同步中...';
-
-            try {
-                const response = await fetch(`/sync_to_feishu/${taskId}`, {
-                    method: 'POST'
-                });
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    console.log('同步成功:', result);
-                    if (syncStatusSpan) syncStatusSpan.textContent = result.message || '同步成功！';
-                    if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-success';
-
-                    // 同步成功后重置当前直接导入任务ID
-                    currentDirectImportTaskId = null;
-                } else {
-                    console.error('同步失败:', result.error);
-                    if (syncStatusSpan) syncStatusSpan.textContent = `同步失败: ${result.error || '未知错误'}`;
-                    if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-danger';
-                }
-            } catch (error) {
-                console.error('同步到飞书时发生网络错误:', error);
-                if (syncStatusSpan) syncStatusSpan.textContent = '同步时发生网络错误。';
-                if (syncStatusSpan) syncStatusSpan.className = 'ms-2 text-danger';
-            } finally {
-                // Re-enable button unless intentionally disabled after success
-                if (syncFeishuBtn && syncStatusSpan.className !== 'ms-2 text-success') {
-                    syncFeishuBtn.disabled = false;
-                }
-                if (syncFeishuBtn) syncFeishuBtn.textContent = '同步到飞书';
-            }
-        }
-        // --- End Sync Logic ---
 
         // 辅助函数：HTML转义
         function escapeHtml(unsafe) {

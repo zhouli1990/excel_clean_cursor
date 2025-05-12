@@ -210,76 +210,123 @@ def sync_to_feishu(task_id):
 
     try:
         # --- 1. 读取文件数据 --- #
+        print(f"[DEBUG] 当前任务ID: {task_id}")
+        print(
+            f"[DEBUG] task_info: {json.dumps(task_info, ensure_ascii=False, indent=2, default=str)}"
+        )
         target_columns = (
             task_info.get("config", {}).get("llm_config", {}).get("TARGET_COLUMNS", [])
         )
-
         print(f"[DEBUG] 当前 target_columns: {target_columns}")
-        print(f"[DEBUG] 当前任务ID: {task_id}")
         print(f"[DEBUG] 同步文件路径: {file_to_sync}")
         print(f"[DEBUG] 是否直接导入模式: {is_direct_import}")
         # 根据不同的同步模式处理数据
         if is_direct_import:
-            # 只同步"新增"Sheet
+            print("[DEBUG] 进入直接导入模式Sheet处理")
             try:
-                try:
-                    df = pd.read_excel(file_to_sync, sheet_name="新增")
-                    print(
-                        f"[DEBUG] 读取Sheet: 新增，行数: {len(df)}，列: {list(df.columns)}"
-                    )
-                except ValueError as e:
-                    print(f"[ERROR] 未找到Sheet: 新增。错误: {e}")
-                    return (
-                        jsonify(
-                            {
-                                "success": False,
-                                "error": "未找到Sheet: 新增，请检查上传文件。",
-                            }
-                        ),
-                        400,
-                    )
-                if df.empty:
-                    print("[WARN] 新增Sheet为空，无数据可同步。")
-                    return (
-                        jsonify(
-                            {"success": False, "error": "新增Sheet为空，无数据可同步。"}
-                        ),
-                        400,
-                    )
-                # 准备添加记录
-                feishu_id_col = "record_id"
-                if feishu_id_col not in df.columns:
-                    df[feishu_id_col] = ""
-                df = df.fillna("")
-                records_to_add = []
-                for _, row in df.iterrows():
-                    add_payload = {"fields": {}}
-                    for col in df.columns:
-                        if (
-                            col == feishu_id_col
-                            or col == "local_row_id"
-                            or col == "行ID"
-                            or col == "row_id"
-                        ):
-                            continue
-                        if target_columns and col not in target_columns:
-                            continue
-                        value = row[col]
-                        if pd.isna(value) or (
-                            isinstance(value, str) and not value.strip()
-                        ):
-                            continue
-                        if isinstance(value, (list, dict)):
-                            value_str = json.dumps(value, ensure_ascii=False)
+                with pd.ExcelFile(file_to_sync) as xls:
+                    sheets = xls.sheet_names
+                    print(f"[DEBUG] 直接导入模式Excel文件包含Sheet: {sheets}")
+                    # 处理"新增"Sheet
+                    if "新增" in sheets:
+                        df_add = pd.read_excel(xls, sheet_name="新增")
+                        print(f"[DEBUG] 读取'新增'Sheet数据行数: {len(df_add)}")
+                        feishu_id_col = "record_id"
+                        if feishu_id_col not in df_add.columns:
+                            df_add[feishu_id_col] = ""
                         else:
-                            value_str = str(value)
-                        add_payload["fields"][col] = value_str
-                    if add_payload["fields"]:
-                        records_to_add.append(add_payload)
-                print(
-                    f"[DEBUG] 直接导入模式，最终准备同步的新增记录数: {len(records_to_add)}"
-                )
-
+                            df_add[feishu_id_col] = (
+                                df_add[feishu_id_col].fillna("").astype(str).str.strip()
+                            )
+                        df_add = df_add[df_add[feishu_id_col] == ""]
+                        records_to_add = []
+                        for _, row in df_add.iterrows():
+                            add_payload = {"fields": {}}
+                            filtered_cols = []
+                            for col in df_add.columns:
+                                print(f"[DEBUG][新增] 当前处理列: {col}")
+                                if (
+                                    col == feishu_id_col
+                                    or col == "local_row_id"
+                                    or col == "行ID"
+                                    or col == "row_id"
+                                ):
+                                    continue
+                                if target_columns and col not in target_columns:
+                                    print(
+                                        f"[DEBUG][新增] 列{col}不在target_columns中，已过滤"
+                                    )
+                                    continue
+                                value = row[col]
+                                if pd.isna(value) or (
+                                    isinstance(value, str) and not value.strip()
+                                ):
+                                    continue
+                                if isinstance(value, (list, dict)):
+                                    value_str = json.dumps(value, ensure_ascii=False)
+                                else:
+                                    value_str = str(value)
+                                add_payload["fields"][col] = value_str
+                                filtered_cols.append(col)
+                            if add_payload["fields"]:
+                                print(
+                                    f"[DEBUG][新增] 最终同步字段: {list(add_payload['fields'].keys())}"
+                                )
+                                records_to_add.append(add_payload)
+                        print(
+                            f"[DEBUG] 直接导入模式，最终准备同步的新增记录数: {len(records_to_add)}"
+                        )
+                    # 处理"更新"Sheet
+                    if "更新" in sheets:
+                        df_update = pd.read_excel(xls, sheet_name="更新")
+                        feishu_id_col = "record_id"
+                        if feishu_id_col not in df_update.columns:
+                            print("[DEBUG][更新] 未找到record_id列，跳过更新处理")
+                            pass  # 没有record_id列，跳过更新处理
+                        else:
+                            df_update[feishu_id_col] = (
+                                df_update[feishu_id_col]
+                                .fillna("")
+                                .astype(str)
+                                .str.strip()
+                            )
+                            df_update_valid = df_update[df_update[feishu_id_col] != ""]
+                            for _, row in df_update_valid.iterrows():
+                                record_id = row[feishu_id_col]
+                                update_payload = {"record_id": record_id, "fields": {}}
+                                filtered_cols = []
+                                for col in df_update_valid.columns:
+                                    print(f"[DEBUG][更新] 当前处理列: {col}")
+                                    if (
+                                        col == feishu_id_col
+                                        or col == "local_row_id"
+                                        or col == "行ID"
+                                        or col == "row_id"
+                                    ):
+                                        continue
+                                    if target_columns and col not in target_columns:
+                                        print(
+                                            f"[DEBUG][更新] 列{col}不在target_columns中，已过滤"
+                                        )
+                                        continue
+                                    value = row[col]
+                                    if pd.isna(value) or (
+                                        isinstance(value, str) and not value.strip()
+                                    ):
+                                        continue
+                                    if isinstance(value, (list, dict)):
+                                        value_str = json.dumps(
+                                            value, ensure_ascii=False
+                                        )
+                                    else:
+                                        value_str = str(value)
+                                    update_payload["fields"][col] = value_str
+                                    filtered_cols.append(col)
+                                if update_payload["fields"]:
+                                    print(
+                                        f"[DEBUG][更新] 最终同步字段: {list(update_payload['fields'].keys())}"
+                                    )
+                                    records_to_update.append(update_payload)
             except Exception as read_err:
                 return (
                     jsonify(

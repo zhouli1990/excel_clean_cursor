@@ -318,6 +318,24 @@ def upload_new_or_associate_file():
         # 保存为直接导入源文件，使用原始文件名
         direct_import_file_path = os.path.join(upload_dir, original_filename)
 
+        # 解析目标列配置（TARGET_COLUMNS）
+        target_columns_json = request.form.get("config_target_columns")
+        target_columns = []
+        if target_columns_json:
+            try:
+                target_columns = json.loads(target_columns_json)
+                print(f"[DEBUG] 前端传递的TARGET_COLUMNS: {target_columns}")
+            except Exception as e:
+                print(f"[WARN] 解析前端TARGET_COLUMNS失败: {e}")
+                target_columns = []
+        # 兜底：如未传递则从默认配置加载
+        if not target_columns:
+            from utils.config_manager import load_config
+
+            llm_config, _, _ = load_config()
+            target_columns = llm_config.get("TARGET_COLUMNS", [])
+            print(f"[DEBUG] 兜底加载配置文件中的TARGET_COLUMNS: {target_columns}")
+
         try:
             # 保存上传的文件
             file.save(direct_import_file_path)
@@ -328,6 +346,13 @@ def upload_new_or_associate_file():
                 task_info["direct_import_source_file_path"] = direct_import_file_path
                 task_info["direct_import"] = True
                 task_info["original_filename"] = original_filename  # 保存原始文件名
+                # 写入目标列配置
+                if "config" not in task_info:
+                    task_info["config"] = {}
+                if "llm_config" not in task_info["config"]:
+                    task_info["config"]["llm_config"] = {}
+                task_info["config"]["llm_config"]["TARGET_COLUMNS"] = target_columns
+                print(f"[DEBUG] 已写入任务的TARGET_COLUMNS: {target_columns}")
 
             return jsonify(
                 {

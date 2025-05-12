@@ -648,3 +648,88 @@
 2025-05-12 20:49:23,993 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
 2025-05-12 20:50:23,994 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
 2025-05-12 20:51:24,000 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:00:21,053 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:00:21,952 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:00:22,081 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:00:22,689 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:00:24,676 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:00:37,885 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:01:24,682 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:02:24,686 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:03:24,692 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:04:24,699 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:05:24,706 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:06:24,713 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:07:24,718 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:08:24,725 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:09:24,735 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:10:24,745 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:11:24,752 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:12:24,758 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:13:24,763 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:14:24,772 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:15:24,780 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:16:24,787 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:17:24,794 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:18:24,798 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:19:24,805 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:20:24,812 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:20:33,474 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:20:34,462 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:20:53,804 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:20:55,368 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:20:58,336 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:20:58,337 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-12 22:20:58,337 - task_manager - INFO - 已添加任务 task_20250512_222058_02a087aa 的历史记录，类型为 direct_import
+2025-05-12 22:20:58,337 - task_manager - INFO - 已创建新任务 task_20250512_222058_02a087aa，类型为 direct_import，关联 1 个文件
+2025-05-12 22:21:08,268 - task_manager - WARNING - 未找到任务 task_20250512_222058_02a087aa 的历史记录，无法更新
+2025-05-12 22:21:58,337 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:22:58,346 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:23:58,354 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:24:58,361 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:25:58,412 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:26:58,422 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:27:58,429 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:28:58,437 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:29:50,759 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:29:51,545 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:30:13,818 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:30:14,814 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:30:17,033 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:30:20,438 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-12 22:30:20,438 - task_manager - INFO - 已添加任务 task_20250512_223020_8723d9eb 的历史记录，类型为 direct_import
+2025-05-12 22:30:20,438 - task_manager - INFO - 已创建新任务 task_20250512_223020_8723d9eb，类型为 direct_import，关联 1 个文件
+2025-05-12 22:30:29,059 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-12 22:30:29,059 - task_manager - INFO - 已更新任务 task_20250512_223020_8723d9eb 的历史记录
+2025-05-12 22:31:17,037 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:32:17,044 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:33:17,048 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:34:17,061 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:34:58,204 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-12 22:34:58,204 - task_manager - INFO - 已添加任务 task_20250512_223458_fa42434e 的历史记录，类型为 direct_import
+2025-05-12 22:34:58,204 - task_manager - INFO - 已创建新任务 task_20250512_223458_fa42434e，类型为 direct_import，关联 1 个文件
+2025-05-12 22:35:07,100 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-12 22:35:07,101 - task_manager - INFO - 已更新任务 task_20250512_223458_fa42434e 的历史记录
+2025-05-12 22:35:17,069 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:36:17,073 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:37:17,079 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:37:58,348 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:37:59,138 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:39:36,894 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:39:37,750 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:39:37,949 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:39:41,281 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-12 22:39:41,282 - task_manager - INFO - 已添加任务 task_20250512_223941_9f37748f 的历史记录，类型为 direct_import
+2025-05-12 22:39:41,282 - task_manager - INFO - 已创建新任务 task_20250512_223941_9f37748f，类型为 direct_import，关联 1 个文件
+2025-05-12 22:40:08,884 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:40:28,976 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-12 22:40:28,977 - task_manager - INFO - 已更新任务 task_20250512_223941_9f37748f 的历史记录
+2025-05-12 22:40:37,978 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:41:37,984 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:42:20,721 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-12 22:42:20,721 - task_manager - INFO - 已添加任务 task_20250512_224220_77091bdc 的历史记录，类型为 direct_import
+2025-05-12 22:42:20,721 - task_manager - INFO - 已创建新任务 task_20250512_224220_77091bdc，类型为 direct_import，关联 1 个文件
+2025-05-12 22:42:37,985 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:42:42,104 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-12 22:42:42,104 - task_manager - INFO - 已更新任务 task_20250512_224220_77091bdc 的历史记录
+2025-05-12 22:42:56,716 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
