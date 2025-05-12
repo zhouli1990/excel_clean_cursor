@@ -765,23 +765,40 @@ def merge_duplicate_phones(
                 # 保留一个有 record_id 的行
                 keep_row = group[group[record_id_col] != ""].iloc[0]
                 keep_id = keep_row[id_column]
+                # 新增逻辑：如果保留的行有 record_id，直接将其加入 update_ids
+                if keep_row[record_id_col] != "":  # 确保 record_id 真的有效
+                    print(
+                        f"      ➡️ 情况B (公司不同且不相关): 记录 {keep_id} (record_id: {keep_row[record_id_col]}) 将被标记为更新 (无条件)。"
+                    )
+                    update_ids.add(keep_id)
             else:
                 # 保留第一行
                 keep_row = group.iloc[0]
                 keep_id = keep_row[id_column]
+                # 如果没有record_id，则不加入update_ids，因为更新是针对飞书记录的
+                print(
+                    f"      ➡️ 情况B (公司不同且不相关): 记录 {keep_id} 无 record_id，不标记为更新。"
+                )
 
             if keep_id not in ids_processed:
                 rows_to_keep.append(keep_id)
                 modifications = {}
+                # 仍然需要应用修改，但不作为是否加入update_ids的判断依据
                 if keep_row[company_col] != merged_company_name:
                     modifications[company_col] = merged_company_name
                 if keep_row[source_col] != merged_source:
                     modifications[source_col] = merged_source
-                if modifications:
+
+                if modifications:  # 仅当确实有字段需要修改时，才记录修改动作
+                    print(
+                        f"      ➡️ 情况B: 对记录 {keep_id} 应用字段修改: {modifications}"
+                    )
                     rows_to_modify[keep_id] = modifications
-                    # 只有有record_id且发生了合并才计入update_ids
-                    if has_record_id and keep_row[record_id_col] != "":
-                        update_ids.add(keep_id)
+                else:
+                    print(
+                        f"      ➡️ 情况B: 对记录 {keep_id} 无需应用字段修改 (字段值已一致)。"
+                    )
+
                 ids_processed.add(keep_id)
                 ids_processed.update(group_ids - {keep_id})
             else:
@@ -950,6 +967,9 @@ def create_multi_sheet_excel(
     创建多Sheet页Excel文件，自动安全获取所有飞书相关列名配置，避免KeyError。
     只将update_ids中的行放入更新Sheet。
     """
+    print(
+        f"[DEBUG] create_multi_sheet_excel 收到的 update_ids 类型: {type(update_ids)}, 长度: {len(update_ids) if update_ids is not None else 'None'}"
+    )
     feishu_config = config.get("feishu_config", {})
     company_col_config = feishu_config.get(
         "COMPANY_NAME_COLUMN", "企业名称"
@@ -1088,7 +1108,23 @@ def create_multi_sheet_excel(
     df_new_initial = df_work[df_work[record_id_col].fillna("") == ""].copy()
     # 更新Sheet: 只包含update_ids中的有record_id的行
     if update_ids is not None:
-        df_update = df_work[df_work[id_column].isin(update_ids)].copy()
+        # 日志增强：打印 update_ids 和 df_work['行ID']
+        print(f"[DEBUG] update_ids（前20个）: {list(update_ids)[:20]}")
+        print(
+            f"[DEBUG] df_work['行ID']（前20个）: {df_work[id_column].astype(str).str.strip().head(20).tolist()}"
+        )
+        # 检查每个 update_id 是否在 df_work['行ID'] 中
+        for test_id in list(update_ids)[:20]:
+            exists = any(
+                df_work[id_column].astype(str).str.strip() == str(test_id).strip()
+            )
+            print(f"[DEBUG] update_id {test_id} 是否在df_work中: {exists}")
+        # 强制类型和格式一致性
+        df_work[id_column] = df_work[id_column].astype(str).str.strip()
+        update_ids_str = set(str(i).strip() for i in update_ids)
+        df_update = df_work[df_work[id_column].isin(update_ids_str)].copy()
+        print(f"[DEBUG] df_update 长度: {len(df_update)}")
+        print(f"[DEBUG] df_update 前5行: {df_update.head(5).to_dict(orient='records')}")
     else:
         df_update = df_work[[]].copy()  # 空DataFrame
 

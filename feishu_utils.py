@@ -4,6 +4,7 @@ from typing import Optional, List, Dict, Any, Union
 import requests
 import time
 import pandas as pd
+import uuid
 
 # 这些配置现在由调用者传入
 # APP_ID = 'cli_a36634dc16b8d00e'
@@ -213,10 +214,30 @@ def fetch_and_prepare_feishu_data(feishu_config, target_columns=None):
             df_feishu = pd.DataFrame(all_feishu_records)
             print("   ✅ 飞书数据已成功转换为 DataFrame。")
 
+            # 新增：为所有缺失或无效的行ID补充唯一UUID
+            id_column = "行ID"
+            if id_column in df_feishu.columns:
+                empty_or_none_id_mask = (
+                    df_feishu[id_column].fillna("").astype(str).str.strip() == ""
+                ) | (df_feishu[id_column].astype(str).str.lower() == "none")
+                num_to_fill = empty_or_none_id_mask.sum()
+                if num_to_fill > 0:
+                    print(
+                        f"   检测到 {num_to_fill} 个空的或无效的 {id_column}，为其生成UUID..."
+                    )
+                    df_feishu.loc[empty_or_none_id_mask, id_column] = [
+                        str(uuid.uuid4()) for _ in range(num_to_fill)
+                    ]
+            else:
+                df_feishu[id_column] = [
+                    str(uuid.uuid4()) for _ in range(len(df_feishu))
+                ]
+                print(f"   创建新列并填充UUID: {id_column}")
+
             # 4. 新增：根据target_columns过滤列
             if target_columns and isinstance(target_columns, list):
-                # 确保始终保留系统必要列
-                required_cols = ["record_id", "table_id"]
+                # 确保始终保留系统必要列（修复：加入'行ID'）
+                required_cols = ["record_id", "table_id", "行ID"]
                 cols_to_keep = required_cols + [
                     col for col in target_columns if col in df_feishu.columns
                 ]
@@ -289,7 +310,7 @@ def get_table_record_count(
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
         resp.raise_for_status()
         data = resp.json()
-        print(f"data: {data}")
+
         if data.get("code") == 0:
             # *** 修改：从 data.total 获取记录数 ***
             total_count = data.get("data", {}).get("total")
@@ -528,6 +549,26 @@ def batch_update_records(
                 f"   [Feishu Update] 安全过滤: 共移除 {field_removal_count} 个黑名单字段实例"
             )
 
+        # 新增：获取表格字段元数据
+        field_type_map = get_table_fields_metadata(access_token, app_token, table_id)
+        phone_field_type = field_type_map.get("电话")
+        if phone_field_type == 2:  # 2=数字类型
+            print(
+                "   [Feishu Update] 检测到'电话'字段为数字类型，将自动转换为数字格式进行同步。"
+            )
+            for record in records_to_update:
+                fields = record.get("fields", {})
+                phone_val = fields.get("电话")
+                if phone_val is not None:
+                    try:
+                        phone_num = int("".join(filter(str.isdigit, str(phone_val))))
+                        fields["电话"] = phone_num
+                    except Exception as e:
+                        print(
+                            f"      [Feishu Update] 电话字段转换失败: {phone_val} -> {e}"
+                        )
+                        fields["电话"] = None
+
         for i in range(0, len(records_to_update), BATCH_UPDATE_SIZE):
             batch_records = records_to_update[i : i + BATCH_UPDATE_SIZE]
             # 构造请求体，格式通常是 {"records": [...]}，其中每个元素包含 record_id 和 fields
@@ -715,6 +756,27 @@ def batch_add_records(
                 f"   [Feishu Add] 安全过滤: 共移除 {field_removal_count} 个黑名单字段实例"
             )
 
+        # 新增：获取表格字段元数据
+        field_type_map = get_table_fields_metadata(access_token, app_token, table_id)
+        phone_field_type = field_type_map.get("电话")
+        if phone_field_type == 2:  # 2=数字类型
+            print(
+                "   [Feishu Add] 检测到'电话'字段为数字类型，将自动转换为数字格式进行同步。"
+            )
+            for record in records_to_add:
+                fields = record.get("fields", {})
+                phone_val = fields.get("电话")
+                if phone_val is not None:
+                    # 尝试只保留数字字符并转为int
+                    try:
+                        phone_num = int("".join(filter(str.isdigit, str(phone_val))))
+                        fields["电话"] = phone_num
+                    except Exception as e:
+                        print(
+                            f"      [Feishu Add] 电话字段转换失败: {phone_val} -> {e}"
+                        )
+                        fields["电话"] = None
+
         for i in range(0, len(records_to_add), BATCH_CREATE_SIZE):
             batch_records_payload = records_to_add[i : i + BATCH_CREATE_SIZE]
             batch_number = i // BATCH_CREATE_SIZE + 1
@@ -793,7 +855,7 @@ def batch_add_records(
                 # 记录完整响应内容
                 try:
                     data = response.json()
-                    print(f"      [DEBUG] 响应内容: {data}")
+                    # print(f"      [DEBUG] 响应内容: {data}")
 
                     if data.get("code") == 0:
                         added_records_info = data.get("data", {}).get("records", [])
@@ -946,3 +1008,30 @@ def batch_add_records(
             print(f"         - {err_item}")
 
     return results
+
+
+# 新增：获取表格字段元数据
+
+
+def get_table_fields_metadata(access_token, app_token, table_id):
+    """获取飞书表格字段元数据，返回字段名到类型的映射。"""
+    url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/fields"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    try:
+        resp = requests.get(url, headers=headers, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+        if data.get("code") == 0:
+            fields = data.get("data", {}).get("items", [])
+            # 返回字段名到类型的映射（type: 1=文本, 2=数字, 3=单选, ...）
+            return {
+                f["field_name"]: f["type"]
+                for f in fields
+                if "field_name" in f and "type" in f
+            }
+        else:
+            print(f"   [Feishu Meta] 获取字段元数据失败: {data.get('msg')}")
+            return {}
+    except Exception as e:
+        print(f"   [Feishu Meta] 获取字段元数据异常: {e}")
+        return {}

@@ -731,6 +731,7 @@ def process_batch_result(task_id, task_info, app):
                         config,
                         raw_combined_df,  # 传递原始数据，确保"原始数据"Sheet正确
                         id_column="行ID",  # 使用行ID作为唯一标识符
+                        update_ids=update_ids,  # 修复：补充 update_ids 参数
                     )
 
                     print(f"✅ 结果已保存到 {final_output_file}")
