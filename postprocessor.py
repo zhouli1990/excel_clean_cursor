@@ -488,7 +488,7 @@ def validate_phone_format(
 
 def apply_post_processing(
     df: pd.DataFrame, config: dict, id_column: str = "行ID"
-) -> pd.DataFrame:
+) -> tuple:
     """
     应用所有后处理步骤到DataFrame，包括:
     1. 全局数据清理 (去空格、去换行)
@@ -499,13 +499,8 @@ def apply_post_processing(
     6. 重复手机号的合并处理
     7. 相同手机号的企业名称全合并处理
 
-    Args:
-        df: 输入DataFrame
-        config: 配置字典
-        id_column: 唯一标识符列名，默认为"行ID"
-
     Returns:
-        pd.DataFrame: 后处理后的DataFrame
+        (pd.DataFrame, set): 后处理后的DataFrame和需更新的行ID集合
     """
     print("--- 开始应用后处理步骤 --- ")
 
@@ -525,9 +520,12 @@ def apply_post_processing(
 
     # 获取配置项
     feishu_config = config.get("feishu_config", {})
-    phone_col = feishu_config.get("PHONE_NUMBER_COLUMN", "电话")
     company_col = feishu_config.get("COMPANY_NAME_COLUMN", "企业名称")
+    phone_col = feishu_config.get("PHONE_NUMBER_COLUMN", "电话")
     remark_col = feishu_config.get("REMARK_COLUMN_NAME", "备注")
+    related_company_col = feishu_config.get(
+        "RELATED_COMPANY_COLUMN_NAME", "关联公司名称(LLM)"
+    )
 
     # 确保备注列存在
     if remark_col not in df.columns:
@@ -535,9 +533,6 @@ def apply_post_processing(
         print(f"   创建新列: '{remark_col}'")
 
     # 确保关联公司列存在
-    related_company_col = feishu_config.get(
-        "RELATED_COMPANY_COLUMN_NAME", "关联公司名称(LLM)"
-    )
     if related_company_col not in df.columns:
         df[related_company_col] = ""
         print(f"   创建新列: '{related_company_col}'")
@@ -572,22 +567,22 @@ def apply_post_processing(
 
     # 6. 处理电话号码重复合并逻辑
     print("   >> [Step 5] 开始处理电话号码重复合并逻辑...")
-    df = merge_duplicate_phones(df, config, id_column)
+    df, update_ids = merge_duplicate_phones(df, config, id_column)
     print("   ✅ [Step 5] 电话号码重复合并完成。")
 
-    # 7. 新增: 相同手机号的企业名称全合并处理
-    print("   >> [Step 6] 开始企业名称全合并处理...")
-    df = merge_all_companies_for_same_phone(
-        df,
-        phone_col=phone_col,
-        company_col=company_col,
-        record_id_col="record_id",
-        related_company_col=related_company_col,
-    )
-    print("   ✅ [Step 6] 企业名称全合并处理完成。")
+    # # 7. 新增: 相同手机号的企业名称全合并处理
+    # print("   >> [Step 6] 开始企业名称全合并处理...")
+    # df = merge_all_companies_for_same_phone(
+    #     df,
+    #     phone_col=phone_col,
+    #     company_col=company_col,
+    #     record_id_col="record_id",
+    #     related_company_col=related_company_col,
+    # )
+    # print("   ✅ [Step 6] 企业名称全合并处理完成。")
 
     print("--- 后处理步骤完成 ---")
-    return df
+    return df, update_ids
 
 
 # --- 新增：查找列名的辅助函数 ---
@@ -612,22 +607,10 @@ def find_column_by_aliases(df, aliases):
 # --- 修改：处理手机号重复的合并函数 ---
 def merge_duplicate_phones(
     df: pd.DataFrame, config: dict, id_column: str = "行ID"
-) -> pd.DataFrame:
+) -> tuple:
     """
     处理电话号码重复的情况，实现需求文档 FR3.4 中的新增子步骤逻辑:
-    1. 对于电话相同但公司不同且LLM判断不相关的组:
-       - 如果组内全无record_id: 保留一行，合并公司名和来源到该行，该行最终应进入"新增"Sheet。
-       - 如果组内存在record_id: 保留一行有record_id的，合并公司名和来源到该行，该行最终应进入"更新"Sheet。
-    2. 对于电话相同且公司相同（或LLM判断相关）的组:
-       - 保留一行（优先有record_id的），丢弃其他行。
-
-    Args:
-        df: 输入DataFrame
-        config: 配置字典，包含列名等配置
-        id_column: 唯一标识符列名，默认为"行ID"
-
-    Returns:
-        处理后的DataFrame，其中重复项已根据规则合并或标记待删除
+    返回(result_df, update_ids)，update_ids为所有因合并操作（如合并企业名称、来源）而需要更新的有record_id的行的id集合。
     """
     print("   >> [Step 5] 开始处理电话号码重复合并逻辑...")
 
@@ -687,7 +670,7 @@ def merge_duplicate_phones(
         print(
             f"      ⚠️ 警告: 缺少必要列 '电话'（未找到任何电话相关列名），无法处理电话号码重复合并"
         )
-        return df
+        return df, set()
 
     if not company_col or company_col not in df.columns:
         print(
@@ -729,6 +712,7 @@ def merge_duplicate_phones(
     rows_to_keep = []  # 存储要保留的行的ID
     rows_to_modify = {}  # 存储需要修改的行 {ID: {col: new_value}}
     ids_processed = set()  # 跟踪已处理的ID
+    update_ids = set()  # 新增：记录需要更新的有record_id的行ID
 
     # 处理每个电话号码组
     for phone, group in phone_groups:
@@ -781,16 +765,13 @@ def merge_duplicate_phones(
                 # 保留一个有 record_id 的行
                 keep_row = group[group[record_id_col] != ""].iloc[0]
                 keep_id = keep_row[id_column]
-                # 该行最终去"更新"页
             else:
                 # 保留第一行
                 keep_row = group.iloc[0]
                 keep_id = keep_row[id_column]
-                # 该行最终去"新增"页
 
             if keep_id not in ids_processed:
                 rows_to_keep.append(keep_id)
-                # 记录需要进行的修改
                 modifications = {}
                 if keep_row[company_col] != merged_company_name:
                     modifications[company_col] = merged_company_name
@@ -798,9 +779,10 @@ def merge_duplicate_phones(
                     modifications[source_col] = merged_source
                 if modifications:
                     rows_to_modify[keep_id] = modifications
-
+                    # 只有有record_id且发生了合并才计入update_ids
+                    if has_record_id and keep_row[record_id_col] != "":
+                        update_ids.add(keep_id)
                 ids_processed.add(keep_id)
-                # 将组内其他行的ID标记为已处理(相当于丢弃)
                 ids_processed.update(group_ids - {keep_id})
             else:
                 # 如果选择保留的行已经被处理过（理论上不应发生，但作为保险），将组内其他行标记为已处理
@@ -835,7 +817,7 @@ def merge_duplicate_phones(
         f"      电话号码重复合并完成，原始数据 {len(df)} 行，处理后保留 {len(result_df)} 行"
     )
     print("   ✅ [Step 5] 电话号码重复合并完成。")
-    return result_df
+    return result_df, update_ids
 
 
 # --- 新增：合并同一手机号所有企业名称的函数 ---
@@ -962,36 +944,32 @@ def create_multi_sheet_excel(
     config: dict,
     df_original: pd.DataFrame = None,  # 新增参数，接收未去重的原始数据
     id_column: str = "行ID",  # 使用行ID作为唯一标识符列名
+    update_ids: set = None,  # 新增参数，指定需要更新的行ID
 ) -> None:
     """
-    创建包含多个Sheet页的Excel文件:
-    1. "原始数据" Sheet: 包含所有未经去重的原始数据。
-    2. "新增" Sheet: 包含去重后、record_id为空的数据（手机号格式正确）。
-    3. "更新" Sheet: 只包含因合并企业名称和来源而需要更新的记录。
-    4. "新增-n" Sheet(可选): 当新增数据超过飞书50,000行限制时，自动分表。
-
-    Args:
-        df_processed: 经过后处理的DataFrame
-        output_filepath: Excel文件保存路径
-        config: 配置字典
-        df_original: 未经去重的原始合并数据（如果提供则使用它作为原始数据Sheet）
-        id_column: 唯一标识符列名，默认为"行ID"
+    创建多Sheet页Excel文件，自动安全获取所有飞书相关列名配置，避免KeyError。
+    只将update_ids中的行放入更新Sheet。
     """
+    feishu_config = config.get("feishu_config", {})
+    company_col_config = feishu_config.get(
+        "COMPANY_NAME_COLUMN", "企业名称"
+    )  # 公司名列，默认"企业名称"
+    phone_col_config = feishu_config.get(
+        "PHONE_NUMBER_COLUMN", "电话"
+    )  # 电话列，默认"电话"
+    remark_col_config = feishu_config.get(
+        "REMARK_COLUMN_NAME", "备注"
+    )  # 备注列，默认"备注"
+    related_company_col_config = feishu_config.get(
+        "RELATED_COMPANY_COLUMN_NAME", "关联公司名称(LLM)"
+    )  # 关联公司列，默认"关联公司名称(LLM)"
+
     print(f"开始创建多Sheet页Excel文件: {output_filepath}")
 
     # 准备列名和必需的系统列
     record_id_col = "record_id"
     source_col = "来源"
     system_cols = [record_id_col, source_col, id_column]  # 使用行ID替代local_row_id
-
-    # 从配置中获取业务列名
-    feishu_config = config.get("feishu_config", {})
-    phone_col_config = feishu_config.get("PHONE_NUMBER_COLUMN", "电话")
-    company_col_config = feishu_config.get("COMPANY_NAME_COLUMN", "企业名称")
-    remark_col_config = feishu_config.get("REMARK_COLUMN_NAME", "备注")
-    related_company_col_config = feishu_config.get(
-        "RELATED_COMPANY_COLUMN_NAME", "关联公司名称(LLM)"
-    )
 
     # 记录待处理数据的列名，用于日志输出
     columns_in_processed = list(df_processed.columns)
@@ -1108,12 +1086,11 @@ def create_multi_sheet_excel(
     # --- 步骤1: 基础分类 ---
     # 新增Sheet: 只包含record_id为空的记录
     df_new_initial = df_work[df_work[record_id_col].fillna("") == ""].copy()
-
-    # 更新Sheet: 只包含有record_id且没有关联公司的记录
-    df_update = df_work[
-        (df_work[record_id_col].fillna("") != "")
-        & (df_work[related_company_col].fillna("") == "")
-    ].copy()
+    # 更新Sheet: 只包含update_ids中的有record_id的行
+    if update_ids is not None:
+        df_update = df_work[df_work[id_column].isin(update_ids)].copy()
+    else:
+        df_update = df_work[[]].copy()  # 空DataFrame
 
     # 有record_id且有关联公司的记录 - 这些记录不进入任何sheet
     excluded_records = df_work[

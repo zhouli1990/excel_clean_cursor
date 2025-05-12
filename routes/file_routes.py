@@ -9,6 +9,7 @@ from utils.error_handler import handle_exceptions
 from utils.task_manager import create_task, get_task_info, get_latest_task
 from utils.config_manager import load_config
 from routes.task_routes import run_processing
+from postprocessor import apply_post_processing, create_multi_sheet_excel
 
 # 创建Blueprint
 file_bp = Blueprint("file", __name__)
@@ -415,32 +416,38 @@ def parse_config_from_request(request):
 
         # 创建动态配置字典
         dynamic_config = {
-            "TARGET_COLUMNS": target_columns,
-            "DEEPSEEK_API_KEY": api_key,
-            "DEEPSEEK_API_ENDPOINT": llm_config["DEEPSEEK_API_ENDPOINT"],
-            "BATCH_SIZE": batch_size,
-            "MAX_COMPLETION_TOKENS": max_tokens,
-            "API_TIMEOUT": api_timeout,
-            "DASHSCOPE_API_KEY": dashscope_api_key,
-            "BAILIAN_MODEL_NAME": bailian_model_name,
-            "BAILIAN_COMPLETION_WINDOW": bailian_completion_window,
+            "TARGET_COLUMNS": target_columns,  # 目标列，默认值见DEFAULT_PROCESSOR_CONFIG
+            "DEEPSEEK_API_KEY": api_key,  # DeepSeek API Key
+            "DEEPSEEK_API_ENDPOINT": llm_config.get(
+                "DEEPSEEK_API_ENDPOINT",
+                "https://api.deepseek.com/chat/completions",  # 默认DeepSeek API端点
+            ),
+            "BATCH_SIZE": batch_size,  # 批处理大小，默认50
+            "MAX_COMPLETION_TOKENS": max_tokens,  # 最大token数，默认8192
+            "API_TIMEOUT": api_timeout,  # 超时，默认180
+            "DASHSCOPE_API_KEY": dashscope_api_key,  # 百炼API Key
+            "BAILIAN_MODEL_NAME": bailian_model_name,  # 百炼模型名
+            "BAILIAN_COMPLETION_WINDOW": bailian_completion_window,  # 百炼窗口
             "BAILIAN_BASE_URL": llm_config.get(
-                "BAILIAN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"
+                "BAILIAN_BASE_URL",
+                "https://dashscope.aliyuncs.com/compatible-mode/v1",  # 默认百炼API地址
             ),
             "BAILIAN_BATCH_ENDPOINT": llm_config.get(
-                "BAILIAN_BATCH_ENDPOINT", "/v1/chat/completions"
+                "BAILIAN_BATCH_ENDPOINT", "/v1/chat/completions"  # 默认百炼批处理端点
             ),
         }
 
         # 飞书配置
         feishu_app_id = request.form.get(
-            "feishu_app_id", feishu_config["APP_ID"]
+            "feishu_app_id", feishu_config.get("APP_ID", "")  # 飞书AppId，默认空
         ).strip()
         feishu_app_secret = request.form.get(
-            "feishu_app_secret", feishu_config["APP_SECRET"]
+            "feishu_app_secret",
+            feishu_config.get("APP_SECRET", ""),  # 飞书AppSecret，默认空
         ).strip()
         feishu_app_token = request.form.get(
-            "feishu_app_token", feishu_config["APP_TOKEN"]
+            "feishu_app_token",
+            feishu_config.get("APP_TOKEN", ""),  # 飞书AppToken，默认空
         ).strip()
         feishu_table_ids_json = request.form.get("feishu_table_ids", "[]")
 
@@ -468,13 +475,21 @@ def parse_config_from_request(request):
                 "APP_SECRET": feishu_app_secret,
                 "APP_TOKEN": feishu_app_token,
                 "TABLE_IDS": feishu_table_ids,
-                "ADD_TARGET_TABLE_IDS": feishu_config["ADD_TARGET_TABLE_IDS"],
-                "COMPANY_NAME_COLUMN": feishu_config["COMPANY_NAME_COLUMN"],
-                "PHONE_NUMBER_COLUMN": feishu_config["PHONE_NUMBER_COLUMN"],
-                "REMARK_COLUMN_NAME": feishu_config["REMARK_COLUMN_NAME"],
-                "RELATED_COMPANY_COLUMN_NAME": feishu_config[
-                    "RELATED_COMPANY_COLUMN_NAME"
-                ],
+                "ADD_TARGET_TABLE_IDS": feishu_config.get(
+                    "ADD_TARGET_TABLE_IDS", []
+                ),  # 默认空列表
+                "COMPANY_NAME_COLUMN": feishu_config.get(
+                    "COMPANY_NAME_COLUMN", "企业名称"
+                ),  # 默认"企业名称"
+                "PHONE_NUMBER_COLUMN": feishu_config.get(
+                    "PHONE_NUMBER_COLUMN", "电话"
+                ),  # 默认"电话"
+                "REMARK_COLUMN_NAME": feishu_config.get(
+                    "REMARK_COLUMN_NAME", "备注"
+                ),  # 默认"备注"
+                "RELATED_COMPANY_COLUMN_NAME": feishu_config.get(
+                    "RELATED_COMPANY_COLUMN_NAME", "关联公司名称(LLM)"
+                ),  # 默认"关联公司名称(LLM)"
             },
             "post_processing_config": post_process_config,
         }

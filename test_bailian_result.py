@@ -197,6 +197,19 @@ def test_bailian_process():
     else:
         print("错误: 无法应用后处理，DataFrame为空")
 
+    company_col = config["feishu_config"].get(
+        "COMPANY_NAME_COLUMN", "企业名称"
+    )  # 公司名列，默认"企业名称"
+    phone_col = config["feishu_config"].get(
+        "PHONE_NUMBER_COLUMN", "电话"
+    )  # 电话列，默认"电话"
+    remark_col = config["feishu_config"].get(
+        "REMARK_COLUMN_NAME", "备注"
+    )  # 备注列，默认"备注"
+    related_col = config["feishu_config"].get(
+        "RELATED_COMPANY_COLUMN_NAME", "关联公司名称(LLM)"
+    )  # 关联公司列，默认"关联公司名称(LLM)"
+
 
 if __name__ == "__main__":
     test_bailian_result_parsing()

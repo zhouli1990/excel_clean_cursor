@@ -355,24 +355,26 @@ def upload_files():
 
             # 创建本次任务的动态配置字典
             dynamic_config = {
-                "TARGET_COLUMNS": target_columns,  # Now guaranteed to include "来源"
-                "DEEPSEEK_API_KEY": api_key,
-                "DEEPSEEK_API_ENDPOINT": CURRENT_LLM_CONFIG[
-                    "DEEPSEEK_API_ENDPOINT"
-                ],  # API端点通常不变
-                "BATCH_SIZE": batch_size,
-                "MAX_COMPLETION_TOKENS": max_tokens,
-                "API_TIMEOUT": api_timeout,  # 新增超时配置
-                # 添加百炼API相关配置
-                "DASHSCOPE_API_KEY": dashscope_api_key,
-                "BAILIAN_MODEL_NAME": bailian_model_name,
-                "BAILIAN_COMPLETION_WINDOW": bailian_completion_window,
+                "TARGET_COLUMNS": target_columns,  # 目标列，默认值见DEFAULT_PROCESSOR_CONFIG
+                "DEEPSEEK_API_KEY": api_key,  # DeepSeek API Key
+                "DEEPSEEK_API_ENDPOINT": CURRENT_LLM_CONFIG.get(
+                    "DEEPSEEK_API_ENDPOINT", "https://api.deepseek.com/chat/completions"  # 默认DeepSeek API端点
+                ),
+                "BATCH_SIZE": batch_size,  # 批处理大小，默认160
+                "MAX_COMPLETION_TOKENS": max_tokens,  # 最大token数，默认8192
+                "API_TIMEOUT": api_timeout,  # 超时，默认180
+                "DASHSCOPE_API_KEY": dashscope_api_key,  # 百炼API Key
+                "BAILIAN_MODEL_NAME": CURRENT_LLM_CONFIG.get(
+                    "BAILIAN_MODEL_NAME", "qwen-turbo-latest"  # 默认百炼模型名
+                ),
+                "BAILIAN_COMPLETION_WINDOW": CURRENT_LLM_CONFIG.get(
+                    "BAILIAN_COMPLETION_WINDOW", "24h"  # 默认24小时窗口
+                ),
                 "BAILIAN_BASE_URL": CURRENT_LLM_CONFIG.get(
-                    "BAILIAN_BASE_URL",
-                    "https://dashscope.aliyuncs.com/compatible-mode/v1",
+                    "BAILIAN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"  # 默认百炼API地址
                 ),
                 "BAILIAN_BATCH_ENDPOINT": CURRENT_LLM_CONFIG.get(
-                    "BAILIAN_BATCH_ENDPOINT", "/v1/chat/completions"
+                    "BAILIAN_BATCH_ENDPOINT", "/v1/chat/completions"  # 默认百炼批处理端点
                 ),
             }
             print(
@@ -387,13 +389,13 @@ def upload_files():
 
             # Feishu Config (使用加载的默认值)
             feishu_app_id = request.form.get(
-                "feishu_app_id", CURRENT_FEISHU_CONFIG["APP_ID"]
+                "feishu_app_id", CURRENT_FEISHU_CONFIG.get("APP_ID", "")  # 飞书AppId，默认空
             ).strip()
             feishu_app_secret = request.form.get(
-                "feishu_app_secret", CURRENT_FEISHU_CONFIG["APP_SECRET"]
+                "feishu_app_secret", CURRENT_FEISHU_CONFIG.get("APP_SECRET", "")  # 飞书AppSecret，默认空
             ).strip()
             feishu_app_token = request.form.get(
-                "feishu_app_token", CURRENT_FEISHU_CONFIG["APP_TOKEN"]
+                "feishu_app_token", CURRENT_FEISHU_CONFIG.get("APP_TOKEN", "")  # 飞书AppToken，默认空
             ).strip()
             feishu_table_ids_json = request.form.get("feishu_table_ids", "[]")
             feishu_table_ids = json.loads(feishu_table_ids_json)
@@ -714,7 +716,7 @@ def run_processing(task_id, input_files, output_file, config):
                 )
 
                 # 调用 postprocessor.apply_post_processing
-                final_df = postprocessor.apply_post_processing(combined_df, config)
+                final_df, update_ids = postprocessor.apply_post_processing(combined_df, config)
 
                 # 创建多Sheet Excel文件
                 update_task_progress(
@@ -725,8 +727,8 @@ def run_processing(task_id, input_files, output_file, config):
                     len(input_files),
                 )
 
-                # 生成最终Excel文件
-                postprocessor.create_multi_sheet_excel(final_df, output_file, config)
+                # 生成最终Excel文件，传递update_ids参数
+                postprocessor.create_multi_sheet_excel(final_df, output_file, config, update_ids=update_ids)
 
                 # 更新任务状态为完成
                 result_filename = os.path.basename(output_file)

@@ -698,7 +698,7 @@ def process_batch_result(task_id, task_info, app):
 
                 # 应用后处理步骤
                 print(f"应用后处理步骤，合并DataFrame大小: {len(combined_df)} 行...")
-                processed_df = postprocessor.apply_post_processing(
+                processed_df, update_ids = postprocessor.apply_post_processing(
                     combined_df, config, id_column="行ID"
                 )
             else:
@@ -707,7 +707,7 @@ def process_batch_result(task_id, task_info, app):
                 raw_combined_df = original_bailian_df.copy()
                 # 应用后处理步骤
                 print(f"应用后处理步骤，DataFrame大小: {len(bailian_df)} 行...")
-                processed_df = postprocessor.apply_post_processing(
+                processed_df, update_ids = postprocessor.apply_post_processing(
                     bailian_df, config, id_column="行ID"
                 )
 
