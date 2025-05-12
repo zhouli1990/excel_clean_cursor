@@ -733,3 +733,29 @@
 2025-05-12 22:42:42,104 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
 2025-05-12 22:42:42,104 - task_manager - INFO - 已更新任务 task_20250512_224220_77091bdc 的历史记录
 2025-05-12 22:42:56,716 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:43:37,992 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:44:37,998 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:45:38,011 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:46:38,014 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:47:38,021 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:48:38,027 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:49:00,722 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:49:01,695 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:49:05,058 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:49:05,825 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:49:30,107 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:49:31,010 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:49:37,596 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:49:38,466 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:50:08,393 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:50:09,238 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:50:10,582 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:50:11,226 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:50:12,576 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:50:13,329 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:50:21,830 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:50:22,532 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:51:48,874 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:51:49,857 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
+2025-05-12 22:51:51,195 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-12 22:51:52,100 - task_manager - INFO - 已清理 0 个过期任务 (保留近 7 天内的任务)
