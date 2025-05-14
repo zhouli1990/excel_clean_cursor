@@ -8,9 +8,11 @@ from utils.config_manager import load_config
 import pandas as pd
 import feishu_utils
 from datetime import datetime
+from utils.logger import setup_logger
 
 # 创建Blueprint
 feishu_bp = Blueprint("feishu", __name__)
+logger = setup_logger("feishu_routes")
 
 
 @feishu_bp.route("/check_diff/<task_id>", methods=["GET"])
@@ -32,14 +34,17 @@ def check_differences(task_id):
             - total_rows: 所有Sheet页的总行数
             - columns: Excel文件包含的列名列表
     """
+    logger.info(f"请求/check_diff/{task_id}")
     task_info = get_task_info(task_id)
     if not task_info:
+        logger.warning(f"任务ID不存在或已过期: {task_id}")
         return jsonify({"success": False, "error": "任务ID不存在或已过期。"}), 404
 
     # 检查必要的文件是否存在
     final_filename = task_info.get("result_file")  # 最终文件名
 
     if not final_filename:
+        logger.warning(f"找不到处理结果文件信息: {task_id}")
         return jsonify({"success": False, "error": "找不到处理结果文件信息。"}), 404
 
     from flask import current_app
@@ -48,6 +53,7 @@ def check_differences(task_id):
     final_filepath = os.path.join(output_dir, final_filename)
 
     if not os.path.exists(final_filepath):
+        logger.warning(f"找不到多Sheet页Excel文件: {final_filepath}")
         return jsonify({"success": False, "error": "找不到多Sheet页Excel文件。"}), 404
 
     try:
@@ -102,9 +108,11 @@ def check_differences(task_id):
             "columns": list(all_columns),
         }
 
+        logger.info(f"成功读取多Sheet页Excel文件: {final_filepath}")
         return jsonify(result)
 
     except Exception as e:
+        logger.error(f"读取Excel文件时发生服务器错误: {e}", exc_info=True)
         return (
             jsonify(
                 {"success": False, "error": f"读取Excel文件时发生服务器错误: {str(e)}"}

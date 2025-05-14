@@ -93,15 +93,21 @@ def update_task_progress(
         bool: 更新是否成功
     """
     if task_id in tasks:
+        # 记录前一个状态，用于检测状态变化
+        previous_status = tasks[task_id].get("status", "")
+        previous_progress = tasks[task_id].get("progress", 0)
+
         tasks[task_id]["status"] = status_msg
         # 确保进度值在0到100之间
         tasks[task_id]["progress"] = max(0, min(100, int(progress_pct)))
         tasks[task_id]["files_processed"] = files_processed
         tasks[task_id]["total_files"] = total_files
-        # 在服务器控制台也打印进度信息，方便调试
-        logger.info(
-            f"任务 {task_id} 进度: {status_msg} - {progress_pct}% ({files_processed}/{total_files} 文件)"
-        )
+
+        # 状态变化或进度发生明显变化时才记录日志，避免日志过多
+        if previous_status != status_msg or abs(previous_progress - progress_pct) >= 5:
+            logger.info(
+                f"任务 {task_id} 进度更新: {status_msg} - {progress_pct}% ({files_processed}/{total_files} 文件)"
+            )
         return True
     else:
         # 如果任务ID未知（理论上不应发生），打印警告
@@ -190,7 +196,87 @@ def get_latest_task() -> Optional[str]:
     return LATEST_COMPLETED_PREPROCESSING_TASK_ID
 
 
-def add_task_history_entry(task_id: str, entry_type: str = "完整处理") -> Dict:
+def update_batch_task_status(
+    task_id: str, batch_id: str, batch_status: str, api_response: dict = None
+) -> bool:
+    """
+    更新批处理任务状态。
+
+    Args:
+        task_id: 任务ID
+        batch_id: 批处理ID
+        batch_status: 批处理状态
+        api_response: API响应的完整信息（可选）
+
+    Returns:
+        bool: 更新是否成功
+    """
+    if task_id not in tasks:
+        logger.warning(f"尝试更新不存在的任务: {task_id}")
+        return False
+
+    # 如果任务不是批处理模式，转换为批处理模式
+    if not tasks[task_id].get("batch_mode"):
+        tasks[task_id]["batch_mode"] = True
+        tasks[task_id]["batch_id"] = batch_id
+        logger.info(f"任务 {task_id} 已转换为批处理模式, 批处理ID: {batch_id}")
+
+    # 更新批处理状态
+    previous_status = tasks[task_id].get("batch_status", "")
+    tasks[task_id]["batch_status"] = batch_status
+
+    # 保存完整的API响应
+    if api_response:
+        tasks[task_id]["api_response"] = api_response
+
+    # 根据状态更新任务进度
+    status_progress_map = {
+        "submitted": 10,
+        "queued": 15,
+        "running": 30,
+        "processing": 50,
+        "analyzed": 80,
+        "completed": 95,
+        "succeed": 100,
+        "failed": 100,
+        "error": 100,
+    }
+
+    # 如果有状态映射的进度值，更新进度
+    if batch_status.lower() in status_progress_map:
+        progress = status_progress_map[batch_status.lower()]
+        tasks[task_id]["progress"] = progress
+
+        # 更新状态信息
+        if batch_status.lower() in ["failed", "error"]:
+            tasks[task_id]["status"] = "Failed"
+            error_msg = "批处理任务失败"
+            if (
+                api_response
+                and isinstance(api_response, dict)
+                and api_response.get("message")
+            ):
+                error_msg += f": {api_response.get('message')}"
+            tasks[task_id]["error"] = error_msg
+            logger.error(f"任务 {task_id} 批处理失败: {error_msg}")
+        elif batch_status.lower() in ["completed", "succeed"]:
+            tasks[task_id]["status"] = "BatchCompleted"
+            logger.info(f"任务 {task_id} 批处理已完成，等待下载结果")
+        else:
+            tasks[task_id]["status"] = "BatchProcessing"
+
+    # 只在状态变化时记录日志
+    if previous_status != batch_status:
+        logger.info(
+            f"任务 {task_id} 批处理状态更新: {previous_status} -> {batch_status}"
+        )
+
+    return True
+
+
+def add_task_history_entry(
+    task_id: str, entry_type: str = "complete_processing"
+) -> Dict:
     """
     添加一条新的任务历史记录。
 
@@ -281,20 +367,34 @@ def load_task_history() -> List[Dict]:
     try:
         if os.path.exists(HISTORY_FILE_PATH):
             with open(HISTORY_FILE_PATH, "r", encoding="utf-8") as f:
-                TASK_HISTORY = json.load(f)
-                logger.info(
-                    f"已从 {HISTORY_FILE_PATH} 加载 {len(TASK_HISTORY)} 条历史记录"
-                )
+                data = f.read().strip()
+                if not data:  # 文件为空
+                    logger.warning(
+                        f"历史记录文件 {HISTORY_FILE_PATH} 为空，初始化为空列表"
+                    )
+                    TASK_HISTORY = []
+                    return TASK_HISTORY
 
-                # 验证数据结构
-                if not isinstance(TASK_HISTORY, list):
-                    logger.warning(f"历史记录文件格式错误，重置为空列表")
+                # 修复：使用json.loads(data)而不是json.load(f)
+                # 因为f.read()已经将指针移到了文件末尾
+                try:
+                    TASK_HISTORY = json.loads(data)
+                    logger.info(
+                        f"已从 {HISTORY_FILE_PATH} 加载 {len(TASK_HISTORY)} 条历史记录"
+                    )
+
+                    # 验证数据结构
+                    if not isinstance(TASK_HISTORY, list):
+                        logger.warning(f"历史记录文件格式错误，重置为空列表")
+                        TASK_HISTORY = []
+                except json.JSONDecodeError as e:
+                    logger.error(f"历史记录文件JSON解析错误: {e}，重置为空列表")
                     TASK_HISTORY = []
         else:
             logger.info(f"历史记录文件不存在，将初始化为空列表")
             TASK_HISTORY = []
     except Exception as e:
-        logger.error(f"加载历史记录时出错: {e}")
+        logger.error(f"加载历史记录时出错: {e}", exc_info=True)
         TASK_HISTORY = []
 
     return TASK_HISTORY
@@ -335,6 +435,8 @@ def clean_up_old_tasks(days_to_keep: int = 7) -> int:
     global TASK_HISTORY
     tasks_to_remove = []
 
+    logger.info(f"开始清理过期任务 (保留 {days_to_keep} 天内的任务)")
+
     for entry in TASK_HISTORY:
         try:
             # 获取上传时间或完成时间
@@ -349,9 +451,16 @@ def clean_up_old_tasks(days_to_keep: int = 7) -> int:
                 task_id = entry.get("task_id")
                 if task_id:
                     tasks_to_remove.append(task_id)
+                    logger.debug(f"任务 {task_id} 已过期 (创建于 {time_str})")
 
         except (ValueError, TypeError) as e:
             logger.warning(f"解析任务时间时出错: {e}")
+
+    if not tasks_to_remove:
+        logger.info("没有找到需要清理的过期任务")
+        return 0
+
+    logger.info(f"找到 {len(tasks_to_remove)} 个过期任务需要清理")
 
     # 清理过期任务
     for task_id in tasks_to_remove:
@@ -359,6 +468,7 @@ def clean_up_old_tasks(days_to_keep: int = 7) -> int:
             # 从内存中删除任务状态
             if task_id in tasks:
                 del tasks[task_id]
+                logger.debug(f"已从内存中删除任务状态: {task_id}")
 
             # 删除任务目录（如果存在）
             upload_dir = os.path.join("uploads", task_id)
@@ -366,29 +476,39 @@ def clean_up_old_tasks(days_to_keep: int = 7) -> int:
 
             # 删除上传目录
             if os.path.exists(upload_dir) and os.path.isdir(upload_dir):
+                file_count = len(os.listdir(upload_dir))
                 for filename in os.listdir(upload_dir):
                     file_path = os.path.join(upload_dir, filename)
                     try:
                         if os.path.isfile(file_path):
                             os.unlink(file_path)
+                            logger.debug(f"已删除文件: {file_path}")
                     except Exception as e:
                         logger.error(f"删除文件 {file_path} 时出错: {e}")
                 try:
                     os.rmdir(upload_dir)
+                    logger.debug(
+                        f"已删除上传目录: {upload_dir} (包含 {file_count} 个文件)"
+                    )
                 except Exception as e:
                     logger.error(f"删除目录 {upload_dir} 时出错: {e}")
 
             # 删除输出目录
             if os.path.exists(output_dir) and os.path.isdir(output_dir):
+                file_count = len(os.listdir(output_dir))
                 for filename in os.listdir(output_dir):
                     file_path = os.path.join(output_dir, filename)
                     try:
                         if os.path.isfile(file_path):
                             os.unlink(file_path)
+                            logger.debug(f"已删除文件: {file_path}")
                     except Exception as e:
                         logger.error(f"删除文件 {file_path} 时出错: {e}")
                 try:
                     os.rmdir(output_dir)
+                    logger.debug(
+                        f"已删除输出目录: {output_dir} (包含 {file_count} 个文件)"
+                    )
                 except Exception as e:
                     logger.error(f"删除目录 {output_dir} 时出错: {e}")
 
@@ -396,15 +516,19 @@ def clean_up_old_tasks(days_to_keep: int = 7) -> int:
             logger.info(f"已清理过期任务 {task_id} 及其文件")
 
         except Exception as e:
-            logger.error(f"清理任务 {task_id} 时出错: {e}")
+            logger.error(f"清理任务 {task_id} 时出错: {e}", exc_info=True)
 
     # 从历史记录中过滤掉已删除的任务
     if removed_count > 0:
+        original_count = len(TASK_HISTORY)
         TASK_HISTORY = [
             entry
             for entry in TASK_HISTORY
             if entry.get("task_id") not in tasks_to_remove
         ]
+        logger.info(
+            f"已从历史记录中删除 {original_count - len(TASK_HISTORY)} 个过期任务记录"
+        )
         save_task_history()
 
     logger.info(f"已清理 {removed_count} 个过期任务 (保留近 {days_to_keep} 天内的任务)")

@@ -1,0 +1,21 @@
+2025-05-14 11:04:57,545 - task_manager - INFO - 已从 task_history.json 加载 2 条历史记录
+2025-05-14 11:04:59,337 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-14 11:04:59,337 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-14 11:07:16,907 - task_manager - INFO - 已从 task_history.json 加载 2 条历史记录
+2025-05-14 11:07:18,334 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-14 11:07:18,335 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-14 11:36:16,395 - task_manager - INFO - 已从 task_history.json 加载 2 条历史记录
+2025-05-14 11:36:18,037 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-14 11:36:18,038 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-14 11:36:30,728 - task_manager - INFO - 已从 task_history.json 加载 2 条历史记录
+2025-05-14 11:36:31,852 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-14 11:36:31,853 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-14 14:17:29,584 - task_manager - INFO - 已从 task_history.json 加载 2 条历史记录
+2025-05-14 14:17:31,340 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-14 14:17:31,341 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-14 15:00:27,610 - task_manager - INFO - 已从 task_history.json 加载 2 条历史记录
+2025-05-14 15:00:31,439 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-14 15:00:31,440 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-14 15:02:49,627 - task_manager - INFO - 已从 task_history.json 加载 2 条历史记录
+2025-05-14 15:02:50,879 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-14 15:02:50,880 - task_manager - INFO - 没有找到需要清理的过期任务

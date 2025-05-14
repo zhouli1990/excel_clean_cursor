@@ -16,6 +16,7 @@ import processor
 import postprocessor
 import feishu_utils
 import pandas as pd
+from utils.logger import setup_logger
 
 # 创建Blueprint
 task_bp = Blueprint("task", __name__)
@@ -25,6 +26,8 @@ background_checking_threads = {}
 
 # 添加线程锁，防止并发处理同一任务
 processing_locks = {}
+
+logger = setup_logger("task_routes")
 
 
 # 新增函数：自动周期性查询百炼任务状态
@@ -39,19 +42,21 @@ def auto_check_batch_status(task_id, app, interval=60):
     """
     # 使用传入的app创建应用上下文
     with app.app_context():
-        print(f"启动自动查询百炼任务状态线程: 任务ID={task_id}, 间隔={interval}秒")
+        logger.info(
+            f"启动自动查询百炼任务状态线程: 任务ID={task_id}, 间隔={interval}秒"
+        )
 
         while True:
             try:
                 # 获取任务信息
                 task_info = get_task_info(task_id)
                 if not task_info:
-                    print(f"任务已不存在，停止自动查询: {task_id}")
+                    logger.warning(f"任务已不存在，停止自动查询: {task_id}")
                     break
 
                 # 如果任务已经完成或失败，则停止查询
                 if task_info.get("status") in ["completed", "failed", "error"]:
-                    print(f"任务已完成或失败，停止自动查询: {task_id}")
+                    logger.info(f"任务已完成或失败，停止自动查询: {task_id}")
                     # 移除线程引用
                     if task_id in background_checking_threads:
                         del background_checking_threads[task_id]
@@ -59,10 +64,10 @@ def auto_check_batch_status(task_id, app, interval=60):
 
                 # 检查是否是百炼批处理任务
                 if not task_info.get("batch_mode") or not task_info.get("batch_id"):
-                    print(f"不是百炼批处理任务，停止自动查询: {task_id}")
+                    logger.warning(f"不是百炼批处理任务，停止自动查询: {task_id}")
                     break
 
-                print(f"自动查询百炼任务状态: {task_id}")
+                logger.info(f"自动查询百炼任务状态: {task_id}")
                 batch_id = task_info.get("batch_id")
 
                 # 查询批处理任务状态
@@ -71,11 +76,11 @@ def auto_check_batch_status(task_id, app, interval=60):
                 )
                 batch_status = status_info.get("status", "")
 
-                print(f"百炼任务状态: {batch_status}, 任务ID: {task_id}")
+                logger.info(f"百炼任务状态: {batch_status}, 任务ID: {task_id}")
 
                 # 更新任务状态
                 if batch_status == "completed":
-                    print(f"百炼任务已完成，开始处理结果: {task_id}")
+                    logger.info(f"百炼任务已完成，开始处理结果: {task_id}")
                     # 百炼任务已完成，复用check_batch_status中的处理逻辑
                     # 更新任务状态并触发结果处理
                     process_completed_batch(task_id, task_info, app)
@@ -98,6 +103,7 @@ def auto_check_batch_status(task_id, app, interval=60):
                 else:
                     # 百炼任务仍在处理中，更新进度消息
                     progress_msg = f"百炼批处理中: {batch_status}"
+                    logger.info(f"{progress_msg}, 任务ID: {task_id}")
                     update_task_progress(
                         task_id,
                         progress_msg,
@@ -107,7 +113,7 @@ def auto_check_batch_status(task_id, app, interval=60):
                     )
 
             except Exception as e:
-                print(f"自动查询百炼任务状态时出错: {e}")
+                logger.error(f"自动查询百炼任务状态时出错: {e}", exc_info=True)
                 traceback.print_exc()
 
                 # 如果出错，尝试继续查询而不是终止线程
@@ -142,7 +148,7 @@ def process_completed_batch(task_id, task_info, app=None):
 
     # 尝试获取锁，如果已被占用则表示该任务已经在处理中
     if not processing_locks[task_id].acquire(blocking=False):
-        print(f"任务 {task_id} 已有另一个线程在处理，跳过本次处理")
+        logger.warning(f"任务 {task_id} 已有另一个线程在处理，跳过本次处理")
         return
 
     try:
@@ -151,7 +157,7 @@ def process_completed_batch(task_id, task_info, app=None):
             try:
                 app = current_app._get_current_object()
             except RuntimeError:
-                print(f"错误: 处理百炼结果时无法获取应用上下文，任务ID: {task_id}")
+                logger.error(f"处理百炼结果时无法获取应用上下文，任务ID: {task_id}")
                 mark_task_failed(task_id, "处理百炼结果时无法获取应用上下文")
                 return
 
@@ -167,7 +173,7 @@ def process_completed_batch(task_id, task_info, app=None):
         # 检查任务是否已经处理过，避免重复处理
         fresh_task_info = get_task_info(task_id)
         if fresh_task_info and fresh_task_info.get("result_file"):
-            print(f"任务 {task_id} 已有结果文件，跳过处理")
+            logger.info(f"任务 {task_id} 已有结果文件，跳过处理")
             return
 
         # 启动后台线程处理结果，避免阻塞当前线程
@@ -181,7 +187,7 @@ def process_completed_batch(task_id, task_info, app=None):
 
         # 检查处理是否完成
         if process_thread.is_alive():
-            print(f"警告: 任务 {task_id} 处理超时(10分钟)，但处理线程仍在继续运行")
+            logger.warning(f"任务 {task_id} 处理超时(10分钟)，但处理线程仍在继续运行")
     finally:
         # 释放锁
         processing_locks[task_id].release()
@@ -248,7 +254,7 @@ def run_processing(task_id, input_files, output_file, config):
 
                 # 注意：不在这里启动自动查询线程，让全局批处理任务检查功能来处理
                 # 这样可以避免应用上下文问题，并确保所有批处理任务都能被检查
-                print(
+                logger.info(
                     f"任务 {task_id} 已提交到百炼批处理，将由全局检查线程自动监控状态"
                 )
 
@@ -412,7 +418,7 @@ def check_all_batch_tasks(app, interval=60):
         app: Flask应用实例
         interval: 检查间隔（秒），默认为60秒
     """
-    print(f"启动全局百炼批处理任务检查线程，检查间隔: {interval}秒")
+    logger.info(f"启动全局百炼批处理任务检查线程，检查间隔: {interval}秒")
 
     # 记录是否正在运行检查，避免重复检查
     checking_in_progress = False
@@ -428,7 +434,7 @@ def check_all_batch_tasks(app, interval=60):
 
                 # 使用应用上下文
                 with app.app_context():
-                    print(f"执行全局百炼批处理任务检查...")
+                    logger.info(f"执行全局百炼批处理任务检查...")
 
                     # 加载所有任务历史
                     history_data = load_task_history()
@@ -467,7 +473,9 @@ def check_all_batch_tasks(app, interval=60):
 
                         # 查询批处理任务状态
                         batch_id = task_info.get("batch_id")
-                        print(f"全局检查百炼批处理任务: {task_id}, 批次ID: {batch_id}")
+                        logger.info(
+                            f"全局检查百炼批处理任务: {task_id}, 批次ID: {batch_id}"
+                        )
 
                         try:
                             status_info = processor.check_bailian_job_status(
@@ -475,11 +483,13 @@ def check_all_batch_tasks(app, interval=60):
                             )
                             batch_status = status_info.get("status", "")
 
-                            print(f"百炼任务状态: {batch_status}, 任务ID: {task_id}")
+                            logger.info(
+                                f"百炼任务状态: {batch_status}, 任务ID: {task_id}"
+                            )
 
                             # 根据状态处理任务
                             if batch_status == "completed":
-                                print(f"百炼任务已完成，开始处理结果: {task_id}")
+                                logger.info(f"百炼任务已完成，开始处理结果: {task_id}")
                                 # 处理已完成的任务
                                 process_completed_batch(
                                     task_id, task_info, app
@@ -507,7 +517,7 @@ def check_all_batch_tasks(app, interval=60):
                                     task_info.get("total_files", 1),
                                 )
                         except Exception as e:
-                            print(f"检查任务 {task_id} 状态时出错: {e}")
+                            logger.error(f"检查任务 {task_id} 状态时出错: {e}")
                             traceback.print_exc()
 
                             # 记录错误但继续检查其他任务
@@ -523,13 +533,15 @@ def check_all_batch_tasks(app, interval=60):
                     if len(processed_tasks) > 100:
                         processed_tasks = set(list(processed_tasks)[-100:])
 
-                    print(f"全局百炼批处理任务检查完成，将在 {interval} 秒后再次检查")
+                    logger.info(
+                        f"全局百炼批处理任务检查完成，将在 {interval} 秒后再次检查"
+                    )
 
                 # 检查完成，重置标志
                 checking_in_progress = False
 
         except Exception as e:
-            print(f"全局百炼批处理任务检查线程出错: {e}")
+            logger.error(f"全局百炼批处理任务检查线程出错: {e}")
             traceback.print_exc()
             # 检查失败，重置标志
             checking_in_progress = False
@@ -551,7 +563,7 @@ def process_batch_result(task_id, task_info, app):
     try:
         # 使用应用上下文
         with app.app_context():
-            print(f"开始处理百炼批处理结果并与飞书数据合并，任务ID: {task_id}")
+            logger.info(f"开始处理百炼批处理结果并与飞书数据合并，任务ID: {task_id}")
 
             # 检查任务是否已经处理过，避免重复处理
             # 重新获取最新任务状态
@@ -563,7 +575,7 @@ def process_batch_result(task_id, task_info, app):
                     or fresh_task_info.get("result_file") is not None
                     or fresh_task_info.get("progress", 0) >= 100
                 ):
-                    print(f"警告: 任务 {task_id} 已经处理过，跳过重复处理")
+                    logger.info(f"警告: 任务 {task_id} 已经处理过，跳过重复处理")
                     return
 
             # 获取输出目录
@@ -576,7 +588,7 @@ def process_batch_result(task_id, task_info, app):
             if os.path.exists(
                 os.path.join(output_dir, result_file_pattern)
             ) or os.path.exists(os.path.join(output_dir, simple_result_pattern)):
-                print(
+                logger.info(
                     f"检测到结果文件已存在，任务 {task_id} 可能已经处理过，跳过重复处理"
                 )
                 # 确保任务状态标记为已完成
@@ -598,7 +610,7 @@ def process_batch_result(task_id, task_info, app):
             # 1. 下载和处理百炼批处理结果
             os.makedirs(output_dir, exist_ok=True)
 
-            print(f"输出目录: {output_dir}")
+            logger.info(f"输出目录: {output_dir}")
 
             # 构造输出文件路径
             consolidated_output = os.path.join(
@@ -607,13 +619,13 @@ def process_batch_result(task_id, task_info, app):
 
             # 从任务信息中获取批次ID
             batch_id = task_info.get("batch_id")
-            print(f"批次ID: {batch_id}")
+            logger.info(f"批次ID: {batch_id}")
 
             # 从任务信息中获取配置
             config = task_info.get("config", {})
 
             # 下载并处理百炼结果
-            print("正在下载和处理百炼结果...")
+            logger.info("正在下载和处理百炼结果...")
             bailian_df = processor.download_and_process_bailian_results(
                 batch_id,
                 None,  # 不再传递原始DataFrame
@@ -622,15 +634,15 @@ def process_batch_result(task_id, task_info, app):
             )
 
             if bailian_df is None or bailian_df.empty:
-                print("警告: 百炼结果处理后返回了空的 DataFrame")
+                logger.warning("警告: 百炼结果处理后返回了空的 DataFrame")
                 error_msg = "百炼API结果处理失败，未生成有效数据。"
                 mark_task_failed(task_id, error_msg)
                 return
 
-            print(f"百炼API结果下载完成，获得 {len(bailian_df)} 行数据")
+            logger.info(f"百炼API结果下载完成，获得 {len(bailian_df)} 行数据")
 
             # 2. 从飞书获取数据
-            print("开始从飞书获取数据...")
+            logger.info("开始从飞书获取数据...")
             feishu_config = config.get("feishu_config", {})
             feishu_df = None
 
@@ -642,12 +654,12 @@ def process_batch_result(task_id, task_info, app):
                 ]
 
                 if missing_config:
-                    print(
+                    logger.warning(
                         f"警告: 飞书配置缺少必要参数: {missing_config}，跳过飞书数据获取"
                     )
                 else:
                     # 调用feishu_utils.fetch_and_prepare_feishu_data获取数据
-                    print(
+                    logger.info(
                         f"开始获取飞书数据，表格IDs: {feishu_config.get('TABLE_IDS')}"
                     )
                     # 获取目标列配置
@@ -659,23 +671,23 @@ def process_batch_result(task_id, task_info, app):
                     )
 
                     if feishu_df is not None and not feishu_df.empty:
-                        print(f"从飞书获取了 {len(feishu_df)} 行数据")
+                        logger.info(f"从飞书获取了 {len(feishu_df)} 行数据")
                     else:
-                        print("从飞书获取数据为空")
+                        logger.info("从飞书获取数据为空")
             except Exception as e:
-                print(f"从飞书获取数据时出错: {e}")
+                logger.error(f"从飞书获取数据时出错: {e}")
                 traceback.print_exc()
-                print("将继续处理，仅使用百炼API结果")
+                logger.info("将继续处理，仅使用百炼API结果")
 
             # 3. 合并数据集
-            print("开始合并数据集...")
+            logger.info("开始合并数据集...")
 
             # 保存原始百炼数据
             original_bailian_df = bailian_df.copy()
 
             # 如果获取了飞书数据，则合并
             if feishu_df is not None and not feishu_df.empty:
-                print(
+                logger.info(
                     f"合并 {len(bailian_df)} 行百炼数据和 {len(feishu_df)} 行飞书数据"
                 )
 
@@ -683,30 +695,70 @@ def process_batch_result(task_id, task_info, app):
                 for col in ["来源", "record_id"]:
                     if col not in bailian_df.columns:
                         bailian_df[col] = ""
+                    if col not in feishu_df.columns:
+                        feishu_df[col] = ""
+
+                # === 新增：补全来源字段 ===
+                # 本地数据：空值补文件名
+                file_name = task_info.get("file_name", "本地文件")
+                mask_local = (bailian_df["来源"] == "") | (bailian_df["来源"].isna())
+                bailian_df.loc[mask_local, "来源"] = file_name
+                logger.info(
+                    f"本地数据'来源'字段补全为文件名: {file_name}，补全行数: {mask_local.sum()}"
+                )
+
+                # 飞书数据：空值补"飞书"
+                mask_feishu = (feishu_df["来源"] == "") | (feishu_df["来源"].isna())
+                feishu_df.loc[mask_feishu, "来源"] = "飞书"
+                logger.info(
+                    f"飞书数据'来源'字段补全为'飞书'，补全行数: {mask_feishu.sum()}"
+                )
 
                 # 合并数据集，简单的垂直合并
                 combined_df = pd.concat([feishu_df, bailian_df], ignore_index=True)
-                print(f"数据合并完成，共 {len(combined_df)} 行")
+                logger.info(f"数据合并完成，共 {len(combined_df)} 行")
+                # 日志：来源字段唯一值与缺失统计
+                logger.info(
+                    f"合并后'来源'字段唯一值: {combined_df['来源'].unique().tolist()}"
+                )
+                logger.info(
+                    f"合并后'来源'字段缺失行数: {(combined_df['来源'] == '').sum() + combined_df['来源'].isna().sum()}"
+                )
 
                 # 保存合并的原始数据用于调试
                 raw_output = os.path.join(output_dir, f"raw_combined_{task_id}.csv")
                 combined_df.to_csv(raw_output, index=False)
-                print(f"已保存原始合并数据到 {raw_output}")
+                logger.info(f"已保存原始合并数据到 {raw_output}")
 
                 # 保存原始合并数据（这个是飞书数据+百炼API结果的合并，作为原始数据）
                 raw_combined_df = combined_df.copy()
 
                 # 应用后处理步骤
-                print(f"应用后处理步骤，合并DataFrame大小: {len(combined_df)} 行...")
+                logger.info(
+                    f"应用后处理步骤，合并DataFrame大小: {len(combined_df)} 行..."
+                )
                 processed_df, update_ids = postprocessor.apply_post_processing(
                     combined_df, config, id_column="行ID"
                 )
             else:
-                print("没有可用的飞书数据，仅使用百炼API结果")
-                # 原始数据就是百炼API结果
+                logger.info("没有可用的飞书数据，仅使用百炼API结果")
+                # 本地数据：空值补文件名
+                file_name = task_info.get("file_name", "本地文件")
+                mask_local = (bailian_df["来源"] == "") | (bailian_df["来源"].isna())
+                bailian_df.loc[mask_local, "来源"] = file_name
+                logger.info(
+                    f"本地数据'来源'字段补全为文件名: {file_name}，补全行数: {mask_local.sum()}"
+                )
+                # 日志：来源字段唯一值与缺失统计
+                logger.info(
+                    f"仅本地数据'来源'字段唯一值: {bailian_df['来源'].unique().tolist()}"
+                )
+                logger.info(
+                    f"仅本地数据'来源'字段缺失行数: {(bailian_df['来源'] == '').sum() + bailian_df['来源'].isna().sum()}"
+                )
+
                 raw_combined_df = original_bailian_df.copy()
-                # 应用后处理步骤
-                print(f"应用后处理步骤，DataFrame大小: {len(bailian_df)} 行...")
+                logger.info(f"应用后处理步骤，DataFrame大小: {len(bailian_df)} 行...")
                 processed_df, update_ids = postprocessor.apply_post_processing(
                     bailian_df, config, id_column="行ID"
                 )
@@ -714,7 +766,7 @@ def process_batch_result(task_id, task_info, app):
             # 4. 创建多Sheet页Excel文件
             if not processed_df.empty:
                 final_output_file = os.path.join(output_dir, f"final_{task_id}.xlsx")
-                print(f"创建多Sheet页Excel文件: {final_output_file}")
+                logger.info(f"创建多Sheet页Excel文件: {final_output_file}")
 
                 try:
                     # 保存原始数据备份，以防create_multi_sheet_excel函数失败
@@ -722,7 +774,7 @@ def process_batch_result(task_id, task_info, app):
                         output_dir, f"processed_data_backup_{task_id}.csv"
                     )
                     processed_df.to_csv(temp_csv_path, index=False)
-                    print(f"已保存处理后数据备份到 {temp_csv_path}")
+                    logger.info(f"已保存处理后数据备份到 {temp_csv_path}")
 
                     # 使用增强的multi-sheet excel创建函数，并传递原始合并数据
                     postprocessor.create_multi_sheet_excel(
@@ -734,13 +786,13 @@ def process_batch_result(task_id, task_info, app):
                         update_ids=update_ids,  # 修复：补充 update_ids 参数
                     )
 
-                    print(f"✅ 结果已保存到 {final_output_file}")
+                    logger.info(f"✅ 结果已保存到 {final_output_file}")
 
                     # 标记任务完成
                     mark_task_completed(task_id, f"final_{task_id}.xlsx")
-                    print(f"✅ 任务 {task_id} 已标记为完成")
+                    logger.info(f"✅ 任务 {task_id} 已标记为完成")
                 except Exception as e:
-                    print(f"创建多Sheet页Excel文件时出错: {e}")
+                    logger.error(f"创建多Sheet页Excel文件时出错: {e}")
                     traceback.print_exc()
 
                     # 尝试只保存单一sheet的Excel
@@ -749,22 +801,22 @@ def process_batch_result(task_id, task_info, app):
                             output_dir, f"simple_results_{task_id}.xlsx"
                         )
                         processed_df.to_excel(simple_excel_path, index=False)
-                        print(f"已创建简单Excel文件作为备份: {simple_excel_path}")
+                        logger.info(f"已创建简单Excel文件作为备份: {simple_excel_path}")
                         mark_task_completed(task_id, f"simple_results_{task_id}.xlsx")
                     except:
                         # 如果Excel也失败，尝试保存为CSV
                         csv_path = os.path.join(output_dir, f"results_{task_id}.csv")
                         processed_df.to_csv(csv_path, index=False)
-                        print(f"已创建CSV文件作为备份: {csv_path}")
+                        logger.info(f"已创建CSV文件作为备份: {csv_path}")
                         mark_task_completed(task_id, f"results_{task_id}.csv")
             else:
                 # 处理失败
                 error_msg = "数据处理后为空，未生成有效数据。"
-                print(f"错误: {error_msg}")
+                logger.error(f"错误: {error_msg}")
                 mark_task_failed(task_id, error_msg)
 
     except Exception as e:
-        print(f"处理百炼批处理结果时出错: {e}")
+        logger.error(f"处理百炼批处理结果时出错: {e}")
         traceback.print_exc()
         mark_task_failed(task_id, f"处理百炼批处理结果时出错: {str(e)}")
 
@@ -791,7 +843,7 @@ def register_routes(app):
             app._global_checker_thread is None
             or not app._global_checker_thread.is_alive()
         ):
-            print("准备启动全局百炼批处理任务检查线程...")
+            logger.info("准备启动全局百炼批处理任务检查线程...")
 
             try:
                 # 直接使用Flask应用实例，不再获取代理对象
@@ -805,8 +857,8 @@ def register_routes(app):
 
                 # 保存线程引用
                 app._global_checker_thread = checker_thread
-                print("全局百炼批处理任务检查线程已启动")
+                logger.info("全局百炼批处理任务检查线程已启动")
 
             except Exception as e:
-                print(f"启动全局批处理任务检查线程失败: {e}")
+                logger.error(f"启动全局批处理任务检查线程失败: {e}")
                 traceback.print_exc()

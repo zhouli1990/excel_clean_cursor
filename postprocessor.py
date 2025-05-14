@@ -8,6 +8,9 @@ import re
 from collections import defaultdict
 import openai  # 新增: 阿里云百炼 OpenAI 兼容接口
 import uuid
+from utils.logger import setup_logger
+
+logger = setup_logger("postprocessor")
 
 # Deepseek API endpoint (可以考虑也从 config 传入)
 DEEPSEEK_API_ENDPOINT = "https://api.deepseek.com/chat/completions"
@@ -29,12 +32,12 @@ def check_duplicate_phones(
     Returns:
         pd.DataFrame: 添加了重复手机号标记的 DataFrame。
     """
-    print("   >> [Check 1] 开始检查重复手机号...")
+    logger.info("[Check 1] 开始检查重复手机号...")
     if phone_col not in df.columns:
-        print(f"   ⚠️ 警告: 电话列 '{phone_col}' 不存在，跳过重复手机号检查。")
+        logger.warning(f"电话列 '{phone_col}' 不存在，跳过重复手机号检查。")
         return df
     if remark_col not in df.columns:
-        print(f"   ⚠️ 警告: 备注列 '{remark_col}' 不存在，无法添加标记。")
+        logger.warning(f"备注列 '{remark_col}' 不存在，无法添加标记。")
         return df
 
     # 查找重复项，保留所有重复出现的项 (标记为 True)
@@ -49,7 +52,7 @@ def check_duplicate_phones(
     # 在备注列添加标记
     # 使用 .loc 来避免 SettingWithCopyWarning
     if not duplicate_indices.empty:
-        print(f"      发现 {len(duplicate_indices)} 行存在重复手机号。正在添加标记...")
+        logger.info(f"发现 {len(duplicate_indices)} 行存在重复手机号。正在添加标记...")
         # 如果备注列已有内容，则追加；否则直接写入
         existing_remarks = df.loc[duplicate_indices, remark_col].astype(str)
         new_remark = "电话号码重复"
@@ -58,9 +61,9 @@ def check_duplicate_phones(
             lambda x: f"{x}; {new_remark}" if x else new_remark
         )
     else:
-        print("      未发现重复手机号。")
+        logger.info("未发现重复手机号。")
 
-    print("   ✅ [Check 1] 重复手机号检查完成。")
+    logger.info("[Check 1] 重复手机号检查完成。")
     return df
 
 
@@ -78,14 +81,14 @@ def check_duplicate_phone_and_company(
     Returns:
         pd.DataFrame: 添加了标记的 DataFrame。
     """
-    print(f"   >> [Check 2] 开始检查手机号+公司名重复...")
+    logger.info(f"[Check 2] 开始检查手机号+公司名重复...")
     if phone_col not in df.columns or company_col not in df.columns:
-        print(
-            f"   ⚠️ 警告: 电话列 '{phone_col}' 或公司列 '{company_col}' 不存在，跳过检查。"
+        logger.warning(
+            f"警告: 电话列 '{phone_col}' 或公司列 '{company_col}' 不存在，跳过检查。"
         )
         return df
     if remark_col not in df.columns:
-        print(f"   ⚠️ 警告: 备注列 '{remark_col}' 不存在，无法添加标记。")
+        logger.warning(f"备注列 '{remark_col}' 不存在，无法添加标记。")
         return df
 
     # 创建临时列用于比较 (忽略大小写和空格)
@@ -106,8 +109,8 @@ def check_duplicate_phone_and_company(
     df.drop(columns=[temp_phone_col, temp_company_col], inplace=True)  # 删除临时列
 
     if not duplicate_indices.empty:
-        print(
-            f"      发现 {len(duplicate_indices)} 行存在手机号+公司名重复。正在添加标记..."
+        logger.info(
+            f"发现 {len(duplicate_indices)} 行存在手机号+公司名重复。正在添加标记..."
         )
         existing_remarks = df.loc[duplicate_indices, remark_col].astype(str)
         new_remark = "手机号+公司名重复"
@@ -115,9 +118,9 @@ def check_duplicate_phone_and_company(
             lambda x: f"{x}; {new_remark}" if x else new_remark
         )
     else:
-        print("      未发现手机号+公司名重复。")
+        logger.info("未发现手机号+公司名重复。")
 
-    print("   ✅ [Check 2] 手机号+公司名重复检查完成。")
+    logger.info("[Check 2] 手机号+公司名重复检查完成。")
     return df
 
 
@@ -146,7 +149,7 @@ def check_related_companies_for_duplicate_phones_llm(
     Returns:
         更新后的DataFrame
     """
-    print(f"   >> [Check 3] 开始百炼API检查关联公司 (针对重复手机号)...")
+    logger.info(f"[Check 3] 开始百炼API检查关联公司 (针对重复手机号)...")
 
     # 从config["llm_config"]中获取百炼API配置
     llm_config = config.get("llm_config", {})
@@ -156,18 +159,18 @@ def check_related_companies_for_duplicate_phones_llm(
     batch_size = llm_config.get("BATCH_SIZE", 50)
 
     # 记录API配置日志，方便调试
-    print(
-        f"      百炼API配置: 密钥前缀={dashscope_api_key[:5]+'...' if dashscope_api_key else 'None'}, 模型={model_name}, 批处理大小={batch_size}"
+    logger.info(
+        f"百炼API配置: 密钥前缀={dashscope_api_key[:5]+'...' if dashscope_api_key else 'None'}, 模型={model_name}, 批处理大小={batch_size}"
     )
 
     # 检查API密钥是否有效
     if not dashscope_api_key:
-        print(
-            "   ⚠️ 警告: 未找到有效的百炼API密钥(DASHSCOPE_API_KEY)，跳过关联公司检查。"
+        logger.warning(
+            "警告: 未找到有效的百炼API密钥(DASHSCOPE_API_KEY)，跳过关联公司检查。"
         )
         return df
 
-    print(f"   使用阿里云百炼API进行关联公司检查")
+    logger.info(f"使用阿里云百炼API进行关联公司检查")
 
     # 验证必要列存在
     if (
@@ -175,14 +178,14 @@ def check_related_companies_for_duplicate_phones_llm(
         or company_col not in df.columns
         or remark_col not in df.columns
     ):
-        print(
-            f"   ⚠️ 警告: 缺少必要的列 ('{phone_col}', '{company_col}', '{remark_col}')，跳过百炼API检查。"
+        logger.warning(
+            f"警告: 缺少必要的列 ('{phone_col}', '{company_col}', '{remark_col}')，跳过百炼API检查。"
         )
         return df
 
     # 确保新列存在
     if new_related_col not in df.columns:
-        print(f"      创建新列: '{new_related_col}'")
+        logger.info(f"创建新列: '{new_related_col}'")
         df[new_related_col] = ""
     else:
         df[new_related_col] = df[new_related_col].fillna("").astype(str)
@@ -203,14 +206,14 @@ def check_related_companies_for_duplicate_phones_llm(
     ].copy()  # 使用.copy()避免SettingWithCopyWarning
 
     if candidate_df.empty:
-        print(
-            "      没有找到需要进行百炼API关联检查的行 (没有重复手机号或相关数据不完整)。"
+        logger.info(
+            "没有找到需要进行百炼API关联检查的行 (没有重复手机号或相关数据不完整)。"
         )
-        print(f"   ✅ [Check 3] 百炼API关联公司检查完成。")
+        logger.info("[Check 3] 百炼API关联公司检查完成。")
         return df
 
-    print(
-        f"      找到 {len(candidate_df)} 行候选数据进行百炼API检查。开始收集公司名组..."
+    logger.info(
+        f"找到 {len(candidate_df)} 行候选数据进行百炼API检查。开始收集公司名组..."
     )
 
     # 按手机号分组并收集公司名称
@@ -225,19 +228,19 @@ def check_related_companies_for_duplicate_phones_llm(
 
         # 如果手机号下只有一个或没有不同公司名，无需比较
         if len(unique_companies) < 2:
-            print(f"      手机号 {phone_number}: 公司名数量不足 2 个，跳过比较")
+            logger.info(f"手机号 {phone_number}: 公司名数量不足 2 个，跳过比较")
             continue
 
         # 将此组添加到待比较列表
         company_groups[phone_number] = unique_companies
-        print(f"      手机号 {phone_number}: 收集 {len(unique_companies)} 个公司名")
+        logger.info(f"手机号 {phone_number}: 收集 {len(unique_companies)} 个公司名")
 
     if not company_groups:
-        print("      没有找到需要进行批量比较的公司名组")
-        print(f"   ✅ [Check 3] 百炼API关联公司检查完成。")
+        logger.info("没有找到需要进行批量比较的公司名组")
+        logger.info("[Check 3] 百炼API关联公司检查完成。")
         return df
 
-    print(f"      使用批量处理，批处理大小: {batch_size}")
+    logger.info(f"使用批量处理，批处理大小: {batch_size}")
 
     # ----- 以下是整合的批量公司名相似性比较功能 -----
 
@@ -252,7 +255,7 @@ def check_related_companies_for_duplicate_phones_llm(
     if current_batch:
         batches.append(current_batch)
 
-    print(f"      将 {len(company_groups)} 组公司名划分为 {len(batches)} 批进行处理")
+    logger.info(f"将 {len(company_groups)} 组公司名划分为 {len(batches)} 批进行处理")
 
     # 存储处理结果
     results = {}
@@ -292,8 +295,8 @@ def check_related_companies_for_duplicate_phones_llm(
 
     # 处理每一批
     for batch_idx, batch in enumerate(batches):
-        print(
-            f"      处理批次 {batch_idx+1}/{len(batches)}, 包含 {len(batch)} 组公司名"
+        logger.info(
+            f"处理批次 {batch_idx+1}/{len(batches)}, 包含 {len(batch)} 组公司名"
         )
 
         # 构建用户请求内容
@@ -313,12 +316,12 @@ def check_related_companies_for_duplicate_phones_llm(
                 batch_data.append({"id": group_id, "names": unique_non_empty_names})
 
         if not batch_data:
-            print(f"      批次 {batch_idx+1} 没有有效的比较组，跳过")
+            logger.info(f"批次 {batch_idx+1} 没有有效的比较组，跳过")
             continue
 
         user_content = json.dumps(batch_data, ensure_ascii=False)
-        print(
-            f"      批次 {batch_idx+1} 包含 {len(batch_data)} 个有效组，准备百炼API请求"
+        logger.info(
+            f"批次 {batch_idx+1} 包含 {len(batch_data)} 个有效组，准备百炼API请求"
         )
 
         # 重试逻辑
@@ -1068,6 +1071,22 @@ def create_multi_sheet_excel(
         print(
             f"使用提供的未去重原始数据生成'原始数据'Sheet: {len(df_for_original_sheet)}行"
         )
+        # === 新增：merge后处理校验结果（如备注、LLM判断等） ===
+        # 以唯一ID（id_column）为锚点，将df_processed的备注、LLM判断等字段合并到原始数据
+        merge_cols = []
+        for col in [remark_col, related_company_col]:
+            if col in df_processed.columns and col not in df_for_original_sheet.columns:
+                merge_cols.append(col)
+        if merge_cols:
+            print(f"[原始数据Sheet] merge后处理校验字段: {merge_cols}")
+            df_for_original_sheet = df_for_original_sheet.merge(
+                df_processed[[id_column] + merge_cols],
+                on=id_column,
+                how="left",
+                suffixes=("", "_后处理"),
+            )
+        else:
+            print("[原始数据Sheet] 无需merge后处理校验字段")
     else:
         df_for_original_sheet = df_processed.copy()
         print(
@@ -1237,6 +1256,25 @@ def create_multi_sheet_excel(
     try:
         with pd.ExcelWriter(output_filepath, engine="openpyxl") as writer:
             for sheet_name, df_to_write in dfs_to_write.items():
+                # --- 新增：写入前校验"来源"字段 ---
+                if "来源" in df_to_write.columns:
+                    missing_source = (df_to_write["来源"] == "") | (
+                        df_to_write["来源"].isna()
+                    )
+                    if missing_source.any():
+                        print(
+                            f"警告: '{sheet_name}'Sheet中'来源'字段缺失行数: {missing_source.sum()}"
+                        )
+                        df_to_write.loc[missing_source, "来源"] = "未知来源"
+                else:
+                    print(
+                        f"警告: '{sheet_name}'Sheet中无'来源'字段，自动创建并补全为'未知来源'"
+                    )
+                    df_to_write["来源"] = "未知来源"
+                print(
+                    f"'{sheet_name}'Sheet '来源'字段唯一值: {df_to_write['来源'].unique().tolist()}"
+                )
+                # --- 原有写入逻辑 ---
                 if len(df_to_write) > 0:  # 只写入非空DataFrame
                     print(
                         f"准备写入{sheet_name} Sheet，包含列: {list(df_to_write.columns)}"

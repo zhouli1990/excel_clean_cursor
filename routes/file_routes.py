@@ -10,9 +10,11 @@ from utils.task_manager import create_task, get_task_info, get_latest_task
 from utils.config_manager import load_config
 from routes.task_routes import run_processing
 from postprocessor import apply_post_processing, create_multi_sheet_excel
+from utils.logger import setup_logger
 
 # 创建Blueprint
 file_bp = Blueprint("file", __name__)
+logger = setup_logger("file_routes")
 
 
 @file_bp.route("/upload", methods=["POST"])
@@ -40,6 +42,7 @@ def upload_files():
     """
     # 基础验证：检查请求中是否包含文件部分
     if "files[]" not in request.files:
+        logger.warning("请求中缺少 files[] 文件部分")
         return jsonify({"error": "请求中缺少 files[] 文件部分"}), 400
 
     # 获取所有上传的文件列表
@@ -47,6 +50,7 @@ def upload_files():
 
     # 验证是否选择了文件
     if not files or all(f.filename == "" for f in files):
+        logger.warning("未选择任何文件")
         return jsonify({"error": "未选择任何文件"}), 400
 
     # 为本次任务生成唯一ID并创建任务
@@ -68,7 +72,7 @@ def upload_files():
             if file and file.filename:
                 # 直接使用原始文件名，不再使用secure_filename处理
                 filename = file.filename
-                print(f"使用原始文件名保存: {filename}")  # 添加日志
+                logger.info(f"使用原始文件名保存: {filename}")
                 # 构造文件保存路径
                 filepath = os.path.join(upload_dir, filename)
                 # 保存文件
@@ -76,10 +80,11 @@ def upload_files():
                 # 将保存后的文件路径添加到列表
                 input_file_paths.append(filepath)
             else:
-                print(f"跳过无效的文件条目: {file}")
+                logger.warning(f"跳过无效的文件条目: {file}")
 
         # 如果没有成功保存任何文件
         if not input_file_paths:
+            logger.warning("没有有效的上传文件")
             return jsonify({"error": "没有有效的上传文件"}), 400
 
         # --- 从前端请求中获取配置参数 ---
@@ -97,6 +102,7 @@ def upload_files():
         output_filepath = os.path.join(output_dir, output_filename)
 
         # 创建并启动一个后台线程来执行实际的数据处理
+        logger.info(f"任务 {task_id} 启动后台处理线程，输入文件: {input_file_paths}")
         thread = threading.Thread(
             target=run_processing,
             args=(task_id, input_file_paths, output_filepath, task_config),
@@ -107,6 +113,7 @@ def upload_files():
         return jsonify({"task_id": task_id})
 
     except Exception as e:
+        logger.error(f"保存上传文件失败: {e}", exc_info=True)
         # 返回错误信息
         return jsonify({"error": f"保存上传文件失败: {str(e)}"}), 500
 
@@ -192,7 +199,7 @@ def upload_edited_file(task_id):
 
         # 保存原始文件名作为参考
         original_filename = file.filename
-        print(f"上传的编辑后文件原始文件名: {original_filename}")
+        logger.info(f"上传的编辑后文件原始文件名: {original_filename}")
 
         edited_filename = f"edited_{task_id}.xlsx"
         edited_filepath = os.path.join(output_dir, edited_filename)
@@ -266,7 +273,7 @@ def upload_new_or_associate_file():
 
         # 保存原始文件名作为参考
         original_filename = file.filename
-        print(f"关联到已有任务的文件原始文件名: {original_filename}")
+        logger.info(f"关联到已有任务的文件原始文件名: {original_filename}")
 
         # 生成编辑后文件名和保存路径
         edited_filename = f"edited_{task_id}.xlsx"
@@ -313,7 +320,7 @@ def upload_new_or_associate_file():
 
         # 保存原始文件名作为参考
         original_filename = file.filename
-        print(f"创建新任务的文件原始文件名: {original_filename}")
+        logger.info(f"创建新任务的文件原始文件名: {original_filename}")
 
         # 保存为直接导入源文件，使用原始文件名
         direct_import_file_path = os.path.join(upload_dir, original_filename)
@@ -324,9 +331,9 @@ def upload_new_or_associate_file():
         if target_columns_json:
             try:
                 target_columns = json.loads(target_columns_json)
-                print(f"[DEBUG] 前端传递的TARGET_COLUMNS: {target_columns}")
+                logger.info(f"[DEBUG] 前端传递的TARGET_COLUMNS: {target_columns}")
             except Exception as e:
-                print(f"[WARN] 解析前端TARGET_COLUMNS失败: {e}")
+                logger.warning(f"[WARN] 解析前端TARGET_COLUMNS失败: {e}")
                 target_columns = []
         # 兜底：如未传递则从默认配置加载
         if not target_columns:
@@ -334,7 +341,7 @@ def upload_new_or_associate_file():
 
             llm_config, _, _ = load_config()
             target_columns = llm_config.get("TARGET_COLUMNS", [])
-            print(f"[DEBUG] 兜底加载配置文件中的TARGET_COLUMNS: {target_columns}")
+            logger.info(f"[DEBUG] 兜底加载配置文件中的TARGET_COLUMNS: {target_columns}")
 
         try:
             # 保存上传的文件
@@ -352,7 +359,7 @@ def upload_new_or_associate_file():
                 if "llm_config" not in task_info["config"]:
                     task_info["config"]["llm_config"] = {}
                 task_info["config"]["llm_config"]["TARGET_COLUMNS"] = target_columns
-                print(f"[DEBUG] 已写入任务的TARGET_COLUMNS: {target_columns}")
+                logger.info(f"[DEBUG] 已写入任务的TARGET_COLUMNS: {target_columns}")
 
             return jsonify(
                 {

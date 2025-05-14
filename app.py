@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask
+from flask import Flask, request
 from utils.logger import setup_logger
 from utils.config_manager import load_config
 from utils.task_manager import clean_up_old_tasks
@@ -48,6 +48,28 @@ def create_app():
 
     # 清理旧任务
     clean_up_old_tasks(days_to_keep=7)
+
+    # 注册全局异常处理器
+    @app.errorhandler(404)
+    def not_found_error(error):
+        logger.warning(
+            f"404 Not Found: path={request.path}, method={request.method}, args={request.args}, remote_addr={request.remote_addr}"
+        )
+        return "404 Not Found", 404
+
+    @app.errorhandler(405)
+    def method_not_allowed_error(error):
+        logger.warning(
+            f"405 Method Not Allowed: path={request.path}, method={request.method}, args={request.args}, remote_addr={request.remote_addr}"
+        )
+        return "405 Method Not Allowed", 405
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        logger.error(
+            f"500 Internal Server Error: path={request.path}, method={request.method}, args={request.args}, remote_addr={request.remote_addr}"
+        )
+        return "500 Internal Server Error", 500
 
     return app
 
