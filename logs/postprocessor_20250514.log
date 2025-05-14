@@ -1,0 +1,34 @@
+2025-05-14 16:25:01,386 - postprocessor - INFO - [Check 1] 开始检查重复手机号...
+2025-05-14 16:25:01,388 - postprocessor - INFO - 发现 12 行存在重复手机号。正在添加标记...
+2025-05-14 16:25:01,389 - postprocessor - INFO - [Check 1] 重复手机号检查完成。
+2025-05-14 16:25:01,390 - postprocessor - INFO - [Check 2] 开始检查手机号+公司名重复...
+2025-05-14 16:25:01,395 - postprocessor - INFO - 发现 10 行存在手机号+公司名重复。正在添加标记...
+2025-05-14 16:25:01,395 - postprocessor - INFO - [Check 2] 手机号+公司名重复检查完成。
+2025-05-14 16:25:01,396 - postprocessor - INFO - [Check 3] 开始百炼API检查关联公司 (针对重复手机号)...
+2025-05-14 16:25:01,396 - postprocessor - INFO - 使用阿里云百炼API进行关联公司检查
+2025-05-14 16:25:01,397 - postprocessor - INFO - 找到 12 行候选数据进行百炼API检查。开始收集公司名组...
+2025-05-14 16:25:01,399 - postprocessor - INFO - 手机号 13702168735: 公司名数量不足 2 个，跳过比较
+2025-05-14 16:25:01,399 - postprocessor - INFO - 手机号 13816015502: 公司名数量不足 2 个，跳过比较
+2025-05-14 16:25:01,400 - postprocessor - INFO - 手机号 15298368690: 公司名数量不足 2 个，跳过比较
+2025-05-14 16:25:01,401 - postprocessor - INFO - 手机号 15862476889: 公司名数量不足 2 个，跳过比较
+2025-05-14 16:25:01,401 - postprocessor - INFO - 手机号 18761784644: 公司名数量不足 2 个，跳过比较
+2025-05-14 16:25:01,402 - postprocessor - INFO - 手机号 18962384589: 收集 2 个公司名
+2025-05-14 16:25:01,402 - postprocessor - INFO - 使用批量处理，批处理大小: 50
+2025-05-14 16:25:01,402 - postprocessor - INFO - 将 1 组公司名划分为 1 批进行处理
+2025-05-14 16:25:01,402 - postprocessor - INFO - 处理批次 1/1, 包含 1 组公司名
+2025-05-14 16:38:13,825 - postprocessor - INFO - --- [重构] 开始应用后处理步骤 ---
+2025-05-14 16:38:13,827 - postprocessor - INFO - [Step 1] 全局数据清理完成
+2025-05-14 16:38:13,833 - postprocessor - INFO - [Step 2] 手机号格式校验后有效数据: 326 行，无效: 0 行
+2025-05-14 16:38:13,963 - postprocessor - INFO - [Step 3] 重复手机号合并后: 320 行
+2025-05-14 16:38:14,029 - postprocessor - INFO - [Step 4] LLM企业名称唯一化后: 320 行
+2025-05-14 16:38:14,030 - postprocessor - INFO - [Step 5] 新增Sheet: 314 行，更新Sheet: 6 行
+2025-05-14 16:38:14,031 - postprocessor - INFO - [Step 6] 新增Sheet有效性过滤后: 314 行，过滤掉 0 行
+2025-05-14 16:38:14,031 - postprocessor - INFO - --- [重构] 后处理步骤完成 ---
+2025-05-14 17:37:28,173 - postprocessor - INFO - --- [重构] 开始应用后处理步骤 ---
+2025-05-14 17:37:28,175 - postprocessor - INFO - [Step 1] 全局数据清理完成
+2025-05-14 17:37:28,178 - postprocessor - INFO - [Step 2] 手机号格式校验后有效数据: 326 行，无效: 0 行
+2025-05-14 17:37:28,301 - postprocessor - INFO - [Step 3] 重复手机号合并后: 320 行
+2025-05-14 17:37:28,382 - postprocessor - INFO - [Step 4] LLM企业名称唯一化后: 320 行
+2025-05-14 17:37:28,383 - postprocessor - INFO - [Step 5] 新增Sheet: 314 行，更新Sheet: 6 行
+2025-05-14 17:37:28,384 - postprocessor - INFO - [Step 6] 新增Sheet有效性过滤后: 314 行，过滤掉 0 行
+2025-05-14 17:37:28,384 - postprocessor - INFO - --- [重构] 后处理步骤完成 ---

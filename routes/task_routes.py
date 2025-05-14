@@ -737,8 +737,10 @@ def process_batch_result(task_id, task_info, app):
                 logger.info(
                     f"应用后处理步骤，合并DataFrame大小: {len(combined_df)} 行..."
                 )
-                processed_df, update_ids = postprocessor.apply_post_processing(
-                    combined_df, config, id_column="行ID"
+                processed_df, df_new, df_update, update_ids = (
+                    postprocessor.apply_post_processing(
+                        combined_df, config, id_column="行ID"
+                    )
                 )
             else:
                 logger.info("没有可用的飞书数据，仅使用百炼API结果")
@@ -759,8 +761,10 @@ def process_batch_result(task_id, task_info, app):
 
                 raw_combined_df = original_bailian_df.copy()
                 logger.info(f"应用后处理步骤，DataFrame大小: {len(bailian_df)} 行...")
-                processed_df, update_ids = postprocessor.apply_post_processing(
-                    bailian_df, config, id_column="行ID"
+                processed_df, df_new, df_update, update_ids = (
+                    postprocessor.apply_post_processing(
+                        bailian_df, config, id_column="行ID"
+                    )
                 )
 
             # 4. 创建多Sheet页Excel文件
@@ -784,6 +788,8 @@ def process_batch_result(task_id, task_info, app):
                         raw_combined_df,  # 传递原始数据，确保"原始数据"Sheet正确
                         id_column="行ID",  # 使用行ID作为唯一标识符
                         update_ids=update_ids,  # 修复：补充 update_ids 参数
+                        df_new=df_new,  # 新增Sheet数据
+                        df_update=df_update,  # 更新Sheet数据
                     )
 
                     logger.info(f"✅ 结果已保存到 {final_output_file}")
