@@ -9,6 +9,7 @@ from collections import defaultdict
 import openai  # 新增: 阿里云百炼 OpenAI 兼容接口
 import uuid
 from utils.logger import setup_logger
+import logging
 
 logger = setup_logger("postprocessor")
 
@@ -290,20 +291,20 @@ def check_related_companies_for_duplicate_phones_llm(
                     client = openai.OpenAI(api_key=dashscope_api_key, base_url=base_url)
 
                     # 发送请求
-                    print(
+                    logger.debug(
                         f"      [尝试 {attempt+1}] 发送批次 {batch_idx+1} 请求到百炼API..."
                     )
                     response = client.chat.completions.create(
                         model=model_name,
                         messages=messages,
-                        max_tokens=4096,
+                        max_tokens=8192,
                         temperature=0.1,
                         response_format={"type": "json_object"},
                     )
 
                     # 提取结果
                     content_str = response.choices[0].message.content
-                    print(
+                    logger.debug(
                         f"      [尝试 {attempt+1}] 收到批次 {batch_idx+1} 百炼API响应"
                     )
 
@@ -316,7 +317,7 @@ def check_related_companies_for_duplicate_phones_llm(
                             # 检查返回格式是否为数组
                             if isinstance(content_data, list):
                                 batch_results = content_data
-                                print(
+                                logger.debug(
                                     f"      解析到数组格式的结果，包含 {len(batch_results)} 个项目"
                                 )
                             elif (
@@ -324,12 +325,14 @@ def check_related_companies_for_duplicate_phones_llm(
                                 and "results" in content_data
                             ):
                                 batch_results = content_data.get("results", [])
-                                print(
+                                logger.debug(
                                     f"      解析到字典格式的结果，results字段包含 {len(batch_results)} 个项目"
                                 )
                             else:
-                                print(f"      无法识别的响应格式: {type(content_data)}")
-                                print(
+                                logger.warning(
+                                    f"      无法识别的响应格式: {type(content_data)}"
+                                )
+                                logger.warning(
                                     f"      响应内容前100字符: {str(content_data)[:100]}"
                                 )
 
@@ -344,34 +347,38 @@ def check_related_companies_for_duplicate_phones_llm(
                                         related_names, list
                                     ):
                                         results[group_id] = (is_related, related_names)
-                                        print(
+                                        logger.debug(
                                             f"      组 {group_id}: 关联={is_related}, 名称={related_names}"
                                         )
 
                             success = True
-                            print(
+                            logger.debug(
                                 f"      批次 {batch_idx+1} 处理成功，解析了 {len(batch_results)} 组结果"
                             )
                             break
 
                         except json.JSONDecodeError as json_err:
-                            print(f"      ❌ [批量检查] 无法解析JSON: {json_err}")
-                            print(f"      响应内容前100字符: {content_str[:100]}")
+                            logger.warning(
+                                f"      ❌ [批量检查] 无法解析JSON: {json_err}"
+                            )
+                            logger.warning(
+                                f"      响应内容前100字符: {content_str[:100]}"
+                            )
                     else:
-                        print("      ❌ [批量检查] 未能获取有效内容")
+                        logger.warning("      ❌ [批量检查] 未能获取有效内容")
 
                 except Exception as e:
-                    print(
+                    logger.error(
                         f"      ❌ [批量检查] 处理出错 (尝试 {attempt+1}/{max_retries}): {e}"
                     )
                     if attempt < max_retries - 1:
-                        print(f"      ... 将在 {retry_delay} 秒后重试")
+                        logger.warning(f"      ... 将在 {retry_delay} 秒后重试")
                         time.sleep(retry_delay)
 
             if not success:
-                print(f"      ❌ 批次 {batch_idx+1} 所有重试均失败")
+                logger.warning(f"      ❌ 批次 {batch_idx+1} 所有重试均失败")
 
-    print(f"      批量比较完成，获取 {len(results)} 组结果")
+    logger.debug(f"      批量比较完成，获取 {len(results)} 组结果")
 
     # 更新DataFrame
     update_count = 0
@@ -387,12 +394,14 @@ def check_related_companies_for_duplicate_phones_llm(
 
             if not target_indices.empty:
                 update_count += len(target_indices)
-                print(f"      更新手机号 {phone_number}: {len(target_indices)} 行")
+                logger.debug(
+                    f"      更新手机号 {phone_number}: {len(target_indices)} 行"
+                )
                 # 更新新列的内容
                 df.loc[target_indices, new_related_col] = related_names_str
 
-    print(f"      完成更新，共更新 {update_count} 行数据")
-    print(f"   ✅ [Check 3] 百炼API关联公司检查完成。")
+    logger.debug(f"      完成更新，共更新 {update_count} 行数据")
+    logger.info(f"   ✅ [Check 3] 百炼API关联公司检查完成。")
     return df
 
 
@@ -401,12 +410,12 @@ def validate_phone_format(
     df: pd.DataFrame, phone_col: str, remark_col: str
 ) -> pd.DataFrame:
     """校验指定列是否为有效的11位手机号格式，并在备注列标记错误。"""
-    print(f"   >> [Check 4] 开始校验手机号格式 (列: '{phone_col}')...")
+    logger.info(f"   >> [Check 4] 开始校验手机号格式 (列: '{phone_col}')...")
     if phone_col not in df.columns:
-        print(f"   ⚠️ 警告: 电话列 '{phone_col}' 不存在，跳过格式校验。")
+        logger.warning(f"   ⚠️ 警告: 电话列 '{phone_col}' 不存在，跳过格式校验。")
         return df
     if remark_col not in df.columns:
-        print(f"   ⚠️ 警告: 备注列 '{remark_col}' 不存在，无法添加标记。")
+        logger.warning(f"   ⚠️ 警告: 备注列 '{remark_col}' 不存在，无法添加标记。")
         return df
 
     # 正则表达式：匹配以1开头的11位数字 (13*, 14*, 15*, 16*, 17*, 18*, 19*)
@@ -414,9 +423,9 @@ def validate_phone_format(
 
     # 识别无效格式 (需要是非空且不匹配正则)
     # 先将列转为字符串，并填充 NaN 为空字符串，以便应用正则
-    print(df[phone_col])
+    logger.debug(df[phone_col])
     phone_series = df[phone_col].astype(str).fillna("")
-    print(phone_series)
+    logger.debug(phone_series)
     # 使用 apply 和 re.fullmatch 检查格式
     # mask 为 True 表示格式无效 (非空且不匹配)
     invalid_mask = phone_series.apply(
@@ -426,7 +435,9 @@ def validate_phone_format(
     invalid_indices = df.loc[invalid_mask].index
 
     if not invalid_indices.empty:
-        print(f"      发现 {len(invalid_indices)} 行手机号格式无效。正在添加标记...")
+        logger.info(
+            f"      发现 {len(invalid_indices)} 行手机号格式无效。正在添加标记..."
+        )
         existing_remarks = df.loc[invalid_indices, remark_col].astype(str)
         new_remark = "手机号格式错误"
         # 注意处理备注列本身可能存在的 'nan' 字符串 (来自之前的 fillna 或数据源)
@@ -434,13 +445,33 @@ def validate_phone_format(
             lambda x: f"{x}; {new_remark}" if x and x != "nan" else new_remark
         )
     else:
-        print("      未发现格式错误的手机号。")
+        logger.info("      未发现格式错误的手机号。")
 
-    print("   ✅ [Check 4] 手机号格式校验完成。")
+    logger.info("   ✅ [Check 4] 手机号格式校验完成。")
     return df
 
 
 # --- 结束：手机号格式校验函数 ---
+
+
+def extract_multi_company_phones_from_raw(df, phone_col, company_col):
+    """
+    遍历原始数据，统计所有手机号出现次数>1的分组，
+    用正则分隔符[;；,，、/&\s]+拆分所有企业名称，去重，返回{手机号: [企业名1, 企业名2, ...]}
+    """
+    phone_counts = df[phone_col].fillna("").astype(str).str.strip().value_counts()
+    multi_phones = phone_counts[phone_counts > 1].index.tolist()
+    multi_company_dict = {}
+    split_pattern = re.compile(r"[;；,，、/&\s]+")
+    for phone in multi_phones:
+        group = df[df[phone_col].fillna("").astype(str).str.strip() == phone]
+        all_names = []
+        for name in group[company_col].fillna("").astype(str):
+            all_names.extend([n for n in split_pattern.split(name) if n.strip()])
+        unique_names = sorted(set([n.strip() for n in all_names if n.strip()]))
+        if len(unique_names) > 1:
+            multi_company_dict[phone] = unique_names
+    return multi_company_dict
 
 
 def apply_post_processing(
@@ -502,8 +533,16 @@ def apply_post_processing(
     df_merged, _ = merge_duplicate_phones(df_valid, config, id_column)
     logger.info(f"[Step 3] 重复手机号合并后: {len(df_merged)} 行")
 
-    # 4. LLM企业名称唯一化（直接覆盖企业名称字段）
-    df_llm = llm_unique_company_names(df_merged, phone_col, company_col, config)
+    # 新增：遍历原始数据，提取需要唯一化的手机号及企业名列表
+    multi_company_dict = extract_multi_company_phones_from_raw(
+        df_valid, phone_col, company_col
+    )
+    logger.info(f"[Step 3.5] 需唯一化手机号数: {len(multi_company_dict)}")
+
+    # 4. LLM企业名称唯一化（仅对multi_company_dict中的手机号处理）
+    df_llm = llm_unique_company_names(
+        df_merged, phone_col, company_col, config, multi_company_dict
+    )
     logger.info(f"[Step 4] LLM企业名称唯一化后: {len(df_llm)} 行")
 
     # 5. Sheet分类
@@ -534,43 +573,247 @@ def apply_post_processing(
 # 新增：LLM企业名称唯一化函数
 
 
-def llm_unique_company_names(df, phone_col, company_col, config):
+def llm_unique_company_names(
+    df, phone_col, company_col, config, multi_company_dict=None
+):
     """
-    对每个手机号下的企业名称列表，调用LLM批处理，输出唯一化企业名称，直接覆盖企业名称字段。
+    仅对multi_company_dict中的手机号做LLM唯一化，其他手机号直接保留。
+    实际调用百炼大模型Batch接口。
     """
-    # 这里只做伪实现，实际应批量调用LLM并解析结果
-    # 假设LLM返回的唯一化企业名称列表为['上海汉得', '甄零科技']
-    # 这里只做去重+排序模拟
+    import json
+    import time
+
     df = df.copy()
-    for phone, group in df.groupby(phone_col):
-        names = group[company_col].astype(str).str.strip().unique().tolist()
-        # 这里应调用LLM，返回唯一化后的names
-        # 假设LLM返回如下（实际应用API）
-        unique_names = sorted(set(names))
-        # 只保留第一个名称（模拟LLM唯一化）
-        unique_name = unique_names[0] if unique_names else ""
-        idxs = group.index
-        df.loc[idxs, company_col] = unique_name
+    if not multi_company_dict:
+        logger.info("[LLM唯一化] multi_company_dict 为空，跳过LLM唯一化处理。")
+        return df
+
+    logger.info(
+        f"[LLM唯一化] 开始处理，需要唯一化的手机号数量: {len(multi_company_dict)}"
+    )
+
+    llm_config = config.get("llm_config", {})
+    dashscope_api_key = llm_config.get("DASHSCOPE_API_KEY", "")
+    base_url = llm_config.get("BAILIAN_BASE_URL", BAILIAN_BASE_URL)
+    model_name = llm_config.get("BAILIAN_MODEL_NAME", "qwen-turbo-latest")
+    batch_size = 200  # 调整批处理大小以适应LLM限制，写死默认值200，加快响应效率
+    system_content = (
+        "你是一个企业信息去重专家。你的任务是：对同一手机号下的企业名称列表，判断它们是否指向同一家公司、母子公司、或属于同一集团下的紧密关联公司，并为每个主体只保留一个标准名称。"
+        "输出唯一化后的企业名称列表（每个主体只保留一个名称），以JSON数组格式返回。"
+        "如果企业名称为干扰项、空值、重复项，请忽略他们"
+        "如果企业名称存在错别字，请纠正后判断"
+        "如果企业名称是英文的名称，或者是外企，也需要保留这些企业"
+        "例子1：\n输入：['上海汉得', '汉得信息', '甄零科技']\n输出：['上海汉得', '甄零科技']\n"
+        "例子2：\n输入：['腾讯', '深圳市腾讯计算机系统有限公司', '腾讯云', '腾讯科技']\n输出：['腾讯']\n"
+        "例子3：\n输入：['阿里巴巴', '蚂蚁金服', '阿里云', '阿里']\n输出：['阿里巴巴']\n"
+        "例子4：\n输入：['京东', '京东集团', '京东2023', '京东物流']\n输出：['京东']\n"
+        "例子5：\n输入：['中国移动', '中国移动（北京）', '中国移动通信', '中国移动山东分公司']\n输出：['中国移动']\n"
+        "例子6：\n输入：['', '顺丰', '顺丰速运', '顺丰控股']\n输出：['顺丰']\n"
+        "例子6：\n输入：['ChinaPnRCo.,Ltd', 'ChinaPnRCo.,Ltd']\n输出：['ChinaPnRCo.,Ltd']\n"
+        "请严格按照JSON数组格式输出结果。"
+        "只输出一维JSON数组，不允许嵌套。"
+        "错误示例：输出[['A', 'B']]，这是嵌套数组，格式错误。"
+    )
+
+    phones_to_process = list(multi_company_dict.keys())
+    total_phones_to_process = len(phones_to_process)
+    processed_count = 0
+
+    for i in range(0, total_phones_to_process, batch_size):
+        batch_phones = phones_to_process[i : i + batch_size]
+        batch_data = [
+            {"id": p, "names": multi_company_dict[p]}
+            for p in batch_phones
+            if p in multi_company_dict  # 确保手机号在字典中
+        ]
+
+        if not batch_data:
+            logger.debug(
+                f"[LLM唯一化][Batch {i//batch_size + 1}] 当前批次没有有效数据，跳过。"
+            )
+            continue
+
+        logger.info(
+            f"[LLM唯一化][Batch {i//batch_size + 1}/{ (total_phones_to_process + batch_size -1)//batch_size }] 处理手机号: {batch_phones}"
+        )
+        # logger.debug(
+        #     f"[LLM唯一化][Batch {i//batch_size + 1}] payload: {json.dumps(batch_data, ensure_ascii=False)}"
+        # ) # payload日志可能过长，需要时打开
+
+        llm_results_for_batch = {}
+
+        for group_idx, group_data in enumerate(batch_data):
+            phone_id = group_data["id"]
+            company_names_for_llm = group_data["names"]
+
+            # 构造单个LLM请求
+            user_content = f"请处理以下企业名称列表：{json.dumps(company_names_for_llm, ensure_ascii=False)}"
+            messages = [
+                {"role": "system", "content": system_content},
+                {"role": "user", "content": user_content},
+            ]
+            # logger.debug(
+            #     f"[LLM唯一化][Detail] 手机号 {phone_id} (批次内序号 {group_idx+1}) messages: {json.dumps(messages, ensure_ascii=False)}"
+            # ) # messages日志可能过长
+
+            max_retries = 2
+            retry_delay = 5
+            success_for_phone = False
+            unique_names_result = sorted(
+                set(company_names_for_llm)
+            )  # 默认回退到本地去重
+
+            for attempt in range(max_retries):
+                try:
+                    client = openai.OpenAI(api_key=dashscope_api_key, base_url=base_url)
+                    response = client.chat.completions.create(
+                        model=model_name,
+                        messages=messages,
+                        max_tokens=8192,  # 根据实际情况调整
+                        temperature=0.1,
+                        # response_format={"type": "json_object"}, # 确保LLM支持此参数
+                    )
+                    content_str = response.choices[0].message.content
+                    logger.debug(
+                        f"[LLM唯一化][输出] 手机号: {phone_id}, LLM原始响应 (尝试 {attempt+1}): {content_str}"
+                    )
+
+                    if content_str:
+                        try:
+                            # 尝试去除markdown代码块标记
+                            if content_str.startswith(
+                                "```json"
+                            ) and content_str.endswith("```"):
+                                content_str = content_str[7:-3].strip()
+                            elif content_str.startswith("```") and content_str.endswith(
+                                "```"
+                            ):
+                                content_str = content_str[3:-3].strip()
+
+                            content_data = json.loads(content_str)
+
+                            # 根据LLM实际返回格式调整解析逻辑
+                            if isinstance(content_data, list):
+                                parsed_names = content_data
+                            elif (
+                                isinstance(content_data, dict)
+                                and "unique_companies" in content_data
+                                and isinstance(content_data["unique_companies"], list)
+                            ):
+                                parsed_names = content_data["unique_companies"]
+                            elif (
+                                isinstance(content_data, dict)
+                                and "result" in content_data
+                                and isinstance(content_data["result"], list)
+                            ):
+                                parsed_names = content_data["result"]
+                            elif (
+                                isinstance(content_data, dict)
+                                and "names" in content_data
+                                and isinstance(content_data["names"], list)
+                            ):
+                                parsed_names = content_data[
+                                    "names"
+                                ]  # 假设 'names' 键包含列表
+                            else:
+                                logger.warning(
+                                    f"[LLM唯一化][解析] 手机号: {phone_id} 响应JSON结构未知 ({type(content_data)})，使用原始名称本地去重。响应: {content_str[:200]}"
+                                )
+                                parsed_names = (
+                                    company_names_for_llm  # 保留原始，后续本地去重
+                                )
+
+                            unique_names_result = sorted(
+                                set(
+                                    [
+                                        str(n).strip()
+                                        for n in parsed_names
+                                        if str(n).strip()
+                                    ]
+                                )
+                            )
+                            success_for_phone = True
+                            logger.info(
+                                f"[LLM唯一化][成功] 手机号: {phone_id}, 唯一化后名称: {unique_names_result}"
+                            )
+                            break  # 当前手机号处理成功，跳出重试循环
+                        except json.JSONDecodeError as e:
+                            logger.warning(
+                                f"[LLM唯一化][JSON错误] 手机号: {phone_id} JSON解析失败 (尝试 {attempt+1}): {e}. 响应: {content_str[:200]}"
+                            )
+                        except Exception as e_parse:  # 其他解析阶段错误
+                            logger.warning(
+                                f"[LLM唯一化][解析错误] 手机号: {phone_id} 解析响应时出错 (尝试 {attempt+1}): {e_parse}. 响应: {content_str[:200]}"
+                            )
+                    else:
+                        logger.warning(
+                            f"[LLM唯一化][空响应] 手机号: {phone_id} LLM响应为空 (尝试 {attempt+1})."
+                        )
+
+                except openai.APIConnectionError as e_conn:
+                    logger.error(
+                        f"[LLM唯一化][连接错误] 手机号: {phone_id} (尝试 {attempt+1}): {e_conn}"
+                    )
+                except openai.RateLimitError as e_rate:
+                    logger.error(
+                        f"[LLM唯一化][速率限制] 手机号: {phone_id} (尝试 {attempt+1}): {e_rate}"
+                    )
+                except openai.APIStatusError as e_status:
+                    logger.error(
+                        f"[LLM唯一化][API状态错误] 手机号: {phone_id} (尝试 {attempt+1}): {e_status}. Status: {e_status.status_code}, Response: {e_status.response}"
+                    )
+                except Exception as e_gen:
+                    logger.error(
+                        f"[LLM唯一化][未知错误] 手机号: {phone_id} LLM接口调用失败 (尝试 {attempt+1}): {e_gen}"
+                    )
+
+                if attempt < max_retries - 1:
+                    logger.info(
+                        f"[LLM唯一化][重试] 手机号: {phone_id}, {retry_delay} 秒后重试..."
+                    )
+                    time.sleep(retry_delay)
+
+            if not success_for_phone:
+                logger.warning(
+                    f"[LLM唯一化][回退] 手机号: {phone_id} 所有重试失败，使用本地去重结果: {unique_names_result}"
+                )
+
+            llm_results_for_batch[phone_id] = unique_names_result
+            processed_count += 1
+
+        # 回写DataFrame
+        for phone_num, final_unique_names in llm_results_for_batch.items():
+            # 定位到原始df中需要更新的行
+            # 注意：df可能在之前的步骤中已经被修改，这里的df是传入此函数的副本的副本
+            # 应该直接操作传入此函数的df副本
+            idxs = df[df[phone_col] == phone_num].index
+            if not idxs.empty:
+                final_unique_name_str = (
+                    ";".join(final_unique_names) if final_unique_names else ""
+                )
+                df.loc[idxs, company_col] = final_unique_name_str
+                logger.debug(
+                    f"[LLM唯一化][更新DF] 手机号: {phone_num}, 更新企业名称为: '{final_unique_name_str}' (影响 {len(idxs)} 行)"
+                )
+            else:
+                logger.warning(
+                    f"[LLM唯一化][更新DF警告] 手机号: {phone_num} 在DataFrame中未找到对应记录，无法更新。"
+                )
+
+        logger.info(
+            f"[LLM唯一化] 已处理 {processed_count}/{total_phones_to_process} 个手机号。"
+        )
+
+    # 对于不在multi_company_dict中的手机号，其企业名称保持不变，无需额外处理或日志
+    # 此处的循环仅用于演示之前的跳过逻辑，现在可以直接移除
+    # for phone, group in df.groupby(phone_col):
+    #     if phone not in multi_company_dict:
+    #         # logger.debug(
+    #         #     f"[LLM唯一化][跳过] 手机号: {phone}, 企业名称: {group[company_col].iloc[0]}"
+    #         # )
+    #         continue
+    logger.info(f"[LLM唯一化] 处理完成。最终DataFrame行数: {len(df)}")
     return df
-
-
-# --- 新增：查找列名的辅助函数 ---
-def find_column_by_aliases(df, aliases):
-    """
-    在DataFrame中查找可能的列名
-
-    Args:
-        df: DataFrame对象
-        aliases: 可能的列名列表
-
-    Returns:
-        找到的列名或None
-    """
-    for alias in aliases:
-        if alias in df.columns:
-            print(f"   >> 找到列名别名: '{alias}'")
-            return alias
-    return None
 
 
 # --- 修改：处理手机号重复的合并函数 ---
@@ -581,172 +824,157 @@ def merge_duplicate_phones(
     处理电话号码重复的情况，实现需求文档 FR3.4 中的新增子步骤逻辑:
     返回(result_df, update_ids)，update_ids为所有因合并操作（如合并企业名称、来源）而需要更新的有record_id的行的id集合。
     """
-    print("   >> [Step 5] 开始处理电话号码重复合并逻辑...")
+    logger.info("   >> [Step 5] 开始处理电话号码重复合并逻辑...")
+
+    # 新增：只保留企业名称和电话均非空的数据行
+    df = df[
+        df["企业名称"].notnull()
+        & (df["企业名称"].astype(str).str.strip() != "")
+        & df["电话"].notnull()
+        & (df["电话"].astype(str).str.strip() != "")
+    ].copy()
+    logger.info(f"   已筛选有效数据，剩余 {len(df)} 行。")
 
     # 从配置中读取列名
     feishu_config = config.get("feishu_config", {})
     phone_col = feishu_config.get("PHONE_NUMBER_COLUMN", "电话")
     company_col = feishu_config.get("COMPANY_NAME_COLUMN", "企业名称")
-    related_company_col = feishu_config.get(
-        "RELATED_COMPANY_COLUMN_NAME", "关联公司名称(LLM)"
-    )
+    # related_company_col = feishu_config.get( # 这行被注释掉了或不完整，但此函数中未使用
+    #     "RELATED_COMPANY_COLUMN_NAME", "关联公司名称(LLM)"
+    # )
     source_col = "来源"
     record_id_col = "record_id"
+
+    logger.debug(
+        f"   电话列: {phone_col}, 企业名称列: {company_col}, 来源列: {source_col}, Record ID列: {record_id_col}, 主ID列: {id_column}"
+    )
 
     # 结果DataFrame
     result_rows = []
     update_ids = set()
-    ids_processed = set()
+    ids_processed = set()  # 用于记录已处理的行ID
 
+    logger.info(f"   开始按电话号码 '{phone_col}' 分组处理数据...")
     # 按手机号分组
     for phone, group in df.groupby(phone_col):
-        if phone == "" or len(group) == 0:
+        if phone == "" or len(group) == 0:  # 忽略空电话号码或空组
+            logger.debug(f"   跳过空电话号码或空组: {phone}")
             continue
+
+        logger.debug(f"   处理电话: {phone}, 包含 {len(group)} 条记录")
+
         # 取所有企业名称（已唯一化）
         unique_companies = group[company_col].astype(str).str.strip().unique().tolist()
+        logger.debug(f"     唯一企业名称: {unique_companies}")
+
         # 来源字段只取一条（优先有record_id，否则第一条）
         source_val = ""
-        feishu_rows = group[group[record_id_col] != ""]
+        feishu_rows = group[
+            group[record_id_col].notna() & (group[record_id_col] != "")
+        ]  # 筛选出有效的飞书记录（有 record_id 且不为空）
+
         if not feishu_rows.empty:
             source_val = feishu_rows.iloc[0][source_col]
-        else:
+            logger.debug(
+                f"     从飞书记录 (ID: {feishu_rows.iloc[0][record_id_col]}) 获取来源: {source_val}"
+            )
+        elif not group.empty:  # 确保组不为空
             source_val = group.iloc[0][source_col]
-        # 只保留一条（优先有record_id，否则第一条）
+            logger.debug(f"     无飞书记录，从组内第一条记录获取来源: {source_val}")
+        else:
+            logger.warning(f"     电话 {phone} 的组为空，无法获取来源值。")
+            # 可以选择跳过此组或赋默认值
+
+        # 只保留一条记录（优先有record_id，否则第一条）
+        current_row_data = {}  # 用于存储当前处理行的字典数据
         if not feishu_rows.empty:
-            keep_row = feishu_rows.iloc[0].copy()
-            keep_row[source_col] = source_val
-            keep_row[company_col] = ";".join(unique_companies)
-            result_rows.append(keep_row)
-            update_ids.add(keep_row[id_column])
+            keep_row_series = feishu_rows.iloc[0].copy()  # 复制飞书记录的第一行
+            logger.debug(
+                f"     保留飞书记录 (ID: {keep_row_series[record_id_col]}) 作为基础"
+            )
+            keep_row_series[source_col] = source_val
+            keep_row_series[company_col] = ";".join(unique_companies)  # 合并企业名称
+            current_row_data = keep_row_series.to_dict()  # 转换为字典
+            update_ids.add(
+                str(keep_row_series[id_column])
+            )  # 确保ID是字符串，与ids_processed中的类型一致
+            logger.debug(f"       转换为字典: {current_row_data}")
+            logger.debug(f"       行ID {keep_row_series[id_column]} 加入 update_ids")
+        elif not group.empty:  # 确保组不为空
+            keep_row_series = group.iloc[0].copy()  # 复制组内第一行
+            logger.debug(
+                f"     无飞书记录，保留组内第一条记录 (ID: {keep_row_series[id_column]}) 作为基础"
+            )
+            keep_row_series[source_col] = source_val
+            keep_row_series[company_col] = ";".join(unique_companies)  # 合并企业名称
+            current_row_data = keep_row_series.to_dict()  # 转换为字典
+            logger.debug(f"       转换为字典: {current_row_data}")
+            # 非飞书记录（无record_id）通常不直接"更新"，但如果它们通过id_column被追踪，也记录
         else:
-            keep_row = group.iloc[0].copy()
-            keep_row[source_col] = source_val
-            keep_row[company_col] = ";".join(unique_companies)
-            result_rows.append(keep_row)
-        ids_processed.update(group[id_column].tolist())
-    # 处理未分组到的单独手机号
-    unprocessed = df[~df[id_column].isin(ids_processed)]
-    if not unprocessed.empty:
-        result_rows.extend(unprocessed.to_dict("records"))
-    result_df = pd.DataFrame(result_rows)
-    return result_df, update_ids
+            logger.warning(f"     电话 {phone} 的组为空，无法选择保留行。")
+            continue  # 跳过此空电话号码组的处理
 
+        result_rows.append(current_row_data)
+        # 确保添加到ids_processed的ID是字符串类型，与update_ids中的类型一致
+        ids_processed.update(group[id_column].astype(str).tolist())
+        logger.debug(
+            f"     电话 {phone} 处理完毕, {len(group[id_column])} 个行ID加入ids_processed"
+        )
 
-# --- 新增：合并同一手机号所有企业名称的函数 ---
-def merge_all_companies_for_same_phone(
-    df: pd.DataFrame,
-    phone_col="电话",
-    company_col="企业名称",
-    record_id_col="record_id",
-    related_company_col="关联公司名称(LLM)",
-) -> pd.DataFrame:
-    """
-    对相同手机号的所有记录，将所有企业名称合并到一条记录中
+    logger.info(f"   电话号码分组处理完成。共处理 {len(ids_processed)} 条记录。")
 
-    处理逻辑：
-    1. 相同手机号的记录中，找出飞书记录（有record_id的记录）作为基准
-    2. 收集该手机号下所有企业名称（既包括关联的也包括不关联的）
-    3. 将所有企业名称合并并更新到基准记录上
-    4. 清空关联公司信息，确保记录能进入正确的Sheet
+    # 处理未分组到的单独手机号 (这些是没有重复的，或者由于某种原因未被groupby处理)
+    # 确保比较的ID是字符串类型
+    unprocessed_df = df[~df[id_column].astype(str).isin(ids_processed)]
+    if not unprocessed_df.empty:
+        logger.info(
+            f"   发现 {len(unprocessed_df)} 条未在分组中处理的记录，将其直接添加到结果中。"
+        )
+        unprocessed_records = unprocessed_df.to_dict("records")
+        result_rows.extend(unprocessed_records)
+        logger.debug(f"     添加的未处理记录示例 (最多3条): {unprocessed_records[:3]}")
+    else:
+        logger.info("   所有记录均已在分组中处理完毕。")
 
-    Args:
-        df: 输入DataFrame
-        phone_col: 电话列名
-        company_col: 企业名称列名
-        record_id_col: 记录ID列名
-        related_company_col: 关联公司列名
-
-    Returns:
-        处理后的DataFrame
-    """
-    print("   >> [Step 6] 开始执行企业名称全合并处理...")
-
-    # 复制DataFrame以避免修改原始数据
-    df = df.copy()
-
-    # 清理和准备数据
-    df[phone_col] = df[phone_col].fillna("").astype(str).str.strip()
-    df[company_col] = df[company_col].fillna("").astype(str).str.strip()
-    df[record_id_col] = df[record_id_col].fillna("").astype(str).str.strip()
-    df[related_company_col] = df[related_company_col].fillna("").astype(str).str.strip()
-
-    # 结果DataFrame
-    result_rows = []
-
-    # 按电话号码分组
-    phone_groups = df.groupby(phone_col)
-
-    merged_count = 0
-    skipped_count = 0
-
-    for phone, group in phone_groups:
-        if len(group) <= 1 or phone == "":  # 非重复电话或空电话
-            result_rows.extend(group.to_dict("records"))
-            continue
-
-        print(f"      处理电话号码: {phone}, 找到 {len(group)} 条记录")
-
-        # 提取所有企业名称
-        all_company_names = []
-
-        # 处理每一行的企业名称，支持分隔符
-        for _, row in group.iterrows():
-            company_name = row[company_col]
-            if company_name:
-                # 处理可能已经包含分隔符的情况
-                if ";" in company_name or "；" in company_name:
-                    # 统一替换中文分号为英文分号
-                    company_name = company_name.replace("；", ";")
-                    names = [
-                        name.strip() for name in company_name.split(";") if name.strip()
+    logger.info(f"   准备从 {len(result_rows)} 条记录创建最终DataFrame...")
+    # 现在 result_rows 中的所有元素都应该是字典
+    if not result_rows:  # 如果 result_rows 为空，创建一个空的DataFrame避免错误
+        logger.warning("   result_rows 为空，将返回一个空的DataFrame。")
+        # 需要确定空DataFrame的列结构，可以从原始df获取，或者定义一个最小列集合
+        # 为简单起见，如果df不为空，则使用df的列，否则定义基本列
+        if not df.empty:
+            result_df = pd.DataFrame(columns=df.columns)
+        else:  # Fallback if df is also empty
+            result_df = pd.DataFrame(
+                columns=[phone_col, company_col, source_col, record_id_col, id_column]
+            )
+    else:
+        try:
+            result_df = pd.DataFrame(result_rows)
+            logger.info(f"   最终DataFrame创建成功，包含 {len(result_df)} 行。")
+        except Exception as e:
+            logger.error(f"   从result_rows创建DataFrame失败: {e}")
+            logger.error(
+                f"   result_rows 内容 (前3条): {result_rows[:3]}"
+            )  # 打印部分内容帮助调试
+            # 异常发生时，也返回一个有结构的空DataFrame，或者根据策略抛出异常
+            if not df.empty:
+                result_df = pd.DataFrame(columns=df.columns)
+            else:
+                result_df = pd.DataFrame(
+                    columns=[
+                        phone_col,
+                        company_col,
+                        source_col,
+                        record_id_col,
+                        id_column,
                     ]
-                    all_company_names.extend(names)
-                else:
-                    all_company_names.append(company_name)
+                )
 
-        # 去重并排序
-        unique_companies = sorted(set(all_company_names))
-
-        if not unique_companies:  # 没有有效的企业名称
-            result_rows.extend(group.iloc[0:1].to_dict("records"))
-            skipped_count += 1
-            continue
-
-        # 检查是否有飞书记录，优先使用飞书记录作为基准
-        feishu_records = group[group[record_id_col] != ""]
-
-        if not feishu_records.empty:
-            # 使用第一个飞书记录作为基准
-            base_row = feishu_records.iloc[0].to_dict()
-            print(f"      使用飞书记录 (record_id: {base_row[record_id_col]}) 作为基准")
-        else:
-            # 无飞书记录，使用第一行作为基准
-            base_row = group.iloc[0].to_dict()
-            print(f"      无飞书记录，使用第一行作为基准")
-
-        # 合并企业名称到基准行
-        merged_company_name = ";".join(unique_companies)
-        print(f"      合并{len(unique_companies)}个企业名称: {merged_company_name}")
-
-        # 更新基准行
-        base_row[company_col] = merged_company_name
-
-        # 清空关联公司信息，确保能进入正确的Sheet
-        base_row[related_company_col] = ""
-
-        result_rows.append(base_row)
-        merged_count += 1
-
-    # 转回DataFrame
-    result_df = pd.DataFrame(result_rows)
-
-    print(
-        f"   企业名称全合并完成: 处理了{merged_count}个电话分组，跳过{skipped_count}个分组"
+    logger.info(
+        f"   电话号码重复合并逻辑处理完成。返回 {len(result_df)} 行数据，{len(update_ids)} 个待更新ID。"
     )
-    print(f"   处理前行数: {len(df)}，处理后行数: {len(result_df)}")
-    print("   ✅ [Step 6] 企业名称全合并处理完成。")
-
-    return result_df
+    return result_df, update_ids
 
 
 # --- 修改：创建多Sheet页Excel文件函数 ---
@@ -760,45 +988,164 @@ def create_multi_sheet_excel(
     df_new: pd.DataFrame = None,  # 新增参数，直接传递新增Sheet数据
     df_update: pd.DataFrame = None,  # 新增参数，直接传递更新Sheet数据
 ) -> None:
-    print(
-        f"[DEBUG] create_multi_sheet_excel 收到的 update_ids 类型: {type(update_ids)}, 长度: {len(update_ids) if update_ids is not None else 'None'}"
+    task_id_from_config = config.get("task_id", "N/A")  # 尝试从config获取task_id
+    task_info = f"[任务 {task_id_from_config}] " if task_id_from_config != "N/A" else ""
+
+    logger.debug(
+        f"{task_info}[DEBUG] create_multi_sheet_excel 收到的 update_ids 类型: {type(update_ids)}, 长度: {len(update_ids) if update_ids is not None else 'None'}"
     )
     feishu_config = config.get("feishu_config", {})
-    company_col = feishu_config.get("COMPANY_NAME_COLUMN", "企业名称")
-    phone_col = feishu_config.get("PHONE_NUMBER_COLUMN", "电话")
-    record_id_col = "record_id"
-    source_col = "来源"
+    # company_col = feishu_config.get("COMPANY_NAME_COLUMN", "企业名称") # 本函数内未直接使用
+    # phone_col = feishu_config.get("PHONE_NUMBER_COLUMN", "电话") # 本函数内未直接使用
+    record_id_col = "record_id"  # 假设 record_id 列名固定
+    # source_col = "来源" # 本函数内未直接使用
+
+    # 定义需要排除的列
+    EXCLUDED_COLS_NEW_SHEET = ["record_id", "table_id", "备注", "关联公司名称(LLM)"]
+    EXCLUDED_COLS_UPDATE_SHEET = ["备注", "关联公司名称(LLM)"]
+
     # 1. 新增Sheet: 优先用df_new参数，否则兼容老逻辑
     if df_new is not None:
         df_new_sheet = df_new.copy()
     else:
-        df_new_sheet = df_processed[df_processed[record_id_col].fillna("") == ""].copy()
+        # 确保 df_processed[record_id_col] 在fillna之前是字符串类型，避免潜在的类型问题
+        df_new_sheet = df_processed[
+            df_processed[record_id_col].astype(str).fillna("") == ""
+        ].copy()
+
     # 2. 更新Sheet: 优先用df_update参数，否则兼容老逻辑
     if df_update is not None:
         df_update_sheet = df_update.copy()
-    elif update_ids is not None:
+    elif (
+        update_ids is not None and id_column in df_processed.columns
+    ):  # 增加id_column存在性检查
+        # 确保 df_processed[id_column] 和 update_ids 中的元素类型一致 (字符串)
         df_processed[id_column] = df_processed[id_column].astype(str).str.strip()
         update_ids_str = set(str(i).strip() for i in update_ids)
         df_update_sheet = df_processed[
             df_processed[id_column].isin(update_ids_str)
         ].copy()
     else:
-        df_update_sheet = df_processed[[]].copy()
+        # 如果 update_ids 为 None 或 id_column 不存在，创建一个包含所有列的空DataFrame
+        df_update_sheet = pd.DataFrame(
+            columns=df_processed.columns if not df_processed.empty else None
+        )
+
     # 3. 原始数据Sheet
     if df_original is not None:
         df_for_original_sheet = df_original.copy()
     else:
+        # 如果 df_original 未提供，使用 df_processed 作为原始数据的近似
+        # 这在某些旧调用流程中可能是必要的
         df_for_original_sheet = df_processed.copy()
+
     # 4. 写入Excel
     dfs_to_write = {
         "原始数据": df_for_original_sheet,
         "新增": df_new_sheet,
         "更新": df_update_sheet,
     }
-    with pd.ExcelWriter(output_filepath, engine="openpyxl") as writer:
-        for sheet_name, df_to_write in dfs_to_write.items():
-            if len(df_to_write) > 0:
-                df_to_write.to_excel(writer, sheet_name=sheet_name, index=False)
-            else:
-                empty_df = pd.DataFrame(columns=df_processed.columns)
-                empty_df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+    logger.info(f"{task_info}准备写入Excel文件: {output_filepath}")
+    try:
+        with pd.ExcelWriter(output_filepath, engine="openpyxl") as writer:
+            for sheet_name, df_current_sheet_original in dfs_to_write.items():
+                if df_current_sheet_original is None:
+                    logger.warning(
+                        f"{task_info}Sheet '{sheet_name}' 的DataFrame为None，将写入空Sheet页。"
+                    )
+                    pd.DataFrame().to_excel(writer, sheet_name=sheet_name, index=False)
+                    continue
+
+                # 操作副本以进行列筛选
+                df_current_sheet_to_write = df_current_sheet_original.copy()
+
+                current_columns = list(df_current_sheet_to_write.columns)
+                columns_to_write = current_columns  # 默认写入所有列
+
+                if sheet_name == "新增":
+                    columns_to_write = [
+                        col
+                        for col in current_columns
+                        if col not in EXCLUDED_COLS_NEW_SHEET
+                    ]
+                    logger.info(
+                        f"{task_info}为 '新增' Sheet页筛选列，保留: {columns_to_write}"
+                    )
+                elif sheet_name == "更新":
+                    columns_to_write = [
+                        col
+                        for col in current_columns
+                        if col not in EXCLUDED_COLS_UPDATE_SHEET
+                    ]
+                    logger.info(
+                        f"{task_info}为 '更新' Sheet页筛选列，保留: {columns_to_write}"
+                    )
+                elif sheet_name == "原始数据":
+                    logger.info(
+                        f"{task_info}为 '原始数据' Sheet页保留所有列: {columns_to_write}"
+                    )
+                else:
+                    # 对于其他未明确指定规则的Sheet（如果将来有的话），默认也写入所有列
+                    logger.info(
+                        f"{task_info}为 '{sheet_name}' Sheet页保留所有列: {columns_to_write}"
+                    )
+
+                if df_current_sheet_to_write.empty:
+                    logger.info(
+                        f"{task_info}Sheet '{sheet_name}' 数据为空，将写入空Sheet页 (保留筛选后的列结构或原始列结构)。"
+                    )
+                    # 即使数据为空，也尝试保留列结构
+                    final_cols_for_empty = (
+                        columns_to_write if columns_to_write else current_columns
+                    )
+                    pd.DataFrame(columns=final_cols_for_empty).to_excel(
+                        writer, sheet_name=sheet_name, index=False
+                    )
+                    continue
+
+                if not columns_to_write:
+                    logger.warning(
+                        f"{task_info}Sheet '{sheet_name}' (数据行数: {len(df_current_sheet_to_write)}) 筛选后没有可写入的列。将写入空Sheet页保留Sheet名。"
+                    )
+                    pd.DataFrame().to_excel(writer, sheet_name=sheet_name, index=False)
+                    continue
+
+                # 确保 columns_to_write 中的所有列都实际存在于 df_current_sheet_to_write 中
+                valid_columns_to_write = [
+                    col
+                    for col in columns_to_write
+                    if col in df_current_sheet_to_write.columns
+                ]
+
+                if not valid_columns_to_write:
+                    logger.warning(
+                        f"{task_info}Sheet '{sheet_name}' (数据行数: {len(df_current_sheet_to_write)}) 的目标列 {columns_to_write} 在DataFrame中均不存在。将写入空Sheet页保留Sheet名。"
+                    )
+                    pd.DataFrame().to_excel(writer, sheet_name=sheet_name, index=False)
+                    continue
+
+                logger.debug(
+                    f"{task_info}写入Sheet '{sheet_name}'，共 {len(df_current_sheet_to_write)} 行 {len(valid_columns_to_write)} 列数据 (筛选后)"
+                )
+                df_current_sheet_to_write.to_excel(
+                    writer,
+                    sheet_name=sheet_name,
+                    index=False,
+                    columns=valid_columns_to_write,
+                )
+                logger.info(
+                    f"{task_info}已写入Sheet '{sheet_name}'，共 {len(df_current_sheet_to_write)} 行数据 (使用筛选后列)"
+                )
+        logger.info(f"{task_info}成功写入所有Sheet到: {output_filepath}")
+    except Exception as e:
+        logger.error(
+            f"{task_info}创建多Sheet页Excel文件失败: {output_filepath} - {e}",
+            exc_info=True,
+        )
+        # 根据实际需求，这里可以决定是否抛出异常或返回状态
+
+
+# --- 旧的函数，将被 utils/file_utils.py 中的版本替代或本函数将被项目统一调用 ---
+# def create_multi_sheet_excel_old(...):
+# pass

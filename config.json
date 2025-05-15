@@ -8,7 +8,7 @@
             "来源"
         ],
         "DEEPSEEK_API_KEY": "sk-9df835c781904b2289663567d05c94d9",
-        "BATCH_SIZE": 50,
+        "BATCH_SIZE": 20,
         "MAX_COMPLETION_TOKENS": 8192,
         "API_TIMEOUT": 180,
         "DASHSCOPE_API_KEY": "sk-ef56a7163b2b4eafb87eb1bdd579bb6f",

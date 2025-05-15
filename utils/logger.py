@@ -38,7 +38,7 @@ LOG_RETENTION_DAYS = 7
 
 def setup_logger(
     name: str,
-    level: str = "info",
+    level: str = "debug",
     console: bool = True,
     file: bool = True,
     detailed_format: bool = False,
@@ -63,7 +63,7 @@ def setup_logger(
         logging.Logger: 配置好的日志记录器
     """
     # 获取日志级别
-    log_level = LOG_LEVELS.get(level.lower(), logging.INFO)
+    log_level = LOG_LEVELS.get(level.lower(), logging.DEBUG)
 
     # 选择格式化器
     if full_context:
