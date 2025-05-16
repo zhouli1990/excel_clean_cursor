@@ -1048,7 +1048,11 @@ def create_multi_sheet_excel(
 
     logger.info(f"{task_info}准备写入Excel文件: {output_filepath}")
     try:
-        with pd.ExcelWriter(output_filepath, engine="openpyxl") as writer:
+        with pd.ExcelWriter(
+            output_filepath,
+            engine="openpyxl",
+            engine_kwargs={"write_only": True},  # 流式写入
+        ) as writer:
             for sheet_name, df_current_sheet_original in dfs_to_write.items():
                 if df_current_sheet_original is None:
                     logger.warning(

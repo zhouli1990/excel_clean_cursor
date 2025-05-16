@@ -1,0 +1,121 @@
+2025-05-16 16:36:10,766 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:36:11,881 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-16 16:36:11,881 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-16 16:36:14,532 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:36:15,382 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-16 16:36:15,383 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-16 16:36:15,478 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:37:15,495 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:37:20,234 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-16 16:37:20,234 - task_manager - INFO - 已添加任务 task_20250516_163720_5f22573a 的历史记录，类型为 complete_processing
+2025-05-16 16:37:20,234 - task_manager - INFO - 已创建新任务 task_20250516_163720_5f22573a，类型为 complete_processing，关联 1 个文件
+2025-05-16 16:37:20,238 - task_manager - INFO - 任务 task_20250516_163720_5f22573a 进度更新: 处理文件 1/1: 250509-714生物医药沙龙名单-7.14完整.xlsx - 0% (0/1 文件)
+2025-05-16 16:37:20,448 - task_manager - INFO - 任务 task_20250516_163720_5f22573a 进度更新: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-16 16:37:21,578 - task_manager - INFO - 任务 task_20250516_163720_5f22573a 进度更新: 已提交百炼Batch任务(ID: batch_0188d5d3-0f17-400c-9034-93adcfcf9ebe)，等待处理... - 80% (1/1 文件)
+2025-05-16 16:37:21,579 - task_manager - INFO - 任务 task_20250516_163720_5f22573a 进度更新: 百炼批处理中 - 70% (1/1 文件)
+2025-05-16 16:37:50,194 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:37:51,020 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-16 16:37:51,021 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-16 16:37:51,156 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:37:51,764 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-16 16:37:51,764 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-16 16:37:52,347 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:37:57,390 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-16 16:37:57,391 - task_manager - INFO - 已添加任务 task_20250516_163757_8f76c047 的历史记录，类型为 complete_processing
+2025-05-16 16:37:57,391 - task_manager - INFO - 已创建新任务 task_20250516_163757_8f76c047，类型为 complete_processing，关联 1 个文件
+2025-05-16 16:37:57,396 - task_manager - INFO - 任务 task_20250516_163757_8f76c047 进度更新: 处理文件 1/1: 250509-714生物医药沙龙名单-7.14完整.xlsx - 0% (0/1 文件)
+2025-05-16 16:37:57,629 - task_manager - INFO - 任务 task_20250516_163757_8f76c047 进度更新: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-16 16:37:58,804 - task_manager - INFO - 任务 task_20250516_163757_8f76c047 进度更新: 已提交百炼Batch任务(ID: batch_168e48be-3d2a-4154-b1e4-c8945e550005)，等待处理... - 80% (1/1 文件)
+2025-05-16 16:37:58,805 - task_manager - INFO - 任务 task_20250516_163757_8f76c047 进度更新: 百炼批处理中 - 70% (1/1 文件)
+2025-05-16 16:38:52,353 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:38:52,656 - task_manager - INFO - 任务 task_20250516_163757_8f76c047 进度更新: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-16 16:38:52,656 - task_manager - INFO - 任务 task_20250516_163757_8f76c047 进度更新: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-16 16:49:52,656 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:50:23,103 - task_manager - INFO - 已将任务 task_20250516_163757_8f76c047 设置为最近完成的预处理任务
+2025-05-16 16:50:23,104 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-16 16:50:23,104 - task_manager - INFO - 已更新任务 task_20250516_163757_8f76c047 的历史记录
+2025-05-16 16:50:23,104 - task_manager - INFO - 任务 task_20250516_163757_8f76c047 已标记为完成，结果文件: final_task_20250516_163757_8f76c047.xlsx
+2025-05-16 16:50:52,665 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:51:52,673 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:52:52,684 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:53:52,712 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:54:52,733 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:55:52,741 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:56:52,750 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:57:52,757 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:58:52,764 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 16:59:52,772 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:00:52,782 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:01:52,792 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:02:52,803 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:03:52,808 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:04:52,835 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:05:52,840 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:06:52,851 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:07:52,859 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:08:52,866 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:09:52,874 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:10:52,881 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:11:52,888 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:12:52,895 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:13:52,882 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:14:52,887 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:15:52,897 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:16:52,902 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:17:52,911 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:18:52,919 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:19:52,927 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:20:52,933 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:21:52,942 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:22:52,950 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:23:52,961 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:24:52,967 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:25:52,977 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:26:52,982 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:27:05,150 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:27:06,096 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-16 17:27:06,097 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-16 17:27:43,413 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:27:44,157 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-16 17:27:44,158 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-16 17:28:10,991 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:28:11,752 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-16 17:28:11,753 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-16 17:28:27,872 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:28:28,979 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-16 17:28:28,979 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-16 17:28:44,687 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:28:45,493 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-16 17:28:45,494 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-16 17:29:01,134 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:29:02,099 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-16 17:29:02,099 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-16 17:29:41,123 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:29:41,898 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-16 17:29:41,898 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-16 17:36:58,614 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:37:00,006 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-16 17:37:00,006 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-16 17:37:16,685 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:37:17,436 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-16 17:37:17,436 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-16 17:37:40,209 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:37:41,031 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-16 17:37:41,032 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-16 17:38:43,889 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:38:44,716 - task_manager - INFO - 开始清理过期任务 (保留 7 天内的任务)
+2025-05-16 17:38:44,716 - task_manager - INFO - 没有找到需要清理的过期任务
+2025-05-16 17:45:54,415 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:46:24,512 - task_manager - INFO - 已保存 10 条历史记录到 task_history.json
+2025-05-16 17:46:24,513 - task_manager - INFO - 已添加任务 task_20250516_174624_2e34e582 的历史记录，类型为 complete_processing
+2025-05-16 17:46:24,513 - task_manager - INFO - 已创建新任务 task_20250516_174624_2e34e582，类型为 complete_processing，关联 1 个文件
+2025-05-16 17:46:24,518 - task_manager - INFO - 任务 task_20250516_174624_2e34e582 进度更新: 处理文件 1/1: 250509-714生物医药沙龙名单-7.14完整.xlsx - 0% (0/1 文件)
+2025-05-16 17:46:24,738 - task_manager - INFO - 任务 task_20250516_174624_2e34e582 进度更新: 提交百炼Batch API任务... - 70% (1/1 文件)
+2025-05-16 17:46:26,224 - task_manager - INFO - 任务 task_20250516_174624_2e34e582 进度更新: 已提交百炼Batch任务(ID: batch_4b336acb-a446-4df3-83cf-2b9cd3877e8d)，等待处理... - 80% (1/1 文件)
+2025-05-16 17:46:26,225 - task_manager - INFO - 任务 task_20250516_174624_2e34e582 进度更新: 百炼批处理中 - 70% (1/1 文件)
+2025-05-16 17:46:54,425 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:46:54,814 - task_manager - INFO - 任务 task_20250516_174624_2e34e582 进度更新: 百炼批处理中: in_progress - 80% (1/1 文件)
+2025-05-16 17:47:54,821 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录
+2025-05-16 17:47:55,400 - task_manager - INFO - 任务 task_20250516_174624_2e34e582 进度更新: 百炼批处理已完成，正在处理结果 - 90% (1/1 文件)
+2025-05-16 17:47:55,402 - task_manager - INFO - 任务 task_20250516_174624_2e34e582 进度更新: 下载和处理百炼批处理结果中 - 90% (1/1 文件)
+2025-05-16 17:58:55,416 - task_manager - INFO - 已从 task_history.json 加载 10 条历史记录

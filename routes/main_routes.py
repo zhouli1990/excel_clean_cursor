@@ -9,9 +9,11 @@ from flask import (
 import os
 from utils.error_handler import handle_exceptions
 from utils.config_manager import load_config
+from utils.logger import setup_logger
 
 # 创建Blueprint
 main_bp = Blueprint("main", __name__)
+logger = setup_logger("main_routes")
 
 
 @main_bp.route("/")
@@ -27,6 +29,7 @@ def index():
     Returns:
         HTML: 渲染后的index.html页面，包含所有配置参数
     """
+    logger.info("访问主页 / 请求")
     # 加载当前配置
     llm_config, feishu_config, post_processing_config = load_config()
 
@@ -47,6 +50,7 @@ def history_page():
     Returns:
         HTML: 渲染后的history.html页面
     """
+    logger.info("访问历史页面 /history 请求")
     return render_template("history.html")
 
 

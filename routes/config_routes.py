@@ -2,9 +2,12 @@ from flask import Blueprint, request, jsonify
 import json
 from utils.error_handler import handle_exceptions
 from utils.config_manager import load_config, save_config, validate_config
+from utils.logger import setup_logger
 
 # 创建Blueprint
 config_bp = Blueprint("config", __name__)
+
+logger = setup_logger("config_routes")
 
 
 @config_bp.route("/save_config", methods=["POST"])
@@ -26,6 +29,7 @@ def save_config_route():
     Returns:
         JSON: 表示保存成功或失败的消息
     """
+    logger.info("/save_config 接收到配置保存请求")
     if not request.is_json:
         return jsonify({"success": False, "error": "Request must be JSON"}), 400
 

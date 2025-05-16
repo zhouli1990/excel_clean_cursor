@@ -29,9 +29,9 @@ FULL_CONTEXT_FORMAT = (
 # 日志目录
 LOG_DIR = "logs"
 # 最大日志文件大小 (5MB)
-MAX_LOG_SIZE = 5 * 1024 * 1024
+MAX_LOG_SIZE = 30 * 1024 * 1024
 # 最大日志备份数量
-MAX_LOG_BACKUP_COUNT = 5
+MAX_LOG_BACKUP_COUNT = 20
 # 日志保留天数
 LOG_RETENTION_DAYS = 7
 

@@ -1,0 +1,5 @@
+2025-05-16 17:46:24,519 - processor - INFO - Reading file: uploads/task_20250516_174624_2e34e582/250509-714生物医药沙龙名单-7.14完整.xlsx
+2025-05-16 17:46:24,730 - processor - INFO - Successfully read 9 rows from uploads/task_20250516_174624_2e34e582/250509-714生物医药沙龙名单-7.14完整.xlsx.
+2025-05-16 17:46:24,731 - processor - DEBUG - Original columns: ['安徽省首席信息官协会人员汇总', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+2025-05-16 17:46:24,732 - processor - INFO - Added '行ID' column to DataFrame from uploads/task_20250516_174624_2e34e582/250509-714生物医药沙龙名单-7.14完整.xlsx.
+2025-05-16 17:46:24,732 - processor - INFO - Added source filename as '来源' column: 250509-714生物医药沙龙名单-7.14完整.xlsx

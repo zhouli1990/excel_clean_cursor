@@ -1,6 +1,0 @@
-2025-05-12 23:03:09,930 - app - INFO - [app.py:74] - 启动Flask应用...
-2025-05-12 23:03:09,931 - app - INFO - [app.py:33] - Flask app secret key 已随机设置
-2025-05-12 23:03:09,933 - app - INFO - [app.py:69] - 所有路由已注册
-2025-05-12 23:03:10,692 - app - INFO - [app.py:74] - 启动Flask应用...
-2025-05-12 23:03:10,693 - app - INFO - [app.py:33] - Flask app secret key 已随机设置
-2025-05-12 23:03:10,695 - app - INFO - [app.py:69] - 所有路由已注册

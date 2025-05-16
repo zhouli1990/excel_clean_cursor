@@ -20,12 +20,15 @@
     "feishu_config": {
         "APP_ID": "cli_a36634dc16b8d00e",
         "APP_SECRET": "RoXYTnSBGGsLLyvONbSCYe15Jm6bv5Xn",
-        "APP_TOKEN": "XyUFbxc8JaDkTJscEigcbkxgnqe",
+        "APP_TOKEN": "DPwobNjCLaZHOasEErsc7UxWnZe",
         "TABLE_IDS": [
-            "tblEGrUKq8KKOPAc"
+            "tbl3W83crD4gprdI",
+            "tblBz9fIT8DcBPxI",
+            "tblWoAngDoHIROmR",
+            "tblxjtX2fDnu1MRb"
         ],
         "ADD_TARGET_TABLE_IDS": [
-            "tblEGrUKq8KKOPAc"
+            "tblxjtX2fDnu1MRb"
         ]
     },
     "post_processing_config": {

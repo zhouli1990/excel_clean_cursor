@@ -15,22 +15,10 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from pathlib import Path
 import openai  # 新增: 阿里云百炼 OpenAI 兼容接口
 import datetime  # Added import
+from utils.logger import setup_logger
 
 # === Logger Setup ===
-# Create a logger instance
-logger = logging.getLogger(__name__)
-# Set the logging level (e.g., INFO, DEBUG, WARNING)
-logger.setLevel(logging.INFO)
-# Create a handler (e.g., StreamHandler to output to console)
-if not logger.handlers:  # Avoid adding multiple handlers if reloaded
-    handler = logging.StreamHandler()
-    # Create a formatter and set it for the handler
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    handler.setFormatter(formatter)
-    # Add the handler to the logger
-    logger.addHandler(handler)
+logger = setup_logger("processor")
 
 # === 配置项 (这些值现在由 app.py 传入) ===
 # DEEPSEEK_API_KEY = "YOUR_API_KEY"       # 从 app.py 获取
