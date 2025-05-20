@@ -91,6 +91,7 @@ def register_routes(app):
     logger.info("所有路由已注册")
 
 
+app = create_app()
 # 主入口点
 if __name__ == "__main__":
     logger.info("启动Flask应用...")

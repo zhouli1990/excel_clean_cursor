@@ -1,0 +1,20 @@
+2025-05-20 11:57:54,399 - app - INFO - [app.py:33] - Flask app secret key 已随机设置
+2025-05-20 11:57:54,403 - app - INFO - [app.py:91] - 所有路由已注册
+2025-05-20 11:57:54,404 - app - INFO - [app.py:97] - 启动Flask应用...
+2025-05-20 11:57:54,408 - app - INFO - [app.py:33] - Flask app secret key 已随机设置
+2025-05-20 11:57:54,414 - app - INFO - [app.py:91] - 所有路由已注册
+2025-05-20 11:57:57,060 - app - INFO - [app.py:33] - Flask app secret key 已随机设置
+2025-05-20 11:57:57,063 - app - INFO - [app.py:91] - 所有路由已注册
+2025-05-20 11:57:57,064 - app - INFO - [app.py:97] - 启动Flask应用...
+2025-05-20 11:57:57,065 - app - INFO - [app.py:33] - Flask app secret key 已随机设置
+2025-05-20 11:57:57,068 - app - INFO - [app.py:91] - 所有路由已注册
+2025-05-20 17:27:27,323 - app - INFO - [app.py:33] - Flask app secret key 已随机设置
+2025-05-20 17:27:27,325 - app - INFO - [app.py:91] - 所有路由已注册
+2025-05-20 17:27:27,326 - app - INFO - [app.py:97] - 启动Flask应用...
+2025-05-20 17:27:27,326 - app - INFO - [app.py:33] - Flask app secret key 已随机设置
+2025-05-20 17:27:27,328 - app - INFO - [app.py:91] - 所有路由已注册
+2025-05-20 17:27:31,383 - app - INFO - [app.py:33] - Flask app secret key 已随机设置
+2025-05-20 17:27:31,385 - app - INFO - [app.py:91] - 所有路由已注册
+2025-05-20 17:27:31,386 - app - INFO - [app.py:97] - 启动Flask应用...
+2025-05-20 17:27:31,386 - app - INFO - [app.py:33] - Flask app secret key 已随机设置
+2025-05-20 17:27:31,388 - app - INFO - [app.py:91] - 所有路由已注册

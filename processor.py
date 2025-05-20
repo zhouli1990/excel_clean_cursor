@@ -56,7 +56,10 @@ def read_input_file(
                 "电话/手机",
             ]
             converters = {col: str for col in possible_phone_cols}
-            df = pd.read_excel(file_path, engine="openpyxl", converters=converters)
+            all_sheets = pd.read_excel(
+                file_path, sheet_name=None, engine="openpyxl", converters=converters
+            )
+            df = pd.concat(all_sheets.values(), ignore_index=True).astype(str)
         elif file_path.endswith(".csv"):
             try:
                 df = pd.read_csv(file_path, encoding="utf-8")

@@ -1,0 +1,10 @@
+2025-05-20 11:58:05,420 - processor - INFO - Reading file: uploads/task_20250520_115805_6eed7624/250509-714生物医药沙龙名单-7.14完整.xlsx
+2025-05-20 11:58:05,800 - processor - INFO - Successfully read 139 rows from uploads/task_20250520_115805_6eed7624/250509-714生物医药沙龙名单-7.14完整.xlsx.
+2025-05-20 11:58:05,801 - processor - DEBUG - Original columns: ['安徽省首席信息官协会人员汇总', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', '序号', '会员类别', '工作单位', '姓名', '职务（职称）', '性别', '民族', '籍贯', '政治面貌', '文化程度', '行业', '社团职务', '是否交费', '联系电话', 'Unnamed: 14', 'Unnamed: 15', '参会嘉宾', '职务', '是否参会', '协会下设机构名册', '协会第三方平台名册', '安徽省首席信息官协会 专家委员会第一届专家名单', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10']
+2025-05-20 11:58:05,802 - processor - INFO - Added '行ID' column to DataFrame from uploads/task_20250520_115805_6eed7624/250509-714生物医药沙龙名单-7.14完整.xlsx.
+2025-05-20 11:58:05,803 - processor - INFO - Added source filename as '来源' column: 250509-714生物医药沙龙名单-7.14完整.xlsx
+2025-05-20 17:27:50,238 - processor - INFO - Reading file: uploads/task_20250520_172750_48d95c26/250509-714生物医药沙龙名单-7.14完整.xlsx
+2025-05-20 17:27:50,468 - processor - INFO - Successfully read 139 rows from uploads/task_20250520_172750_48d95c26/250509-714生物医药沙龙名单-7.14完整.xlsx.
+2025-05-20 17:27:50,469 - processor - DEBUG - Original columns: ['安徽省首席信息官协会人员汇总', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', '序号', '会员类别', '工作单位', '姓名', '职务（职称）', '性别', '民族', '籍贯', '政治面貌', '文化程度', '行业', '社团职务', '是否交费', '联系电话', 'Unnamed: 14', 'Unnamed: 15', '参会嘉宾', '职务', '是否参会', '协会下设机构名册', '协会第三方平台名册', '安徽省首席信息官协会 专家委员会第一届专家名单', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10']
+2025-05-20 17:27:50,474 - processor - INFO - Added '行ID' column to DataFrame from uploads/task_20250520_172750_48d95c26/250509-714生物医药沙龙名单-7.14完整.xlsx.
+2025-05-20 17:27:50,478 - processor - INFO - Added source filename as '来源' column: 250509-714生物医药沙龙名单-7.14完整.xlsx

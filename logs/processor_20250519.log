@@ -1,0 +1,20 @@
+2025-05-19 17:28:19,140 - processor - INFO - Reading file: uploads/task_20250519_172819_86b89059/250509-YZ快消零售CIO名单.xlsx
+2025-05-19 17:28:19,525 - processor - INFO - Successfully read 1852 rows from uploads/task_20250519_172819_86b89059/250509-YZ快消零售CIO名单.xlsx.
+2025-05-19 17:28:19,527 - processor - DEBUG - Original columns: ['Mobile', 'Email', 'Name', 'Company', 'Title', 'post']
+2025-05-19 17:28:19,549 - processor - INFO - Added '行ID' column to DataFrame from uploads/task_20250519_172819_86b89059/250509-YZ快消零售CIO名单.xlsx.
+2025-05-19 17:28:19,549 - processor - INFO - Added source filename as '来源' column: 250509-YZ快消零售CIO名单.xlsx
+2025-05-19 17:57:26,755 - processor - INFO - Reading file: uploads/task_20250519_175726_330005ff/250509-YZ快消零售CIO名单.xlsx
+2025-05-19 17:57:27,071 - processor - INFO - Successfully read 1852 rows from uploads/task_20250519_175726_330005ff/250509-YZ快消零售CIO名单.xlsx.
+2025-05-19 17:57:27,072 - processor - DEBUG - Original columns: ['Mobile', 'Email', 'Name', 'Company', 'Title', 'post']
+2025-05-19 17:57:27,080 - processor - INFO - Added '行ID' column to DataFrame from uploads/task_20250519_175726_330005ff/250509-YZ快消零售CIO名单.xlsx.
+2025-05-19 17:57:27,080 - processor - INFO - Added source filename as '来源' column: 250509-YZ快消零售CIO名单.xlsx
+2025-05-19 18:12:43,349 - processor - INFO - Reading file: uploads/task_20250519_181243_6adad0a5/250509-YZ快消零售CIO名单.xlsx
+2025-05-19 18:12:43,599 - processor - INFO - Successfully read 1852 rows from uploads/task_20250519_181243_6adad0a5/250509-YZ快消零售CIO名单.xlsx.
+2025-05-19 18:12:43,600 - processor - DEBUG - Original columns: ['Mobile', 'Email', 'Name', 'Company', 'Title', 'post']
+2025-05-19 18:12:43,605 - processor - INFO - Added '行ID' column to DataFrame from uploads/task_20250519_181243_6adad0a5/250509-YZ快消零售CIO名单.xlsx.
+2025-05-19 18:12:43,605 - processor - INFO - Added source filename as '来源' column: 250509-YZ快消零售CIO名单.xlsx
+2025-05-20 09:52:40,892 - processor - INFO - Reading file: uploads/task_20250520_095240_56ad0977/250509-YZ快消零售CIO名单.xlsx
+2025-05-20 09:52:41,192 - processor - INFO - Successfully read 1852 rows from uploads/task_20250520_095240_56ad0977/250509-YZ快消零售CIO名单.xlsx.
+2025-05-20 09:52:41,193 - processor - DEBUG - Original columns: ['Mobile', 'Email', 'Name', 'Company', 'Title', 'post']
+2025-05-20 09:52:41,201 - processor - INFO - Added '行ID' column to DataFrame from uploads/task_20250520_095240_56ad0977/250509-YZ快消零售CIO名单.xlsx.
+2025-05-20 09:52:41,201 - processor - INFO - Added source filename as '来源' column: 250509-YZ快消零售CIO名单.xlsx

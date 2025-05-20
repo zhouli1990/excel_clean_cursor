@@ -10,6 +10,7 @@ import openai  # 新增: 阿里云百炼 OpenAI 兼容接口
 import uuid
 from utils.logger import setup_logger
 import logging
+import math  # 本地导入避免修改文件顶部
 
 logger = setup_logger("postprocessor")
 
@@ -17,6 +18,9 @@ logger = setup_logger("postprocessor")
 DEEPSEEK_API_ENDPOINT = "https://api.deepseek.com/chat/completions"
 # 阿里云百炼默认参数
 BAILIAN_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+
+# 新增：分片写入相关常量与依赖
+CHUNK_SIZE = 10000  # 默认每 1 万行一个分片
 
 
 def check_duplicate_phones(
@@ -1051,7 +1055,6 @@ def create_multi_sheet_excel(
         with pd.ExcelWriter(
             output_filepath,
             engine="openpyxl",
-            engine_kwargs={"write_only": True},  # 流式写入
         ) as writer:
             for sheet_name, df_current_sheet_original in dfs_to_write.items():
                 if df_current_sheet_original is None:
@@ -1129,18 +1132,45 @@ def create_multi_sheet_excel(
                     pd.DataFrame().to_excel(writer, sheet_name=sheet_name, index=False)
                     continue
 
+                total_rows = len(df_current_sheet_to_write)
                 logger.debug(
-                    f"{task_info}写入Sheet '{sheet_name}'，共 {len(df_current_sheet_to_write)} 行 {len(valid_columns_to_write)} 列数据 (筛选后)"
+                    f"{task_info}写入Sheet '{sheet_name}'，共 {total_rows} 行 {len(valid_columns_to_write)} 列数据 (筛选后)"
                 )
-                df_current_sheet_to_write.to_excel(
-                    writer,
-                    sheet_name=sheet_name,
-                    index=False,
-                    columns=valid_columns_to_write,
-                )
-                logger.info(
-                    f"{task_info}已写入Sheet '{sheet_name}'，共 {len(df_current_sheet_to_write)} 行数据 (使用筛选后列)"
-                )
+
+                # === 分片写入开始 ===
+                if total_rows <= CHUNK_SIZE:
+                    # 行数未超阈值，按原逻辑一次性写入
+                    df_current_sheet_to_write.to_excel(
+                        writer,
+                        sheet_name=sheet_name,
+                        index=False,
+                        columns=valid_columns_to_write,
+                    )
+                    logger.info(
+                        f"{task_info}已写入Sheet '{sheet_name}'，共 {total_rows} 行数据 (单次写入)"
+                    )
+                else:
+                    # 超过阈值，按 CHUNK_SIZE 行分片写入
+                    num_chunks = math.ceil(total_rows / CHUNK_SIZE)
+                    for i in range(num_chunks):
+                        start = i * CHUNK_SIZE
+                        end = min((i + 1) * CHUNK_SIZE, total_rows)
+                        chunk_df = df_current_sheet_to_write.iloc[start:end]
+                        # startrow 需跳过表头 (仅首块写表头)
+                        start_row = start + (1 if i > 0 else 0)
+                        chunk_df.to_excel(
+                            writer,
+                            sheet_name=sheet_name,
+                            index=False,
+                            columns=valid_columns_to_write,
+                            header=(i == 0),
+                            startrow=start_row,
+                            if_sheet_exists="overlay",
+                        )
+                        logger.info(
+                            f"{task_info}已写入Sheet '{sheet_name}' 第 {i+1}/{num_chunks} 分片，行数: {len(chunk_df)}"
+                        )
+                # === 分片写入结束 ===
         logger.info(f"{task_info}成功写入所有Sheet到: {output_filepath}")
     except Exception as e:
         logger.error(

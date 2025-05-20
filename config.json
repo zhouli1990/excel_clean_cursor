@@ -21,15 +21,8 @@
         "APP_ID": "cli_a36634dc16b8d00e",
         "APP_SECRET": "RoXYTnSBGGsLLyvONbSCYe15Jm6bv5Xn",
         "APP_TOKEN": "DPwobNjCLaZHOasEErsc7UxWnZe",
-        "TABLE_IDS": [
-            "tbl3W83crD4gprdI",
-            "tblBz9fIT8DcBPxI",
-            "tblWoAngDoHIROmR",
-            "tblxjtX2fDnu1MRb"
-        ],
-        "ADD_TARGET_TABLE_IDS": [
-            "tblxjtX2fDnu1MRb"
-        ]
+        "TABLE_IDS": [],
+        "ADD_TARGET_TABLE_IDS": []
     },
     "post_processing_config": {
         "check_duplicate_phones": {

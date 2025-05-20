@@ -74,6 +74,10 @@
 </head>
 
 <body>
+    <!-- 日志导出按钮（仅开发/排障使用，可隐藏或放到调试面板） -->
+    <div style="position:fixed; top:10px; right:10px; z-index:9999;">
+        <button id="export-log-btn" class="btn btn-sm btn-secondary">导出前端日志</button>
+    </div>
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>表格数据清洗</h1>
@@ -414,6 +418,51 @@
     </div> <!-- End container -->
 
     <script>
+        /* ---------- 前端日志封装与导出 ---------- */
+        const logBuffer = [];
+        function pushLog(msg, type = 'log') {
+            const line = `[${new Date().toISOString()}] ${msg}`;
+            logBuffer.push(line);
+            // 同时输出到控制台
+            if (type === 'error') console.error(line);
+            else if (type === 'warn') console.warn(line);
+            else console.log(line);
+        }
+
+        // 重写全局 fetch 以统一日志
+        const _origFetch = window.fetch.bind(window);
+        window.fetch = async function (url, options = {}) {
+            const start = Date.now();
+            pushLog(`[FETCH-START] url=${url}`, 'log');
+            try {
+                const resp = await _origFetch(url, options);
+                const dur = Date.now() - start;
+                pushLog(`[FETCH-SUCCESS] url=${url} status=${resp.status} duration=${dur}ms`, 'log');
+                return resp;
+            } catch (err) {
+                const dur = Date.now() - start;
+                pushLog(`[FETCH-FAIL] url=${url} duration=${dur}ms error=${err}`, 'error');
+                throw err;
+            }
+        };
+
+        // 导出日志到文件
+        function exportLogs() {
+            const blob = new Blob([logBuffer.join('\n')], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `frontend_logs_${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        document.getElementById('export-log-btn').addEventListener('click', exportLogs);
+
+        // 捕获全局未处理异常
+        window.addEventListener('unhandledrejection', e => pushLog(`[UNHANDLED-REJECTION] ${e.reason}`, 'error'));
+        window.addEventListener('error', e => pushLog(`[JS-ERROR] ${e.message} ${e.error || ''}`, 'error'));
+        /* ---------- 日志封装与导出结束 ---------- */
+
         // DOM element references
         const uploadForm = document.getElementById('upload-form');
         const fileInput = document.getElementById('file-input');
@@ -723,8 +772,9 @@
         // Poll server for task progress
         function pollProgress(taskId) {
             if (intervalId) clearInterval(intervalId);
+            let failCount = 0;
 
-            intervalId = setInterval(async () => {
+            async function doPoll() {
                 try {
                     const response = await fetch(`/progress/${taskId}`);
                     if (!response.ok) {
@@ -732,11 +782,12 @@
                             console.warn(`Task ${taskId} not found. Stopping polling.`);
                             showWarningStatus('Task status unknown or completed.');
                             clearInterval(intervalId);
-                            currentTaskId = null; // Clear ID if task not found
+                            currentTaskId = null;
                             return;
                         }
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
+                    failCount = 0; // 成功后重置
                     const task = await response.json();
                     updateProgressBar(task.progress);
                     updateStatusMessage(task.status, task.error);
@@ -752,21 +803,16 @@
 
                             if (batchResponse.ok) {
                                 if (batchResult.status === 'completed') {
-                                    // 百炼任务已完成，更新UI显示
                                     updateStatusMessage('百炼批处理已完成，正在处理结果中...', null);
                                     updateProgressBar(90);
-                                    // 这里不需要停止轮询，继续轮询/progress以获取后续处理结果
                                 } else {
-                                    // 显示百炼任务的状态信息
                                     updateStatusMessage(batchResult.message || `百炼批处理中: ${batchResult.status}`, null);
                                 }
                             } else {
                                 console.warn(`检查百炼批处理状态失败: ${batchResult.error || '未知错误'}`);
-                                // 继续常规轮询，不中断
                             }
                         } catch (batchError) {
                             console.error('检查百炼批处理状态时发生错误:', batchError);
-                            // 继续常规轮询，不中断
                         }
                     }
 
@@ -776,19 +822,26 @@
                         if (task.status === 'Completed' && task.result_file) {
                             showDownloadLink(taskId, task.result_file);
                         } else {
-                            // Handle completed but no file (e.g., error during save)
-                            if (task.status !== 'Error') { // Avoid double message if already error
+                            if (task.status !== 'Error') {
                                 showWarningStatus('处理完成但未找到结果文件。');
                             }
                         }
                     }
                 } catch (error) {
-                    console.error('Polling error:', error);
-                    showErrorStatus(`Error checking progress: ${error.message}`);
-                    clearInterval(intervalId);
-                    currentTaskId = null; // Clear ID on error
+                    failCount++;
+                    if (failCount < 3) {
+                        setTimeout(doPoll, 500); // 500ms后重试
+                    } else {
+                        console.error('Polling error:', error);
+                        showErrorStatus(`Error checking progress: ${error.message}`);
+                        clearInterval(intervalId);
+                        currentTaskId = null;
+                    }
                 }
-            }, 2000);
+            }
+
+            intervalId = setInterval(doPoll, 2000);
+            doPoll(); // 立即执行一次
         }
 
         // Update progress bar display
